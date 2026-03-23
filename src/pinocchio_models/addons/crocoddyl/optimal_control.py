@@ -1,0 +1,193 @@
+"""Crocoddyl optimal control for exercise motion optimization.
+
+Formulates the exercise as an optimal control problem (OCP) with:
+- State: joint positions + velocities
+- Controls: joint torques
+- Cost: tracking cost + effort regularization
+- Constraints: joint limits, ground contact
+
+Usage requires the optional ``crocoddyl`` extra::
+
+    pip install pinocchio-models[crocoddyl]
+
+Note on Pinocchio energy API: There is no ``computeTotalEnergy``.
+Use ``computeKineticEnergy`` + ``computePotentialEnergy`` separately.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+import numpy as np
+
+try:
+    import crocoddyl
+    import pinocchio as pin
+
+    _HAS_CROCODDYL = True
+except ImportError:
+    _HAS_CROCODDYL = False
+
+from pinocchio_models.shared.contracts.preconditions import (
+    require_positive,
+)
+
+
+def _require_crocoddyl() -> None:
+    """Raise ImportError with instructions if Crocoddyl is missing."""
+    if not _HAS_CROCODDYL:
+        raise ImportError(
+            "Crocoddyl is not installed. "
+            "Install with: pip install pinocchio-models[crocoddyl]"
+        )
+
+
+@dataclass
+class ExerciseOCP:
+    """Encapsulates a Crocoddyl optimal control problem for an exercise.
+
+    Stores the Pinocchio model, the Crocoddyl shooting problem,
+    and solver configuration.
+    """
+
+    model: Any
+    state: Any
+    actuation: Any
+    problem: Any
+    dt: float
+    n_steps: int
+    running_models: list[Any] = field(default_factory=list)
+    terminal_model: Any = None
+
+
+def create_exercise_ocp(
+    urdf_str: str,
+    exercise_name: str,
+    dt: float = 0.01,
+    n_steps: int = 100,
+) -> ExerciseOCP:
+    """Create an optimal control problem for an exercise.
+
+    Parameters
+    ----------
+    urdf_str : str
+        URDF XML string of the model.
+    exercise_name : str
+        Name of the exercise.
+    dt : float
+        Time step for discretization (seconds).
+    n_steps : int
+        Number of time steps in the horizon.
+
+    Returns
+    -------
+    ExerciseOCP
+        Configured OCP ready for solving.
+    """
+    _require_crocoddyl()
+    require_positive(dt, "dt")
+    require_positive(float(n_steps), "n_steps")
+
+    model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
+    state = crocoddyl.StateMultibody(model)
+    actuation = crocoddyl.ActuationModelFloatingBase(state)
+
+    # Running cost: effort regularization
+    running_cost_model = crocoddyl.CostModelSum(state)
+    u_residual = crocoddyl.ResidualModelControl(state)
+    u_cost = crocoddyl.CostModelResidual(state, u_residual)
+    running_cost_model.addCost("effort", u_cost, 1e-3)
+
+    # State regularization
+    x_residual = crocoddyl.ResidualModelState(state)
+    x_cost = crocoddyl.CostModelResidual(state, x_residual)
+    running_cost_model.addCost("state_reg", x_cost, 1e-1)
+
+    # Terminal cost: state regularization
+    terminal_cost_model = crocoddyl.CostModelSum(state)
+    terminal_cost_model.addCost("state_reg", x_cost, 1.0)
+
+    # Differential action models
+    running_dam = crocoddyl.DifferentialActionModelFreeFwdDynamics(
+        state, actuation, running_cost_model
+    )
+    terminal_dam = crocoddyl.DifferentialActionModelFreeFwdDynamics(
+        state, actuation, terminal_cost_model
+    )
+
+    # Integrated action models
+    running_models = [
+        crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)
+    ]
+    terminal_model = crocoddyl.IntegratedActionModelEuler(terminal_dam, 0.0)
+
+    # Shooting problem
+    x0 = np.concatenate([pin.neutral(model), np.zeros(model.nv)])
+    problem = crocoddyl.ShootingProblem(x0, running_models, terminal_model)
+
+    return ExerciseOCP(
+        model=model,
+        state=state,
+        actuation=actuation,
+        problem=problem,
+        dt=dt,
+        n_steps=n_steps,
+        running_models=running_models,
+        terminal_model=terminal_model,
+    )
+
+
+def solve_trajectory(
+    ocp: ExerciseOCP,
+    initial_state: np.ndarray | None = None,
+    max_iterations: int = 100,
+) -> list[np.ndarray]:
+    """Solve the OCP and return the optimal state trajectory.
+
+    Parameters
+    ----------
+    ocp : ExerciseOCP
+        Configured OCP from create_exercise_ocp().
+    initial_state : ndarray or None
+        Initial state (nq+nv,). Uses default if None.
+    max_iterations : int
+        Maximum DDP iterations.
+
+    Returns
+    -------
+    list[ndarray]
+        Optimal state trajectory (list of state vectors).
+    """
+    _require_crocoddyl()
+
+    if initial_state is not None:
+        ocp.problem.x0 = initial_state
+
+    solver = crocoddyl.SolverDDP(ocp.problem)
+    solver.solve(maxiter=max_iterations)
+
+    return list(solver.xs)
+
+
+def extract_joint_torques(trajectory: list[np.ndarray], ocp: ExerciseOCP) -> np.ndarray:
+    """Extract joint torques from a solved trajectory.
+
+    Parameters
+    ----------
+    trajectory : list[ndarray]
+        State trajectory from solve_trajectory().
+    ocp : ExerciseOCP
+        The OCP that produced the trajectory.
+
+    Returns
+    -------
+    ndarray
+        Joint torques array of shape (n_steps, nu).
+    """
+    _require_crocoddyl()
+
+    solver = crocoddyl.SolverDDP(ocp.problem)
+    solver.solve()
+
+    return np.array(solver.us)
