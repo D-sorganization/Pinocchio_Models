@@ -19,7 +19,7 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
     Raises ValueError if the string is not valid URDF.
     """
     try:
-        root = ET.fromstring(xml_string)
+        root = ET.fromstring(xml_string)  # nosec B314 — parsing self-generated XML
     except ET.ParseError as exc:
         raise ValueError(f"Generated URDF is not well-formed XML: {exc}") from exc
     if root.tag != "robot":
