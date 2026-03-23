@@ -7,12 +7,12 @@ Segments (bilateral where noted):
 
 Joints (URDF revolute joints, Z-up convention):
   pelvis is the root link (Pinocchio adds FreeFlyer programmatically),
-  lumbar (revolute — flexion/extension about Y-axis),
+  lumbar (revolute -- flexion/extension about Y-axis),
   neck (revolute),
-  shoulder_{l,r} (revolute — flexion only for v0.1),
+  shoulder_{l,r} (revolute -- flexion only for v0.1),
   elbow_{l,r} (revolute),
   wrist_{l,r} (revolute),
-  hip_{l,r} (revolute — flexion/extension),
+  hip_{l,r} (revolute -- flexion/extension),
   knee_{l,r} (revolute),
   ankle_{l,r} (revolute)
 
@@ -23,7 +23,7 @@ Convention: Z-up (vertical), X-forward. Pinocchio adds the floating
 base programmatically via pin.JointModelFreeFlyer().
 
 Law of Demeter: exercise modules call create_full_body() and receive
-link elements — they never manipulate segment internals.
+link elements -- they never manipulate segment internals.
 """
 
 from __future__ import annotations
@@ -31,6 +31,24 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
+from pinocchio_models.shared.constants import (
+    ANKLE_FLEXION_MAX,
+    ANKLE_FLEXION_MIN,
+    ELBOW_FLEXION_MAX,
+    ELBOW_FLEXION_MIN,
+    HIP_FLEXION_MAX,
+    HIP_FLEXION_MIN,
+    KNEE_FLEXION_MAX,
+    KNEE_FLEXION_MIN,
+    LUMBAR_FLEXION_MAX,
+    LUMBAR_FLEXION_MIN,
+    NECK_FLEXION_MAX,
+    NECK_FLEXION_MIN,
+    SHOULDER_FLEXION_MAX,
+    SHOULDER_FLEXION_MIN,
+    WRIST_FLEXION_MAX,
+    WRIST_FLEXION_MIN,
+)
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
 )
@@ -147,7 +165,7 @@ def create_full_body(
 
     links: dict[str, ET.Element] = {}
 
-    # --- Pelvis (root link — Pinocchio adds FreeFlyer) ---
+    # --- Pelvis (root link -- Pinocchio adds FreeFlyer) ---
     p_mass, p_len, p_rad = _seg(spec, "pelvis")
     p_inertia = rectangular_prism_inertia(p_mass, p_rad * 2, p_len, p_rad * 2)
     links["pelvis"] = add_link(
@@ -179,8 +197,8 @@ def create_full_body(
         child="torso",
         origin_xyz=(0, 0, p_len / 2.0),
         axis=(0, 1, 0),
-        lower=-0.5236,
-        upper=0.7854,
+        lower=LUMBAR_FLEXION_MIN,
+        upper=LUMBAR_FLEXION_MAX,
     )
 
     # --- Head ---
@@ -202,8 +220,8 @@ def create_full_body(
         child="head",
         origin_xyz=(0, 0, t_len),
         axis=(0, 1, 0),
-        lower=-0.5236,
-        upper=0.5236,
+        lower=NECK_FLEXION_MIN,
+        upper=NECK_FLEXION_MAX,
     )
 
     # --- Arms ---
@@ -218,8 +236,8 @@ def create_full_body(
         parent_offset_z=shoulder_z,
         parent_lateral_y=shoulder_y,
         coord_prefix="shoulder",
-        range_min=-3.1416,
-        range_max=3.1416,
+        range_min=SHOULDER_FLEXION_MIN,
+        range_max=SHOULDER_FLEXION_MAX,
     )
 
     _ua_mass, ua_len, _ua_rad = _seg(spec, "upper_arm")
@@ -231,8 +249,8 @@ def create_full_body(
         parent_offset_z=-ua_len,
         parent_lateral_y=0,
         coord_prefix="elbow",
-        range_min=0,
-        range_max=2.618,
+        range_min=ELBOW_FLEXION_MIN,
+        range_max=ELBOW_FLEXION_MAX,
     )
 
     _fa_mass, fa_len, _fa_rad = _seg(spec, "forearm")
@@ -244,8 +262,8 @@ def create_full_body(
         parent_offset_z=-fa_len,
         parent_lateral_y=0,
         coord_prefix="wrist",
-        range_min=-1.2217,
-        range_max=1.2217,
+        range_min=WRIST_FLEXION_MIN,
+        range_max=WRIST_FLEXION_MAX,
     )
 
     # --- Legs ---
@@ -259,8 +277,8 @@ def create_full_body(
         parent_offset_z=-p_len / 2.0,
         parent_lateral_y=hip_y,
         coord_prefix="hip",
-        range_min=-0.5236,
-        range_max=2.0944,
+        range_min=HIP_FLEXION_MIN,
+        range_max=HIP_FLEXION_MAX,
     )
 
     _th_mass, th_len, _th_rad = _seg(spec, "thigh")
@@ -272,8 +290,8 @@ def create_full_body(
         parent_offset_z=-th_len,
         parent_lateral_y=0,
         coord_prefix="knee",
-        range_min=-2.618,
-        range_max=0,
+        range_min=KNEE_FLEXION_MIN,
+        range_max=KNEE_FLEXION_MAX,
     )
 
     _sh_mass, sh_len, _sh_rad = _seg(spec, "shank")
@@ -285,8 +303,8 @@ def create_full_body(
         parent_offset_z=-sh_len,
         parent_lateral_y=0,
         coord_prefix="ankle",
-        range_min=-0.7854,
-        range_max=0.7854,
+        range_min=ANKLE_FLEXION_MIN,
+        range_max=ANKLE_FLEXION_MAX,
     )
 
     return links

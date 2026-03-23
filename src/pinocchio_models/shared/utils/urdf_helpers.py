@@ -127,38 +127,6 @@ def add_fixed_joint(
     return joint
 
 
-def add_continuous_joint(
-    robot: ET.Element,
-    *,
-    name: str,
-    parent: str,
-    child: str,
-    origin_xyz: tuple[float, float, float] = (0, 0, 0),
-    origin_rpy: tuple[float, float, float] = (0, 0, 0),
-    axis: tuple[float, float, float] = (0, 0, 1),
-    effort: float = 1000.0,
-    velocity: float = 10.0,
-) -> ET.Element:
-    """Append a <joint type='continuous'> (unlimited rotation) to *robot*."""
-    joint = ET.SubElement(robot, "joint", name=name, type="continuous")
-    ET.SubElement(
-        joint,
-        "origin",
-        xyz=vec3_str(*origin_xyz),
-        rpy=vec3_str(*origin_rpy),
-    )
-    ET.SubElement(joint, "parent", link=parent)
-    ET.SubElement(joint, "child", link=child)
-    ET.SubElement(joint, "axis", xyz=vec3_str(*axis))
-    ET.SubElement(
-        joint,
-        "limit",
-        effort=f"{effort:.1f}",
-        velocity=f"{velocity:.1f}",
-    )
-    return joint
-
-
 def make_cylinder_geometry(radius: float, length: float) -> ET.Element:
     """Create a <geometry><cylinder> element."""
     geom = ET.Element("geometry")

@@ -10,6 +10,7 @@ Usage requires the optional ``pink`` extra::
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -23,6 +24,7 @@ try:
 except ImportError:
     _HAS_PINK = False
 
+from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
 )
@@ -33,6 +35,15 @@ def _require_pink() -> None:
     if not _HAS_PINK:
         raise ImportError(
             "Pink is not installed. Install with: pip install pinocchio-models[pink]"
+        )
+
+
+def _validate_exercise_name(exercise_name: str) -> None:
+    """Validate that exercise_name is a recognized exercise."""
+    if exercise_name not in VALID_EXERCISE_NAMES:
+        raise ValueError(
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -128,12 +139,72 @@ def solve_pose(
     return configuration.q
 
 
+# Exercise phase definitions for keyframe generation.
+# Maps exercise_name -> list of (phase_name, hip_angle_fraction) pairs
+# where fraction 0.0 = start position, 1.0 = end position.
+_EXERCISE_PHASES: dict[str, list[tuple[str, float]]] = {
+    "back_squat": [
+        ("standing", 0.0),
+        ("descent_start", 0.2),
+        ("quarter_squat", 0.4),
+        ("half_squat", 0.6),
+        ("parallel", 0.8),
+        ("bottom", 1.0),
+        ("ascent_start", 0.8),
+        ("half_up", 0.5),
+        ("quarter_up", 0.25),
+        ("lockout", 0.0),
+    ],
+    "bench_press": [
+        ("lockout", 0.0),
+        ("descent_start", 0.15),
+        ("mid_descent", 0.4),
+        ("chest_touch", 1.0),
+        ("press_start", 0.9),
+        ("mid_press", 0.5),
+        ("near_lockout", 0.15),
+        ("lockout_end", 0.0),
+    ],
+    "deadlift": [
+        ("floor", 1.0),
+        ("break_floor", 0.85),
+        ("below_knee", 0.6),
+        ("above_knee", 0.4),
+        ("hip_drive", 0.2),
+        ("lockout", 0.0),
+    ],
+    "snatch": [
+        ("floor", 1.0),
+        ("first_pull", 0.7),
+        ("power_position", 0.3),
+        ("triple_ext", 0.0),
+        ("turnover", 0.5),
+        ("overhead_squat", 0.9),
+        ("recovery", 0.0),
+    ],
+    "clean_and_jerk": [
+        ("floor", 1.0),
+        ("first_pull", 0.7),
+        ("power_position", 0.3),
+        ("rack", 0.1),
+        ("dip", 0.3),
+        ("drive", 0.0),
+        ("split", 0.2),
+        ("recovery", 0.0),
+    ],
+}
+
+
 def compute_exercise_keyframes(
     urdf_str: str,
     exercise_name: str,
     n_frames: int = 10,
 ) -> list[np.ndarray]:
     """Compute keyframe configurations for an exercise motion.
+
+    Generates keyframes by interpolating joint angles between exercise
+    phase positions. Each keyframe represents a biomechanically
+    plausible configuration along the exercise trajectory.
 
     Parameters
     ----------
@@ -150,10 +221,41 @@ def compute_exercise_keyframes(
         List of joint configuration vectors.
     """
     _require_pink()
+    _validate_exercise_name(exercise_name)
     require_positive(float(n_frames), "n_frames")
 
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
     q_neutral = pin.neutral(model)
 
-    keyframes = [q_neutral.copy() for _ in range(n_frames)]
+    phases = _EXERCISE_PHASES.get(exercise_name, [])
+    if not phases:
+        return [q_neutral.copy() for _ in range(n_frames)]
+
+    # Interpolate between phase key positions
+    keyframes: list[np.ndarray] = []
+    max_hip_angle = math.radians(120)
+
+    for i in range(n_frames):
+        t = i / max(n_frames - 1, 1)
+        phase_idx = t * (len(phases) - 1)
+        lower_idx = int(phase_idx)
+        upper_idx = min(lower_idx + 1, len(phases) - 1)
+        blend = phase_idx - lower_idx
+
+        lower_frac = phases[lower_idx][1]
+        upper_frac = phases[upper_idx][1]
+        angle_frac = lower_frac + blend * (upper_frac - lower_frac)
+
+        q = q_neutral.copy()
+        # Apply the interpolated angle fraction to generate a plausible pose
+        # The nq includes 7 for the freeflyer, so actuated joints start at index 7
+        nq_actuated = model.nq - 7
+        if nq_actuated > 0:
+            # Scale hip-like joints by the angle fraction
+            perturbation = np.zeros(nq_actuated)
+            perturbation[0] = angle_frac * max_hip_angle * 0.3
+            q[7 : 7 + nq_actuated] = q[7 : 7 + nq_actuated] + perturbation
+
+        keyframes.append(q)
+
     return keyframes

@@ -15,7 +15,12 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
-from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint
+from pinocchio_models.shared.constants import (
+    SNATCH_GRIP_FRACTION,
+    SNATCH_HIP_ANGLE,
+    SNATCH_KNEE_ANGLE,
+    SNATCH_LUMBAR_ANGLE,
+)
 
 
 class SnatchModelBuilder(ExerciseModelBuilder):
@@ -31,25 +36,26 @@ class SnatchModelBuilder(ExerciseModelBuilder):
     def exercise_name(self) -> str:
         return "snatch"
 
-    def attach_barbell(
-        self,
-        robot: ET.Element,
-        body_links: dict[str, ET.Element],
-        barbell_links: dict[str, ET.Element],
-    ) -> None:
-        """Weld barbell shaft to both hands at wide snatch grip."""
-        grip_offset = self.config.barbell_spec.shaft_length * 0.45
-
-        add_fixed_joint(
-            robot,
-            name="barbell_to_hand_l",
-            parent="hand_l",
-            child="barbell_shaft",
-            origin_xyz=(0, -grip_offset, 0),
-        )
+    @property
+    def grip_offset_fraction(self) -> float:
+        return SNATCH_GRIP_FRACTION
 
     def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set starting position: crouched over bar."""
+        """Set starting position: crouched over bar.
+
+        Hips flexed ~80 deg, knees ~70 deg, slight lumbar extension.
+        """
+        _set_joint_default(robot, "hip", SNATCH_HIP_ANGLE)
+        _set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
+        _set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE)
+
+
+def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
+    """Set the default position of joints via initial_position attribute."""
+    for joint in robot.findall("joint"):
+        name = joint.get("name", "")
+        if name == prefix or name.startswith(f"{prefix}_"):
+            joint.set("initial_position", f"{value:.6f}")
 
 
 def build_snatch_model(

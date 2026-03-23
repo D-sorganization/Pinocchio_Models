@@ -29,6 +29,7 @@ try:
 except ImportError:
     _HAS_CROCODDYL = False
 
+from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
 )
@@ -40,6 +41,15 @@ def _require_crocoddyl() -> None:
         raise ImportError(
             "Crocoddyl is not installed. "
             "Install with: pip install pinocchio-models[crocoddyl]"
+        )
+
+
+def _validate_exercise_name(exercise_name: str) -> None:
+    """Validate that exercise_name is a recognized exercise."""
+    if exercise_name not in VALID_EXERCISE_NAMES:
+        raise ValueError(
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -74,7 +84,7 @@ def create_exercise_ocp(
     urdf_str : str
         URDF XML string of the model.
     exercise_name : str
-        Name of the exercise.
+        Name of the exercise (must be one of the valid exercise names).
     dt : float
         Time step for discretization (seconds).
     n_steps : int
@@ -86,6 +96,7 @@ def create_exercise_ocp(
         Configured OCP ready for solving.
     """
     _require_crocoddyl()
+    _validate_exercise_name(exercise_name)
     require_positive(dt, "dt")
     require_positive(float(n_steps), "n_steps")
 
@@ -142,8 +153,8 @@ def solve_trajectory(
     ocp: ExerciseOCP,
     initial_state: np.ndarray | None = None,
     max_iterations: int = 100,
-) -> list[np.ndarray]:
-    """Solve the OCP and return the optimal state trajectory.
+) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    """Solve the OCP and return the optimal state trajectory and controls.
 
     Parameters
     ----------
@@ -156,8 +167,8 @@ def solve_trajectory(
 
     Returns
     -------
-    list[ndarray]
-        Optimal state trajectory (list of state vectors).
+    tuple[list[ndarray], list[ndarray]]
+        (states, controls) -- optimal state trajectory and control inputs.
     """
     _require_crocoddyl()
 
@@ -167,16 +178,22 @@ def solve_trajectory(
     solver = crocoddyl.SolverDDP(ocp.problem)
     solver.solve(maxiter=max_iterations)
 
-    return list(solver.xs)
+    return list(solver.xs), list(solver.us)
 
 
-def extract_joint_torques(trajectory: list[np.ndarray], ocp: ExerciseOCP) -> np.ndarray:
+def extract_joint_torques(
+    trajectory: tuple[list[np.ndarray], list[np.ndarray]],
+    ocp: ExerciseOCP,
+) -> np.ndarray:
     """Extract joint torques from a solved trajectory.
+
+    Uses the controls from the already-solved trajectory rather than
+    re-solving the OCP.
 
     Parameters
     ----------
-    trajectory : list[ndarray]
-        State trajectory from solve_trajectory().
+    trajectory : tuple[list[ndarray], list[ndarray]]
+        (states, controls) tuple from solve_trajectory().
     ocp : ExerciseOCP
         The OCP that produced the trajectory.
 
@@ -187,7 +204,5 @@ def extract_joint_torques(trajectory: list[np.ndarray], ocp: ExerciseOCP) -> np.
     """
     _require_crocoddyl()
 
-    solver = crocoddyl.SolverDDP(ocp.problem)
-    solver.solve()
-
-    return np.array(solver.us)
+    _states, controls = trajectory
+    return np.array(controls)
