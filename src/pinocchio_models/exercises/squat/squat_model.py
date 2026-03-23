@@ -16,6 +16,11 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
+from pinocchio_models.shared.constants import (
+    SQUAT_ANKLE_ANGLE,
+    SQUAT_HIP_ANGLE,
+    SQUAT_KNEE_ANGLE,
+)
 from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint
 
 
@@ -23,7 +28,8 @@ class SquatModelBuilder(ExerciseModelBuilder):
     """Builds a back-squat URDF model for Pinocchio.
 
     The barbell is welded to the torso at the approximate position of the
-    upper trapezius (high-bar squat).
+    upper trapezius (high-bar squat). Overrides the default attach_barbell
+    since the squat does not use hand grip attachment.
     """
 
     def __init__(self, config: ExerciseConfig | None = None) -> None:
@@ -52,7 +58,21 @@ class SquatModelBuilder(ExerciseModelBuilder):
         )
 
     def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set standing unrack position: neutral joint angles."""
+        """Set standing unrack position: neutral joint angles.
+
+        All leg joints at neutral (standing straight).
+        """
+        _set_joint_default(robot, "hip", SQUAT_HIP_ANGLE)
+        _set_joint_default(robot, "knee", SQUAT_KNEE_ANGLE)
+        _set_joint_default(robot, "ankle", SQUAT_ANKLE_ANGLE)
+
+
+def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
+    """Set the default position of joints via initial_position attribute."""
+    for joint in robot.findall("joint"):
+        name = joint.get("name", "")
+        if name == prefix or name.startswith(f"{prefix}_"):
+            joint.set("initial_position", f"{value:.6f}")
 
 
 def build_squat_model(

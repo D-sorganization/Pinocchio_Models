@@ -15,7 +15,12 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
-from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint
+from pinocchio_models.shared.constants import (
+    CLEAN_AND_JERK_GRIP_FRACTION,
+    CLEAN_AND_JERK_HIP_ANGLE,
+    CLEAN_AND_JERK_KNEE_ANGLE,
+    CLEAN_AND_JERK_LUMBAR_ANGLE,
+)
 
 
 class CleanAndJerkModelBuilder(ExerciseModelBuilder):
@@ -31,25 +36,26 @@ class CleanAndJerkModelBuilder(ExerciseModelBuilder):
     def exercise_name(self) -> str:
         return "clean_and_jerk"
 
-    def attach_barbell(
-        self,
-        robot: ET.Element,
-        body_links: dict[str, ET.Element],
-        barbell_links: dict[str, ET.Element],
-    ) -> None:
-        """Weld barbell shaft to both hands at shoulder-width grip."""
-        grip_offset = self.config.barbell_spec.shaft_length * 0.28
-
-        add_fixed_joint(
-            robot,
-            name="barbell_to_hand_l",
-            parent="hand_l",
-            child="barbell_shaft",
-            origin_xyz=(0, -grip_offset, 0),
-        )
+    @property
+    def grip_offset_fraction(self) -> float:
+        return CLEAN_AND_JERK_GRIP_FRACTION
 
     def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set starting position: crouched over bar."""
+        """Set starting position: crouched over bar.
+
+        Hips flexed ~75 deg, knees ~65 deg, slight lumbar extension.
+        """
+        _set_joint_default(robot, "hip", CLEAN_AND_JERK_HIP_ANGLE)
+        _set_joint_default(robot, "knee", CLEAN_AND_JERK_KNEE_ANGLE)
+        _set_joint_default(robot, "lumbar", CLEAN_AND_JERK_LUMBAR_ANGLE)
+
+
+def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
+    """Set the default position of joints via initial_position attribute."""
+    for joint in robot.findall("joint"):
+        name = joint.get("name", "")
+        if name == prefix or name.startswith(f"{prefix}_"):
+            joint.set("initial_position", f"{value:.6f}")
 
 
 def build_clean_and_jerk_model(

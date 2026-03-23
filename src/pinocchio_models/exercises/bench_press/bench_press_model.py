@@ -14,7 +14,13 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
-from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint
+from pinocchio_models.shared.constants import (
+    BENCH_PRESS_ELBOW_ANGLE,
+    BENCH_PRESS_GRIP_FRACTION,
+    BENCH_PRESS_HIP_ANGLE,
+    BENCH_PRESS_KNEE_ANGLE,
+    BENCH_PRESS_SHOULDER_ANGLE,
+)
 
 
 class BenchPressModelBuilder(ExerciseModelBuilder):
@@ -31,25 +37,34 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
     def exercise_name(self) -> str:
         return "bench_press"
 
-    def attach_barbell(
-        self,
-        robot: ET.Element,
-        body_links: dict[str, ET.Element],
-        barbell_links: dict[str, ET.Element],
-    ) -> None:
-        """Weld barbell shaft to both hands at grip position."""
-        grip_offset = self.config.barbell_spec.shaft_length * 0.3
-
-        add_fixed_joint(
-            robot,
-            name="barbell_to_hand_l",
-            parent="hand_l",
-            child="barbell_shaft",
-            origin_xyz=(0, -grip_offset, 0),
-        )
+    @property
+    def grip_offset_fraction(self) -> float:
+        return BENCH_PRESS_GRIP_FRACTION
 
     def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set lockout position: arms extended above chest."""
+        """Set lockout position: arms extended above chest.
+
+        Shoulders at 90 deg (arms pointing up), elbows straight,
+        hips neutral (supine), knees at 90 deg (feet on floor).
+        """
+        _set_joint_default(robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE)
+        _set_joint_default(robot, "elbow", BENCH_PRESS_ELBOW_ANGLE)
+        _set_joint_default(robot, "hip", BENCH_PRESS_HIP_ANGLE)
+        _set_joint_default(robot, "knee", BENCH_PRESS_KNEE_ANGLE)
+
+
+def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
+    """Set the default position of bilateral joints via URDF comments.
+
+    Stores initial pose as an XML comment for downstream consumers.
+    Pinocchio does not read default joint values from URDF, but this
+    documents the intended starting configuration.
+    """
+    for side in ("l", "r"):
+        joint_name = f"{prefix}_{side}"
+        for joint in robot.findall("joint"):
+            if joint.get("name") == joint_name:
+                joint.set("initial_position", f"{value:.6f}")
 
 
 def build_bench_press_model(

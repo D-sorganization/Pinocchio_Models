@@ -77,6 +77,14 @@ class TestParallelAxisShift:
         # Izz: same as Iyy
         assert izz == pytest.approx(3.0)
 
+    def test_rejects_wrong_shape_displacement(self) -> None:
+        with pytest.raises(ValueError, match="must have shape"):
+            parallel_axis_shift(1.0, (1.0, 1.0, 1.0), np.array([1.0, 2.0]))
+
+    def test_rejects_4d_displacement(self) -> None:
+        with pytest.raises(ValueError, match="must have shape"):
+            parallel_axis_shift(1.0, (1.0, 1.0, 1.0), np.array([1.0, 2.0, 3.0, 4.0]))
+
 
 class TestRotationMatrices:
     def test_identity_at_zero(self):

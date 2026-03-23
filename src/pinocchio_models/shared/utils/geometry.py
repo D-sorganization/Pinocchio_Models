@@ -18,6 +18,7 @@ from pinocchio_models.shared.contracts.postconditions import (
 )
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
+    require_shape,
 )
 
 
@@ -98,6 +99,7 @@ def parallel_axis_shift(
     """
     require_positive(mass, "mass")
     d = np.asarray(displacement, dtype=float)
+    require_shape(d, (3,), "displacement")
     dx, dy, dz = d[0], d[1], d[2]
     d_sq = float(np.dot(d, d))
 

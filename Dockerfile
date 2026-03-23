@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 # Pinocchio ecosystem via conda-forge
 RUN conda install -y -c conda-forge \
-    python=3.12 numpy scipy matplotlib \
+    python=3.11 numpy matplotlib \
     pinocchio crocoddyl \
     && conda clean --all --yes
 RUN pip install --no-cache-dir \
-    lxml pin-pink qpsolvers osqp \
+    pin-pink qpsolvers osqp \
     pytest pytest-cov pytest-xdist pytest-timeout pytest-mock \
     ruff mypy hypothesis
 
