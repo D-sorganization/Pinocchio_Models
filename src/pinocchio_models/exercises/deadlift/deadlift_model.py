@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
 from pinocchio_models.shared.constants import (
+    DEADLIFT_ANKLE_ANGLE,
     DEADLIFT_GRIP_FRACTION,
     DEADLIFT_HIP_ANGLE,
     DEADLIFT_KNEE_ANGLE,
@@ -55,6 +56,7 @@ class DeadliftModelBuilder(ExerciseModelBuilder):
         set_joint_default(robot, "hip", DEADLIFT_HIP_ANGLE)
         set_joint_default(robot, "knee", DEADLIFT_KNEE_ANGLE)
         set_joint_default(robot, "lumbar", DEADLIFT_LUMBAR_ANGLE)
+        set_joint_default(robot, "ankle", DEADLIFT_ANKLE_ANGLE)
 
 
 def build_deadlift_model(

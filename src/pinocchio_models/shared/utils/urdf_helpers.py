@@ -31,8 +31,12 @@ which reads those attributes back and returns a numpy array compatible with
 
 from __future__ import annotations
 
+import logging
+import math
 import xml.etree.ElementTree as ET
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def vec3_str(x: float, y: float, z: float) -> str:
@@ -54,9 +58,17 @@ def add_link(
     ixz: float = 0.0,
     iyz: float = 0.0,
     visual_geometry: ET.Element | None = None,
+    visual_origin_rpy: tuple[float, float, float] = (0.0, 0.0, 0.0),
     collision_geometry: ET.Element | None = None,
 ) -> ET.Element:
-    """Append a <link> element with <inertial>, optional <visual>/<collision>."""
+    """Append a <link> element with <inertial>, optional <visual>/<collision>.
+
+    Parameters
+    ----------
+    visual_origin_rpy:
+        Roll-pitch-yaw for the visual geometry origin. Use ``(math.pi/2, 0, 0)``
+        to rotate a cylinder from its default Z-axis orientation to lie along Y.
+    """
     link = ET.SubElement(robot, "link", name=name)
 
     # Inertial
@@ -81,7 +93,12 @@ def add_link(
 
     if visual_geometry is not None:
         visual = ET.SubElement(link, "visual")
-        ET.SubElement(visual, "origin", xyz="0 0 0", rpy="0 0 0")
+        ET.SubElement(
+            visual,
+            "origin",
+            xyz="0 0 0",
+            rpy=vec3_str(*visual_origin_rpy),
+        )
         visual.append(visual_geometry)
 
     if collision_geometry is not None:
@@ -101,8 +118,8 @@ def add_revolute_joint(
     origin_xyz: tuple[float, float, float] = (0, 0, 0),
     origin_rpy: tuple[float, float, float] = (0, 0, 0),
     axis: tuple[float, float, float] = (0, 0, 1),
-    lower: float = -1.5708,
-    upper: float = 1.5708,
+    lower: float = -math.pi / 2,
+    upper: float = math.pi / 2,
     effort: float = 1000.0,
     velocity: float = 10.0,
 ) -> ET.Element:
@@ -271,7 +288,8 @@ def get_initial_configuration(model: Any, xml_str: str) -> Any:
         joint_name = joint_el.get("name", "")
         try:
             joint_id = model.getJointId(joint_name)
-        except Exception:
+        except Exception as _e:
+            logger.warning("Joint %s not found in model: %s", joint_name, _e)
             continue
         if joint_id >= len(model.joints):
             continue

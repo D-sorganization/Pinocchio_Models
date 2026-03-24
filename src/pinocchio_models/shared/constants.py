@@ -16,12 +16,14 @@ import math
 # Winter (2009) anatomically validated ranges.
 
 # Lumbar spine (flexion/extension about Y)
-LUMBAR_FLEXION_MIN: float = math.radians(-10)  # Extension ~10 deg
+# Kapandji (2008) cites ~20-35° extension; deadlift lockout requires >10°.
+LUMBAR_FLEXION_MIN: float = math.radians(-25)  # Extension ~25 deg
 LUMBAR_FLEXION_MAX: float = math.radians(45)  # Flexion ~45 deg
 
 # Neck (flexion/extension about Y)
-NECK_FLEXION_MIN: float = -math.radians(30)  # -0.5236
-NECK_FLEXION_MAX: float = math.radians(30)  # 0.5236
+# Winter (2009) cites ~50-70° flexion and ~60° extension.
+NECK_FLEXION_MIN: float = math.radians(-60)  # Extension ~60 deg
+NECK_FLEXION_MAX: float = math.radians(70)  # Flexion ~70 deg
 
 # Shoulder (sagittal plane flexion/extension)
 # Extension: -30 deg; Full flexion: 180 deg -- Winter (2009)
@@ -59,6 +61,7 @@ BENCH_PRESS_KNEE_ANGLE: float = -math.radians(90)  # feet flat on floor
 DEADLIFT_HIP_ANGLE: float = math.radians(80)
 DEADLIFT_KNEE_ANGLE: float = -math.radians(60)
 DEADLIFT_LUMBAR_ANGLE: float = math.radians(10)
+DEADLIFT_ANKLE_ANGLE: float = math.radians(18)  # Dorsiflexion at setup
 
 # Squat: standing (unrack position)
 SQUAT_HIP_ANGLE: float = 0.0
@@ -69,11 +72,13 @@ SQUAT_ANKLE_ANGLE: float = 0.0
 SNATCH_HIP_ANGLE: float = math.radians(80)
 SNATCH_KNEE_ANGLE: float = -math.radians(70)
 SNATCH_LUMBAR_ANGLE: float = math.radians(15)
+SNATCH_ANKLE_ANGLE: float = math.radians(20)  # Dorsiflexion at setup (wider stance)
 
 # Clean and jerk: crouched over bar (shoulder-width grip)
 CLEAN_AND_JERK_HIP_ANGLE: float = math.radians(75)
 CLEAN_AND_JERK_KNEE_ANGLE: float = -math.radians(65)
 CLEAN_AND_JERK_LUMBAR_ANGLE: float = math.radians(10)
+CLEAN_AND_JERK_ANKLE_ANGLE: float = math.radians(18)  # Dorsiflexion at setup
 
 # --- Grip width fractions (fraction of shaft length from center) ---
 BENCH_PRESS_GRIP_FRACTION: float = 0.3

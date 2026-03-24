@@ -15,6 +15,7 @@ internal geometry details remain encapsulated.
 
 from __future__ import annotations
 
+import math
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
@@ -119,14 +120,23 @@ def create_barbell_links(
     symmetrically along the Y-axis (left = -Y, right = +Y).
     Z-up convention: barbell lies horizontally in the Y-axis.
     """
-    shaft_inertia = cylinder_inertia(
+    # cylinder_inertia() assumes the cylinder axis is Z.
+    # The barbell lies along Y (sleeves at ±Y offsets), so swap iyy and izz
+    # to correct the axial vs. transverse inertia assignment.
+    # After swap: iyy = 0.5·m·r²  (axial, Y), izz = (1/12)·m·(3r²+L²)  (transverse)
+    _shaft_ixx, _shaft_iyy, _shaft_izz = cylinder_inertia(
         spec.shaft_mass, spec.shaft_radius, spec.shaft_length
     )
+    _shaft_iyy, _shaft_izz = _shaft_izz, _shaft_iyy  # Y-axis cylinder correction
 
     sleeve_total_mass = spec.sleeve_mass + spec.plate_mass_per_side
-    sleeve_inertia = cylinder_inertia(
+    _slv_ixx, _slv_iyy, _slv_izz = cylinder_inertia(
         sleeve_total_mass, spec.sleeve_radius, spec.sleeve_length
     )
+    _slv_iyy, _slv_izz = _slv_izz, _slv_iyy  # Y-axis cylinder correction
+
+    # Rotate visual cylinders 90° about X so they render along Y (not Z).
+    _barbell_visual_rpy = (math.pi / 2, 0.0, 0.0)
 
     shaft_name = f"{prefix}_shaft"
     left_name = f"{prefix}_left_sleeve"
@@ -137,10 +147,11 @@ def create_barbell_links(
         name=shaft_name,
         mass=spec.shaft_mass,
         origin_xyz=(0, 0, 0),
-        ixx=shaft_inertia[0],
-        iyy=shaft_inertia[1],
-        izz=shaft_inertia[2],
+        ixx=_shaft_ixx,
+        iyy=_shaft_iyy,
+        izz=_shaft_izz,
         visual_geometry=make_cylinder_geometry(spec.shaft_radius, spec.shaft_length),
+        visual_origin_rpy=_barbell_visual_rpy,
     )
 
     left_link = add_link(
@@ -148,10 +159,11 @@ def create_barbell_links(
         name=left_name,
         mass=sleeve_total_mass,
         origin_xyz=(0, 0, 0),
-        ixx=sleeve_inertia[0],
-        iyy=sleeve_inertia[1],
-        izz=sleeve_inertia[2],
+        ixx=_slv_ixx,
+        iyy=_slv_iyy,
+        izz=_slv_izz,
         visual_geometry=make_cylinder_geometry(spec.sleeve_radius, spec.sleeve_length),
+        visual_origin_rpy=_barbell_visual_rpy,
     )
 
     right_link = add_link(
@@ -159,10 +171,11 @@ def create_barbell_links(
         name=right_name,
         mass=sleeve_total_mass,
         origin_xyz=(0, 0, 0),
-        ixx=sleeve_inertia[0],
-        iyy=sleeve_inertia[1],
-        izz=sleeve_inertia[2],
+        ixx=_slv_ixx,
+        iyy=_slv_iyy,
+        izz=_slv_izz,
         visual_geometry=make_cylinder_geometry(spec.sleeve_radius, spec.sleeve_length),
+        visual_origin_rpy=_barbell_visual_rpy,
     )
 
     half_shaft = spec.shaft_length / 2.0
