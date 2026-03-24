@@ -263,7 +263,7 @@ def get_initial_configuration(model: Any, xml_str: str) -> Any:
 
     q = pin.neutral(model)
 
-    root = ET.fromstring(xml_str)
+    root = ET.fromstring(xml_str)  # nosec B314 -- xml_str is internally generated URDF
     for joint_el in root.findall("joint"):
         initial_pos_str = joint_el.get("initial_position")
         if initial_pos_str is None:
