@@ -25,13 +25,13 @@ class TestSnatchModelBuilder:
         xml_str = build_snatch_model()
         root = ET.fromstring(xml_str)
         assert root.tag == "robot"
-        assert root.get("name") == "snatch"
+        assert root.get("name") == "snatch"  # type: ignore
 
     def test_barbell_attached_to_both_hands(self) -> None:
         xml_str = build_snatch_model()
         root = ET.fromstring(xml_str)
         joints = root.findall("joint")
-        joint_names = {j.get("name") for j in joints}
+        joint_names = {j.get("name") for j in joints}  # type: ignore
         assert "barbell_to_hand_l" in joint_names
         assert "barbell_to_hand_r" in joint_names
 
@@ -58,11 +58,13 @@ class TestSnatchModelBuilder:
         xml_str = build_snatch_model()
         root = ET.fromstring(xml_str)
         hip_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("hip_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("hip_")  # type: ignore
         ]
         for j in hip_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SNATCH_HIP_ANGLE, abs=1e-4
             )
 
@@ -70,11 +72,13 @@ class TestSnatchModelBuilder:
         xml_str = build_snatch_model()
         root = ET.fromstring(xml_str)
         knee_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("knee_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("knee_")  # type: ignore
         ]
         for j in knee_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SNATCH_KNEE_ANGLE, abs=1e-4
             )
 
@@ -82,11 +86,13 @@ class TestSnatchModelBuilder:
         xml_str = build_snatch_model()
         root = ET.fromstring(xml_str)
         ankle_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("ankle_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("ankle_")  # type: ignore
         ]
         for j in ankle_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SNATCH_ANKLE_ANGLE, abs=1e-4
             )
 

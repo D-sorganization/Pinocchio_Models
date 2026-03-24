@@ -24,20 +24,20 @@ class TestSquatModelBuilder:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         assert root.tag == "robot"
-        assert root.get("name") == "back_squat"
+        assert root.get("name") == "back_squat"  # type: ignore
 
     def test_barbell_attached_to_torso(self) -> None:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         joints = root.findall("joint")
-        joint_names = {j.get("name") for j in joints}
+        joint_names = {j.get("name") for j in joints}  # type: ignore
         assert "barbell_to_torso" in joint_names
 
     def test_barbell_not_attached_to_hands(self) -> None:
         """Squat attaches to torso, not hands."""
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
-        joint_names = {j.get("name") for j in root.findall("joint")}
+        joint_names = {j.get("name") for j in root.findall("joint")}  # type: ignore
         assert "barbell_to_hand_l" not in joint_names
         assert "barbell_to_hand_r" not in joint_names
 
@@ -60,17 +60,19 @@ class TestSquatModelBuilder:
         root = ET.fromstring(xml_str)
         for joint in root.findall("joint"):
             if joint.get("name") == "barbell_to_torso":
-                assert joint.get("type") == "fixed"
+                assert joint.get("type") == "fixed"  # type: ignore
 
     def test_initial_pose_sets_defaults(self) -> None:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         hip_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("hip_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("hip_")  # type: ignore
         ]
         for j in hip_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SQUAT_HIP_ANGLE, abs=1e-4
             )
 
@@ -78,11 +80,13 @@ class TestSquatModelBuilder:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         knee_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("knee_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("knee_")  # type: ignore
         ]
         for j in knee_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SQUAT_KNEE_ANGLE, abs=1e-4
             )
 
@@ -90,11 +94,13 @@ class TestSquatModelBuilder:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         ankle_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("ankle_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("ankle_")  # type: ignore
         ]
         for j in ankle_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SQUAT_ANKLE_ANGLE, abs=1e-4
             )
 

@@ -27,7 +27,7 @@ class TestCrocoddylOCImportGuard:
             importlib.reload(oc_mod)
 
             with pytest.raises(ImportError, match="Crocoddyl is not installed"):
-                oc_mod.solve_trajectory(None)
+                oc_mod.solve_trajectory(None)  # type: ignore
 
     def test_extract_torques_raises_without_crocoddyl(self) -> None:
         with patch.dict("sys.modules", {"crocoddyl": None, "pinocchio": None}):
@@ -38,7 +38,7 @@ class TestCrocoddylOCImportGuard:
             importlib.reload(oc_mod)
 
             with pytest.raises(ImportError, match="Crocoddyl is not installed"):
-                oc_mod.extract_joint_torques(([], []), None)
+                oc_mod.extract_joint_torques(([], []), None)  # type: ignore
 
 
 class TestExerciseNameValidation:

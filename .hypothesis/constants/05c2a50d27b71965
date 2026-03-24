@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\exercises\base.py
+# hypothesis_version: 6.151.9
+
+[0.3, 'Building %s model', 'barbell_shaft', 'barbell_to_hand_l', 'barbell_to_hand_r', 'hand_l', 'hand_r', 'robot']

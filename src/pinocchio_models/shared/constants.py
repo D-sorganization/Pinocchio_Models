@@ -114,4 +114,3 @@ SHOULDER_LATERAL_FRAC_OF_HEIGHT: float = 0.1295
 # Hip lateral offset (bi-iliocristal breadth half-width) as a fraction of total height.
 # Bi-iliocristal breadth is approx 0.191 * height for standard male (Drillis & Contini).
 HIP_LATERAL_FRAC_OF_HEIGHT: float = 0.0955
-

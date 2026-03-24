@@ -26,10 +26,10 @@ class TestAddLink:
     def test_creates_link_with_inertial(self) -> None:
         robot = ET.Element("robot", name="test")
         link = add_link(robot, name="body1", mass=5.0, ixx=0.1, iyy=0.2, izz=0.3)
-        assert link.get("name") == "body1"
+        assert link.get("name") == "body1"  # type: ignore
         inertial = link.find("inertial")
         assert inertial is not None
-        assert inertial.find("mass").get("value") == "5.000000"
+        assert inertial.find("mass").get("value") == "5.000000"  # type: ignore
 
     def test_creates_link_with_visual(self) -> None:
         robot = ET.Element("robot", name="test")
@@ -45,7 +45,7 @@ class TestAddLink:
         )
         visual = link.find("visual")
         assert visual is not None
-        assert visual.find("geometry/cylinder") is not None
+        assert visual.find("geometry/cylinder") is not None  # type: ignore
 
 
 class TestAddRevoluteJoint:
@@ -59,20 +59,20 @@ class TestAddRevoluteJoint:
             origin_xyz=(0, 0, 1),
             axis=(0, 1, 0),
         )
-        assert joint.get("type") == "revolute"
-        assert joint.find("parent").get("link") == "p"
-        assert joint.find("child").get("link") == "c"
-        assert joint.find("axis") is not None
-        assert joint.find("limit") is not None
+        assert joint.get("type") == "revolute"  # type: ignore
+        assert joint.find("parent").get("link") == "p"  # type: ignore
+        assert joint.find("child").get("link") == "c"  # type: ignore
+        assert joint.find("axis") is not None  # type: ignore
+        assert joint.find("limit") is not None  # type: ignore
 
 
 class TestAddFixedJoint:
     def test_creates_fixed_joint(self) -> None:
         robot = ET.Element("robot", name="test")
         joint = add_fixed_joint(robot, name="w1", parent="p", child="c")
-        assert joint.get("type") == "fixed"
-        assert joint.find("parent").get("link") == "p"
-        assert joint.find("child").get("link") == "c"
+        assert joint.get("type") == "fixed"  # type: ignore
+        assert joint.find("parent").get("link") == "p"  # type: ignore
+        assert joint.find("child").get("link") == "c"  # type: ignore
 
 
 class TestGeometryFactories:
@@ -80,8 +80,8 @@ class TestGeometryFactories:
         geom = make_cylinder_geometry(0.05, 1.0)
         cyl = geom.find("cylinder")
         assert cyl is not None
-        assert cyl.get("radius") == "0.050000"
-        assert cyl.get("length") == "1.000000"
+        assert cyl.get("radius") == "0.050000"  # type: ignore
+        assert cyl.get("length") == "1.000000"  # type: ignore
 
     def test_box(self) -> None:
         geom = make_box_geometry(1.0, 2.0, 3.0)
@@ -92,7 +92,7 @@ class TestGeometryFactories:
         geom = make_sphere_geometry(0.1)
         sph = geom.find("sphere")
         assert sph is not None
-        assert sph.get("radius") == "0.100000"
+        assert sph.get("radius") == "0.100000"  # type: ignore
 
 
 class TestSerializeModel:

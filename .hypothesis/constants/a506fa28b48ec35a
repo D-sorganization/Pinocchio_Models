@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\shared\constants.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.0955, 0.1295, 0.28, 0.3, 0.45, 0.82, -150, 120, 150, 180, 'back_squat', 'bench_press', 'clean_and_jerk', 'deadlift', 'snatch']
