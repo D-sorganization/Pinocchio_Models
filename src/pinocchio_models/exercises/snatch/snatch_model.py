@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
 from pinocchio_models.shared.constants import (
+    SNATCH_ANKLE_ANGLE,
     SNATCH_GRIP_FRACTION,
     SNATCH_HIP_ANGLE,
     SNATCH_KNEE_ANGLE,
@@ -55,6 +56,7 @@ class SnatchModelBuilder(ExerciseModelBuilder):
         set_joint_default(robot, "hip", SNATCH_HIP_ANGLE)
         set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
         set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE)
+        set_joint_default(robot, "ankle", SNATCH_ANKLE_ANGLE)
 
 
 def build_snatch_model(

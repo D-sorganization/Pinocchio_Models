@@ -10,7 +10,6 @@ Usage requires the optional ``pink`` extra::
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -24,10 +23,14 @@ try:
 except ImportError:
     _HAS_PINK = False
 
-from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
+import logging
+
+from pinocchio_models.shared.constants import HIP_FLEXION_MAX, VALID_EXERCISE_NAMES
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _require_pink() -> None:
@@ -233,7 +236,7 @@ def compute_exercise_keyframes(
 
     # Interpolate between phase key positions
     keyframes: list[np.ndarray] = []
-    max_hip_angle = math.radians(120)
+    max_hip_angle = HIP_FLEXION_MAX
 
     for i in range(n_frames):
         t = i / max(n_frames - 1, 1)
@@ -252,7 +255,8 @@ def compute_exercise_keyframes(
         try:
             root_joint_id = model.getJointId("root_joint")
             freeflyer_nq = model.joints[root_joint_id].nq
-        except Exception:
+        except Exception as _e:
+            logger.warning("root_joint not found in model, using fallback nq=7: %s", _e)
             freeflyer_nq = 7  # Fallback for standard FreeFlyer
         nq_actuated = model.nq - freeflyer_nq
         if nq_actuated <= 0:

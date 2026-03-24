@@ -19,14 +19,18 @@ from dataclasses import dataclass, field
 from pinocchio_models.shared.barbell import BarbellSpec, create_barbell_links
 from pinocchio_models.shared.body import BodyModelSpec, create_full_body
 from pinocchio_models.shared.contracts.postconditions import ensure_valid_urdf
-from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint, serialize_model
+from pinocchio_models.shared.utils.urdf_helpers import (
+    add_fixed_joint,
+    add_link,
+    serialize_model,
+)
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class ExerciseConfig:
-    """Configuration common to all exercise models."""
+    """Immutable configuration common to all exercise models."""
 
     body_spec: BodyModelSpec = field(default_factory=BodyModelSpec)
     barbell_spec: BarbellSpec = field(default_factory=BarbellSpec.mens_olympic)
@@ -79,6 +83,11 @@ class ExerciseModelBuilder(ABC):
         """
         grip_offset = self.config.barbell_spec.shaft_length * self.grip_offset_fraction
 
+        # Attach barbell_shaft to left hand — barbell_shaft has exactly one parent.
+        # URDF requires each link to have exactly one parent joint; the original
+        # code made barbell_shaft the child of two separate joints (one per hand),
+        # which is topologically invalid. The fix: barbell_shaft is the child of
+        # hand_l only.
         add_fixed_joint(
             robot,
             name="barbell_to_hand_l",
@@ -87,12 +96,27 @@ class ExerciseModelBuilder(ABC):
             origin_xyz=(0, -grip_offset, 0),
         )
 
+        # Add a zero-mass virtual grip anchor for the right hand.  hand_r already
+        # has wrist_r as its parent joint; URDF does not allow a second parent.
+        # The grip_r link hangs off barbell_shaft at the symmetric grip position,
+        # representing the right-hand contact point without creating a kinematic
+        # cycle.  This produces the valid chain:
+        #   hand_l → barbell_shaft → barbell_grip_r  (topology: valid tree)
+        add_link(
+            robot,
+            name="barbell_grip_r",
+            mass=1e-6,
+            origin_xyz=(0, 0, 0),
+            ixx=1e-9,
+            iyy=1e-9,
+            izz=1e-9,
+        )
         add_fixed_joint(
             robot,
             name="barbell_to_hand_r",
-            parent="hand_r",
-            child="barbell_shaft",
-            origin_xyz=(0, grip_offset, 0),
+            parent="barbell_shaft",
+            child="barbell_grip_r",
+            origin_xyz=(0, 2 * grip_offset, 0),
         )
 
     @abstractmethod

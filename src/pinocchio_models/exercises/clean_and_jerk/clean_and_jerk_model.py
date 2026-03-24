@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
 from pinocchio_models.shared.constants import (
+    CLEAN_AND_JERK_ANKLE_ANGLE,
     CLEAN_AND_JERK_GRIP_FRACTION,
     CLEAN_AND_JERK_HIP_ANGLE,
     CLEAN_AND_JERK_KNEE_ANGLE,
@@ -55,6 +56,7 @@ class CleanAndJerkModelBuilder(ExerciseModelBuilder):
         set_joint_default(robot, "hip", CLEAN_AND_JERK_HIP_ANGLE)
         set_joint_default(robot, "knee", CLEAN_AND_JERK_KNEE_ANGLE)
         set_joint_default(robot, "lumbar", CLEAN_AND_JERK_LUMBAR_ANGLE)
+        set_joint_default(robot, "ankle", CLEAN_AND_JERK_ANKLE_ANGLE)
 
 
 def build_clean_and_jerk_model(

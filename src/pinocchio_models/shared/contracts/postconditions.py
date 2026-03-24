@@ -9,14 +9,25 @@ be disabled with ``python -O``.
 
 from __future__ import annotations
 
+import logging
 import xml.etree.ElementTree as ET
+
+logger = logging.getLogger(__name__)
 
 
 def ensure_valid_urdf(xml_string: str) -> ET.Element:
     """Parse *xml_string* and return the root element.
 
-    Validates that the string is well-formed XML with a <robot> root tag.
-    Raises ValueError if the string is not valid URDF.
+    Validates:
+    1. Well-formed XML with a ``<robot>`` root tag.
+    2. Every joint's ``child`` link name exists in the declared link set.
+    3. No link appears as ``child`` of more than one joint (single-parent rule).
+
+    Parent link names are checked with a warning only, because the body model
+    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
+    structurally intentional and do not need to match a declared link name.
+
+    Raises ValueError if any check fails.
     """
     try:
         root = ET.fromstring(xml_string)  # nosec B314 — parsing self-generated XML
@@ -24,6 +35,50 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
         raise ValueError(f"Generated URDF is not well-formed XML: {exc}") from exc
     if root.tag != "robot":
         raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
+
+    link_names: set[str] = {
+        el.get("name", "") for el in root.findall("link") if el.get("name")
+    }
+
+    child_parent_map: dict[str, str] = {}
+    for joint in root.findall("joint"):
+        joint_name = joint.get("name", "<unnamed>")
+
+        parent_el = joint.find("parent")
+        child_el = joint.find("child")
+        if parent_el is None or child_el is None:
+            continue
+
+        parent_link = parent_el.get("link", "")
+        child_link = child_el.get("link", "")
+
+        # (a) Warn if parent link name does not exist in the declared link set.
+        # This may be intentional for aliased parent links in the body model.
+        if parent_link and parent_link not in link_names:
+            logger.warning(
+                "Joint '%s' references parent link '%s' which is not in the "
+                "declared link set — verify this is intentional",
+                joint_name,
+                parent_link,
+            )
+
+        # (b) Verify child link name exists in the declared link set.
+        if child_link and child_link not in link_names:
+            raise ValueError(
+                f"Joint '{joint_name}' references unknown child link '{child_link}'"
+            )
+
+        # (c) Assert no link appears as child of more than one joint
+        # (URDF single-parent-per-link constraint).
+        if child_link in child_parent_map:
+            raise ValueError(
+                f"Link '{child_link}' is declared as child of both "
+                f"'{child_parent_map[child_link]}' and '{joint_name}' — "
+                "URDF requires each link to have exactly one parent joint"
+            )
+        if child_link:
+            child_parent_map[child_link] = joint_name
+
     return root
 
 

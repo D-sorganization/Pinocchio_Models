@@ -2,9 +2,16 @@
 
 import xml.etree.ElementTree as ET
 
+import pytest
+
 from pinocchio_models.exercises.squat.squat_model import (
     SquatModelBuilder,
     build_squat_model,
+)
+from pinocchio_models.shared.constants import (
+    SQUAT_ANKLE_ANGLE,
+    SQUAT_HIP_ANGLE,
+    SQUAT_KNEE_ANGLE,
 )
 
 
@@ -63,6 +70,39 @@ class TestSquatModelBuilder:
         ]
         for j in hip_joints:
             assert j.get("initial_position") is not None
+            assert float(j.get("initial_position")) == pytest.approx(
+                SQUAT_HIP_ANGLE, abs=1e-4
+            )
+
+    def test_initial_pose_knee_defaults(self) -> None:
+        xml_str = build_squat_model()
+        root = ET.fromstring(xml_str)
+        knee_joints = [
+            j for j in root.findall("joint") if j.get("name", "").startswith("knee_")
+        ]
+        for j in knee_joints:
+            assert j.get("initial_position") is not None
+            assert float(j.get("initial_position")) == pytest.approx(
+                SQUAT_KNEE_ANGLE, abs=1e-4
+            )
+
+    def test_initial_pose_ankle_defaults(self) -> None:
+        xml_str = build_squat_model()
+        root = ET.fromstring(xml_str)
+        ankle_joints = [
+            j for j in root.findall("joint") if j.get("name", "").startswith("ankle_")
+        ]
+        for j in ankle_joints:
+            assert j.get("initial_position") is not None
+            assert float(j.get("initial_position")) == pytest.approx(
+                SQUAT_ANKLE_ANGLE, abs=1e-4
+            )
+
+    def test_hip_angle_within_limits(self) -> None:
+        """Hip initial angle must be within anatomical ROM."""
+        from pinocchio_models.shared.constants import HIP_FLEXION_MAX, HIP_FLEXION_MIN
+
+        assert HIP_FLEXION_MIN <= SQUAT_HIP_ANGLE <= HIP_FLEXION_MAX
 
     def test_custom_body_parameters(self) -> None:
         xml_str = build_squat_model(
