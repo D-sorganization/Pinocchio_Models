@@ -203,7 +203,7 @@ def set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
             joint.set("initial_position", f"{value:.6f}")
 
 
-def get_initial_configuration(model: object, xml_str: str) -> "np.ndarray":  # noqa: F821
+def get_initial_configuration(model: object, xml_str: str) -> object:
     """Build a Pinocchio configuration vector from ``initial_position`` metadata.
 
     Reads the ``initial_position`` attributes written by
@@ -253,7 +253,6 @@ def get_initial_configuration(model: object, xml_str: str) -> "np.ndarray":  # n
         pin.forwardKinematics(model, data, q0)
     """
     try:
-        import numpy as np
         import pinocchio as pin
     except ImportError as exc:
         raise ImportError(

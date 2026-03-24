@@ -21,7 +21,10 @@ from pinocchio_models.shared.constants import (
     SQUAT_HIP_ANGLE,
     SQUAT_KNEE_ANGLE,
 )
-from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint, set_joint_default
+from pinocchio_models.shared.utils.urdf_helpers import (
+    add_fixed_joint,
+    set_joint_default,
+)
 
 # Vertical offset (m) from the top of the torso to the trap-bar attachment point.
 # Represents the approximate distance from the top of the trapezius to the
