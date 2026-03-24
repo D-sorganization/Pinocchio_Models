@@ -23,7 +23,7 @@ which reads those attributes back and returns a numpy array compatible with
 
     urdf_str = build_squat_model()
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-    data  = model.createData()
+    data = model.createData()
 
     q0 = get_initial_configuration(model, urdf_str)
     pin.forwardKinematics(model, data, q0)
@@ -247,7 +247,7 @@ def get_initial_configuration(model: object, xml_str: str) -> object:
 
         urdf_str = build_squat_model()
         model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-        data  = model.createData()
+        data = model.createData()
 
         q0 = get_initial_configuration(model, urdf_str)
         pin.forwardKinematics(model, data, q0)

@@ -103,7 +103,7 @@ urdf_str = build_deadlift_model(body_mass=85.0, height=1.80, plate_mass_per_side
 
 # Load into Pinocchio
 model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-data  = model.createData()
+data = model.createData()
 
 # Obtain a configuration vector with the exercise starting pose applied
 q0 = get_initial_configuration(model, urdf_str)
