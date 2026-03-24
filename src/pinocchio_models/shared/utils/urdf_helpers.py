@@ -288,7 +288,7 @@ def get_initial_configuration(model: Any, xml_str: str) -> Any:
         joint_name = joint_el.get("name", "")
         try:
             joint_id = model.getJointId(joint_name)
-        except Exception as _e:
+        except Exception as _e:  # noqa: BLE001
             logger.warning("Joint %s not found in model: %s", joint_name, _e)
             continue
         if joint_id >= len(model.joints):
