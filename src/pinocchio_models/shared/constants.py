@@ -96,3 +96,22 @@ VALID_EXERCISE_NAMES: frozenset[str] = frozenset(
         "clean_and_jerk",
     }
 )
+
+# --- Body geometry proportionality constants ---
+# Anthropometric proportionalities derived from:
+# Drillis, R., & Contini, R. (1966). Body Segment Parameters. Report no. 1166-03.
+# and Winter, D. A. (2009). Biomechanics and Motor Control of Human Movement.
+
+# Shoulder height along the torso as a fraction of torso length.
+# Approximates the C7/T1 joint center relative to the full torso segment.
+SHOULDER_HEIGHT_FRAC: float = 0.82  # Adjust from 0.95 to better align with Winter
+
+# Shoulder lateral offset (biacromial breadth half-width) as a fraction of total height.
+# Biacromial breadth is approx 0.259 * height for standard male (Drillis & Contini).
+# Since our coordinate system evaluates from center, we use half this breadth.
+SHOULDER_LATERAL_FRAC_OF_HEIGHT: float = 0.1295
+
+# Hip lateral offset (bi-iliocristal breadth half-width) as a fraction of total height.
+# Bi-iliocristal breadth is approx 0.191 * height for standard male (Drillis & Contini).
+HIP_LATERAL_FRAC_OF_HEIGHT: float = 0.0955
+
