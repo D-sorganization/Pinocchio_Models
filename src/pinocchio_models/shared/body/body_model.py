@@ -38,6 +38,7 @@ from pinocchio_models.shared.constants import (
     ELBOW_FLEXION_MIN,
     HIP_FLEXION_MAX,
     HIP_FLEXION_MIN,
+    HIP_LATERAL_FRAC_OF_HEIGHT,
     KNEE_FLEXION_MAX,
     KNEE_FLEXION_MIN,
     LUMBAR_FLEXION_MAX,
@@ -46,6 +47,8 @@ from pinocchio_models.shared.constants import (
     NECK_FLEXION_MIN,
     SHOULDER_FLEXION_MAX,
     SHOULDER_FLEXION_MIN,
+    SHOULDER_HEIGHT_FRAC,
+    SHOULDER_LATERAL_FRAC_OF_HEIGHT,
     WRIST_FLEXION_MAX,
     WRIST_FLEXION_MIN,
 )
@@ -62,11 +65,6 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     make_cylinder_geometry,
 )
 
-from pinocchio_models.shared.constants import (
-    HIP_LATERAL_FRAC_OF_HEIGHT,
-    SHOULDER_HEIGHT_FRAC,
-    SHOULDER_LATERAL_FRAC_OF_HEIGHT,
-)
 
 @dataclass(frozen=True)
 class BodyModelSpec:

@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\shared\contracts\__init__.py
+# hypothesis_version: 6.151.9
+
+['ensure_positive_mass', 'ensure_valid_urdf', 'require_finite', 'require_in_range', 'require_non_negative', 'require_positive', 'require_shape', 'require_unit_vector']

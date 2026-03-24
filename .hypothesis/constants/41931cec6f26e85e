@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\shared\utils\urdf_helpers.py
+# hypothesis_version: 6.151.9
+
+[0.0, 10.0, 1000.0, '0 0 0', 'axis', 'box', 'child', 'collision', 'cylinder', 'fixed', 'geometry', 'inertia', 'inertial', 'initial_position', 'joint', 'limit', 'link', 'mass', 'name', 'origin', 'parent', 'revolute', 'sphere', 'unicode', 'visual']

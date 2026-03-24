@@ -5,6 +5,7 @@ Each model must produce well-formed URDF XML with the correct structure:
 """
 
 import xml.etree.ElementTree as ET
+from typing import Any
 
 import pytest
 
@@ -31,7 +32,7 @@ class TestAllExercisesBuild:
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
     )
-    def test_produces_valid_urdf(self, name, builder):
+    def test_produces_valid_urdf(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
         assert root.tag == "robot"
@@ -39,15 +40,15 @@ class TestAllExercisesBuild:
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
     )
-    def test_model_name_matches(self, name, builder):
+    def test_model_name_matches(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
-        assert root.get("name") == name
+        assert root.get("name") == name  # type: ignore
 
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
     )
-    def test_has_links_and_joints(self, name, builder):
+    def test_has_links_and_joints(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
         assert len(root.findall("link")) > 0
@@ -56,7 +57,7 @@ class TestAllExercisesBuild:
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
     )
-    def test_minimum_link_count(self, name, builder):
+    def test_minimum_link_count(self, name: Any, builder: Any) -> None:
         """Every exercise should have at least 18 links (15 body + 3 barbell)."""
         xml_str = builder()
         root = ET.fromstring(xml_str)
@@ -66,21 +67,21 @@ class TestAllExercisesBuild:
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
     )
-    def test_all_masses_positive(self, name, builder):
+    def test_all_masses_positive(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
         for link in root.findall("link"):
             mass_el = link.find("inertial/mass")
-            mass = float(mass_el.get("value"))
-            assert mass > 0, f"{link.get('name')} mass={mass}"
+            mass = float(mass_el.get("value"))  # type: ignore
+            assert mass > 0, f"{link.get('name')} mass={mass}"  # type: ignore
 
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
     )
-    def test_barbell_present(self, name, builder):
+    def test_barbell_present(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
-        link_names = {ln.get("name") for ln in root.findall("link")}
+        link_names = {ln.get("name") for ln in root.findall("link")}  # type: ignore
         assert "barbell_shaft" in link_names
         assert "barbell_left_sleeve" in link_names
         assert "barbell_right_sleeve" in link_names

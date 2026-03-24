@@ -26,7 +26,7 @@ class TestPinkIKImportGuard:
             importlib.reload(ik_mod)
 
             with pytest.raises(ImportError, match="Pink is not installed"):
-                ik_mod.solve_pose(None, {})
+                ik_mod.solve_pose(None, {})  # type: ignore
 
     def test_compute_keyframes_raises_without_pink(self) -> None:
         with patch.dict("sys.modules", {"pinocchio": None, "pink": None}):

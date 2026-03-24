@@ -26,13 +26,13 @@ class TestBenchPressModelBuilder:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
         assert root.tag == "robot"
-        assert root.get("name") == "bench_press"
+        assert root.get("name") == "bench_press"  # type: ignore
 
     def test_barbell_attached_to_both_hands(self) -> None:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
         joints = root.findall("joint")
-        joint_names = {j.get("name") for j in joints}
+        joint_names = {j.get("name") for j in joints}  # type: ignore
         assert "barbell_to_hand_l" in joint_names
         assert "barbell_to_hand_r" in joint_names
 
@@ -55,13 +55,13 @@ class TestBenchPressModelBuilder:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
         for joint in root.findall("joint"):
-            if joint.get("name") in ("barbell_to_hand_l", "barbell_to_hand_r"):
-                assert joint.get("type") == "fixed"
+            if joint.get("name") in ("barbell_to_hand_l", "barbell_to_hand_r"):  # type: ignore
+                assert joint.get("type") == "fixed"  # type: ignore
 
     def test_xml_structure_has_robot_name(self) -> None:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
-        assert root.get("name") == "bench_press"
+        assert root.get("name") == "bench_press"  # type: ignore
 
     def test_initial_pose_sets_joint_defaults(self) -> None:
         xml_str = build_bench_press_model()
@@ -72,8 +72,8 @@ class TestBenchPressModelBuilder:
             if j.get("name", "").startswith("shoulder_")
         ]
         for j in shoulder_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 BENCH_PRESS_SHOULDER_ANGLE, abs=1e-4
             )
 
@@ -81,11 +81,13 @@ class TestBenchPressModelBuilder:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
         elbow_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("elbow_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("elbow_")  # type: ignore
         ]
         for j in elbow_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 BENCH_PRESS_ELBOW_ANGLE, abs=1e-4
             )
 
@@ -93,11 +95,13 @@ class TestBenchPressModelBuilder:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
         hip_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("hip_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("hip_")  # type: ignore
         ]
         for j in hip_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 BENCH_PRESS_HIP_ANGLE, abs=1e-4
             )
 
@@ -105,11 +109,13 @@ class TestBenchPressModelBuilder:
         xml_str = build_bench_press_model()
         root = ET.fromstring(xml_str)
         knee_joints = [
-            j for j in root.findall("joint") if j.get("name", "").startswith("knee_")
+            j
+            for j in root.findall("joint")
+            if j.get("name", "").startswith("knee_")  # type: ignore
         ]
         for j in knee_joints:
-            assert j.get("initial_position") is not None
-            assert float(j.get("initial_position")) == pytest.approx(
+            assert j.get("initial_position") is not None  # type: ignore
+            assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 BENCH_PRESS_KNEE_ANGLE, abs=1e-4
             )
 

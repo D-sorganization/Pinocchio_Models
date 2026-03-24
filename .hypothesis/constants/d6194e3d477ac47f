@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\exercises\snatch\snatch_model.py
+# hypothesis_version: 6.151.9
+
+[1.75, 40.0, 80.0, 'ankle', 'hip', 'knee', 'lumbar', 'snatch']
