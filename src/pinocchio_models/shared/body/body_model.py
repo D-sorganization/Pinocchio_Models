@@ -62,6 +62,14 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     make_cylinder_geometry,
 )
 
+# --- Body geometry proportionality constants ---
+# Approx fraction of torso length to shoulder joint height along the torso.
+_SHOULDER_HEIGHT_FRAC: float = 0.95
+# Shoulder lateral offset as a multiple of torso radius.
+_SHOULDER_LATERAL_FRAC: float = 1.2
+# Hip lateral offset as a fraction of pelvis radius.
+_HIP_LATERAL_FRAC: float = 0.6
+
 
 @dataclass(frozen=True)
 class BodyModelSpec:
@@ -225,8 +233,8 @@ def create_full_body(
     )
 
     # --- Arms ---
-    shoulder_z = t_len * 0.95
-    shoulder_y = t_rad * 1.2
+    shoulder_z = t_len * _SHOULDER_HEIGHT_FRAC
+    shoulder_y = t_rad * _SHOULDER_LATERAL_FRAC
 
     _add_bilateral_limb(
         robot,
@@ -267,7 +275,7 @@ def create_full_body(
     )
 
     # --- Legs ---
-    hip_y = p_rad * 0.6
+    hip_y = p_rad * _HIP_LATERAL_FRAC
 
     _add_bilateral_limb(
         robot,
