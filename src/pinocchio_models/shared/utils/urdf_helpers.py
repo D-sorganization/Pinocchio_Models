@@ -32,6 +32,7 @@ which reads those attributes back and returns a numpy array compatible with
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from typing import Any
 
 
 def vec3_str(x: float, y: float, z: float) -> str:
@@ -203,7 +204,7 @@ def set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
             joint.set("initial_position", f"{value:.6f}")
 
 
-def get_initial_configuration(model: object, xml_str: str) -> object:
+def get_initial_configuration(model: Any, xml_str: str) -> Any:
     """Build a Pinocchio configuration vector from ``initial_position`` metadata.
 
     Reads the ``initial_position`` attributes written by
