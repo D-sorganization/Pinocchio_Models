@@ -2,6 +2,10 @@
 
 Centralizes magic numbers that were previously scattered across
 body_model.py and exercise builders. All angles in radians.
+
+Joint range-of-motion limits are based on:
+  Winter, D.A. (2009). Biomechanics and Motor Control of Human Movement,
+  4th edition. Wiley. ISBN 978-0-470-39818-0.
 """
 
 from __future__ import annotations
@@ -9,37 +13,40 @@ from __future__ import annotations
 import math
 
 # --- Joint range-of-motion limits (radians) ---
+# Winter (2009) anatomically validated ranges.
+
 # Lumbar spine (flexion/extension about Y)
-LUMBAR_FLEXION_MIN: float = -math.radians(30)  # -0.5236
-LUMBAR_FLEXION_MAX: float = math.radians(45)  # 0.7854
+LUMBAR_FLEXION_MIN: float = math.radians(-10)   # Extension ~10 deg
+LUMBAR_FLEXION_MAX: float = math.radians(45)    # Flexion ~45 deg
 
 # Neck (flexion/extension about Y)
 NECK_FLEXION_MIN: float = -math.radians(30)  # -0.5236
-NECK_FLEXION_MAX: float = math.radians(30)  # 0.5236
+NECK_FLEXION_MAX: float = math.radians(30)   # 0.5236
 
-# Shoulder (full range sagittal plane)
-SHOULDER_FLEXION_MIN: float = -math.pi  # -3.1416
-SHOULDER_FLEXION_MAX: float = math.pi  # 3.1416
+# Shoulder (sagittal plane flexion/extension)
+# Extension: -30 deg; Full flexion: 180 deg  — Winter (2009)
+SHOULDER_FLEXION_MIN: float = math.radians(-30)   # Extension
+SHOULDER_FLEXION_MAX: float = math.radians(180)   # Full flexion
 
 # Elbow (flexion only, 0 to ~150 degrees)
-ELBOW_FLEXION_MIN: float = 0.0
-ELBOW_FLEXION_MAX: float = math.radians(150)  # 2.618
+ELBOW_FLEXION_MIN: float = math.radians(0)
+ELBOW_FLEXION_MAX: float = math.radians(150)   # 2.618
 
-# Wrist (flexion/extension about Y)
-WRIST_FLEXION_MIN: float = -math.radians(70)  # -1.2217
-WRIST_FLEXION_MAX: float = math.radians(70)  # 1.2217
+# Wrist (flexion/extension about Y) — Winter (2009)
+WRIST_FLEXION_MIN: float = math.radians(-80)   # Extension
+WRIST_FLEXION_MAX: float = math.radians(70)    # Flexion
 
-# Hip (flexion/extension about Y)
-HIP_FLEXION_MIN: float = -math.radians(30)  # -0.5236
-HIP_FLEXION_MAX: float = math.radians(120)  # 2.0944
+# Hip (flexion/extension about Y) — Winter (2009)
+HIP_FLEXION_MIN: float = math.radians(-30)    # Extension
+HIP_FLEXION_MAX: float = math.radians(120)    # Flexion  2.0944
 
-# Knee (flexion, negative convention since leg folds backward)
-KNEE_FLEXION_MIN: float = -math.radians(150)  # -2.618
-KNEE_FLEXION_MAX: float = 0.0
+# Knee (flexion, negative convention since leg folds backward) — Winter (2009)
+KNEE_FLEXION_MIN: float = math.radians(-150)   # Full flexion  -2.618
+KNEE_FLEXION_MAX: float = math.radians(0)
 
-# Ankle (dorsiflexion/plantarflexion)
-ANKLE_FLEXION_MIN: float = -math.radians(45)  # -0.7854
-ANKLE_FLEXION_MAX: float = math.radians(45)  # 0.7854
+# Ankle (dorsiflexion/plantarflexion) — Winter (2009)
+ANKLE_FLEXION_MIN: float = math.radians(-45)   # Plantarflexion
+ANKLE_FLEXION_MAX: float = math.radians(30)    # Dorsiflexion
 
 # --- Initial pose angles (radians) for each exercise ---
 # Bench press: arms extended above chest (supine)

@@ -80,6 +80,42 @@ model.gravity = pin.Motion.Zero()
 model.gravity.linear[2] = -9.80665  # Z-up
 ```
 
+## Applying Initial Poses
+
+The URDF builder writes `initial_position` attributes onto joint elements to
+record the intended starting configuration for each exercise (e.g. the
+hip-flexed starting position for a deadlift).
+
+> **Important:** Pinocchio does *not* read `initial_position` attributes when
+> loading a URDF.  The attributes are metadata only — they have no effect on
+> simulation unless consumed explicitly.
+
+Use `get_initial_configuration` to convert those attributes into a numpy
+configuration vector suitable for `pin.forwardKinematics` and friends:
+
+```python
+import pinocchio as pin
+from pinocchio_models.exercises.deadlift.deadlift_model import build_deadlift_model
+from pinocchio_models.shared.utils.urdf_helpers import get_initial_configuration
+
+# Build the URDF
+urdf_str = build_deadlift_model(body_mass=85.0, height=1.80, plate_mass_per_side=80.0)
+
+# Load into Pinocchio
+model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
+data  = model.createData()
+
+# Obtain a configuration vector with the exercise starting pose applied
+q0 = get_initial_configuration(model, urdf_str)
+
+# Use it for forward kinematics, IK seeding, visualisation, etc.
+pin.forwardKinematics(model, data, q0)
+pin.updateFramePlacements(model, data)
+```
+
+Without `get_initial_configuration`, `pin.neutral(model)` returns an
+all-zeros (identity) pose, which ignores the documented starting angles.
+
 ## Testing
 
 ```bash

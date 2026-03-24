@@ -247,14 +247,24 @@ def compute_exercise_keyframes(
         angle_frac = lower_frac + blend * (upper_frac - lower_frac)
 
         q = q_neutral.copy()
-        # Apply the interpolated angle fraction to generate a plausible pose
-        # The nq includes 7 for the freeflyer, so actuated joints start at index 7
-        nq_actuated = model.nq - 7
-        if nq_actuated > 0:
-            # Scale hip-like joints by the angle fraction
-            perturbation = np.zeros(nq_actuated)
-            perturbation[0] = angle_frac * max_hip_angle * 0.3
-            q[7 : 7 + nq_actuated] = q[7 : 7 + nq_actuated] + perturbation
+        # Determine the number of FreeFlyer DOFs dynamically so the code
+        # works correctly even if the root joint ever changes.
+        try:
+            root_joint_id = model.getJointId("root_joint")
+            freeflyer_nq = model.joints[root_joint_id].nq
+        except Exception:
+            freeflyer_nq = 7  # Fallback for standard FreeFlyer
+        nq_actuated = model.nq - freeflyer_nq
+        if nq_actuated <= 0:
+            raise ValueError(
+                f"Model has no actuated joints (nq={model.nq}, freeflyer_nq={freeflyer_nq})"
+            )
+        # Scale hip-like joints by the angle fraction
+        perturbation = np.zeros(nq_actuated)
+        perturbation[0] = angle_frac * max_hip_angle * 0.3
+        q[freeflyer_nq : freeflyer_nq + nq_actuated] = (
+            q[freeflyer_nq : freeflyer_nq + nq_actuated] + perturbation
+        )
 
         keyframes.append(q)
 

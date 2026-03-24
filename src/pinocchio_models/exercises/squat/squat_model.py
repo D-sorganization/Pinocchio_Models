@@ -21,7 +21,12 @@ from pinocchio_models.shared.constants import (
     SQUAT_HIP_ANGLE,
     SQUAT_KNEE_ANGLE,
 )
-from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint
+from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint, set_joint_default
+
+# Vertical offset (m) from the top of the torso to the trap-bar attachment point.
+# Represents the approximate distance from the top of the trapezius to the
+# barbell resting position in a high-bar back squat.
+_TRAP_BAR_OFFSET_M: float = 0.03
 
 
 class SquatModelBuilder(ExerciseModelBuilder):
@@ -47,7 +52,7 @@ class SquatModelBuilder(ExerciseModelBuilder):
     ) -> None:
         """Weld barbell shaft to torso at upper trap position (Z-up)."""
         torso_len = self.config.body_spec.height * 0.288
-        trap_height = torso_len - 0.03
+        trap_height = torso_len - _TRAP_BAR_OFFSET_M
 
         add_fixed_joint(
             robot,
@@ -61,18 +66,16 @@ class SquatModelBuilder(ExerciseModelBuilder):
         """Set standing unrack position: neutral joint angles.
 
         All leg joints at neutral (standing straight).
+
+        Note: ``initial_position`` XML attributes are metadata only —
+        Pinocchio does not read them at load time.  Use
+        ``get_initial_configuration(model, urdf_str)`` from
+        ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
+        numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        _set_joint_default(robot, "hip", SQUAT_HIP_ANGLE)
-        _set_joint_default(robot, "knee", SQUAT_KNEE_ANGLE)
-        _set_joint_default(robot, "ankle", SQUAT_ANKLE_ANGLE)
-
-
-def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
-    """Set the default position of joints via initial_position attribute."""
-    for joint in robot.findall("joint"):
-        name = joint.get("name", "")
-        if name == prefix or name.startswith(f"{prefix}_"):
-            joint.set("initial_position", f"{value:.6f}")
+        set_joint_default(robot, "hip", SQUAT_HIP_ANGLE)
+        set_joint_default(robot, "knee", SQUAT_KNEE_ANGLE)
+        set_joint_default(robot, "ankle", SQUAT_ANKLE_ANGLE)
 
 
 def build_squat_model(

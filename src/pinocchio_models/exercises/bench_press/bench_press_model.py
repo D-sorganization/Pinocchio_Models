@@ -21,6 +21,7 @@ from pinocchio_models.shared.constants import (
     BENCH_PRESS_KNEE_ANGLE,
     BENCH_PRESS_SHOULDER_ANGLE,
 )
+from pinocchio_models.shared.utils.urdf_helpers import set_joint_default
 
 
 class BenchPressModelBuilder(ExerciseModelBuilder):
@@ -46,25 +47,17 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
 
         Shoulders at 90 deg (arms pointing up), elbows straight,
         hips neutral (supine), knees at 90 deg (feet on floor).
+
+        Note: ``initial_position`` XML attributes are metadata only —
+        Pinocchio does not read them at load time.  Use
+        ``get_initial_configuration(model, urdf_str)`` from
+        ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
+        numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        _set_joint_default(robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE)
-        _set_joint_default(robot, "elbow", BENCH_PRESS_ELBOW_ANGLE)
-        _set_joint_default(robot, "hip", BENCH_PRESS_HIP_ANGLE)
-        _set_joint_default(robot, "knee", BENCH_PRESS_KNEE_ANGLE)
-
-
-def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
-    """Set the default position of bilateral joints via URDF comments.
-
-    Stores initial pose as an XML comment for downstream consumers.
-    Pinocchio does not read default joint values from URDF, but this
-    documents the intended starting configuration.
-    """
-    for side in ("l", "r"):
-        joint_name = f"{prefix}_{side}"
-        for joint in robot.findall("joint"):
-            if joint.get("name") == joint_name:
-                joint.set("initial_position", f"{value:.6f}")
+        set_joint_default(robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE)
+        set_joint_default(robot, "elbow", BENCH_PRESS_ELBOW_ANGLE)
+        set_joint_default(robot, "hip", BENCH_PRESS_HIP_ANGLE)
+        set_joint_default(robot, "knee", BENCH_PRESS_KNEE_ANGLE)
 
 
 def build_bench_press_model(

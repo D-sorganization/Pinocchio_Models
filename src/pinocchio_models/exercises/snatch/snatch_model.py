@@ -21,6 +21,7 @@ from pinocchio_models.shared.constants import (
     SNATCH_KNEE_ANGLE,
     SNATCH_LUMBAR_ANGLE,
 )
+from pinocchio_models.shared.utils.urdf_helpers import set_joint_default
 
 
 class SnatchModelBuilder(ExerciseModelBuilder):
@@ -44,18 +45,16 @@ class SnatchModelBuilder(ExerciseModelBuilder):
         """Set starting position: crouched over bar.
 
         Hips flexed ~80 deg, knees ~70 deg, slight lumbar extension.
+
+        Note: ``initial_position`` XML attributes are metadata only —
+        Pinocchio does not read them at load time.  Use
+        ``get_initial_configuration(model, urdf_str)`` from
+        ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
+        numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        _set_joint_default(robot, "hip", SNATCH_HIP_ANGLE)
-        _set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
-        _set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE)
-
-
-def _set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
-    """Set the default position of joints via initial_position attribute."""
-    for joint in robot.findall("joint"):
-        name = joint.get("name", "")
-        if name == prefix or name.startswith(f"{prefix}_"):
-            joint.set("initial_position", f"{value:.6f}")
+        set_joint_default(robot, "hip", SNATCH_HIP_ANGLE)
+        set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
+        set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE)
 
 
 def build_snatch_model(
