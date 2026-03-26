@@ -9,9 +9,9 @@
 ## Repository Overview
 
 **Codebase Size:**
-- Source: ~2490 lines across 38 Python files
-- Tests: ~1722 lines across 29 test files
-- Test Ratio: 69%
+- Source: ~2877 lines across 40 Python files
+- Tests: ~2046 lines across 29 test files
+- Test Ratio: 71%
 
 ---
 
@@ -24,7 +24,7 @@
 - `README.md` present: True
 
 ### C - Testing: B
-- Test coverage ratio: 69%
+- Test coverage ratio: 71%
 
 ### D - Security: A
 - Checked via AST, no obvious hardcoded keys.
@@ -35,8 +35,8 @@
 ### F - Code Quality: A
 - God modules (>1000 lines): None
 
-### G - Error Handling: A
-- Bare `except Exception:` catches: 0
+### G - Error Handling: C
+- Bare `except Exception:` catches: 2
 
 ### H - Dependencies: A
 - `pyproject.toml` defined: True
@@ -86,8 +86,8 @@ End-to-end functionality present.
 ### Design by Contract: A
 0 uses of `assert` in business logic instead of `ValueError`.
 
-### Broken Windows: A
-0 bare exceptions and 0 TODOs.
+### Broken Windows: C
+2 bare exceptions and 0 TODOs.
 
 ### Stone Soup: A
 Iterative addition of value.
@@ -99,4 +99,4 @@ Functionally operable.
 
 ## Summary of Issues to Fix (Issues created automatically)
 
-- **No major technical debt identified!**
+- **Remediate 2 bare exceptions**: 2 bare exceptions identified
