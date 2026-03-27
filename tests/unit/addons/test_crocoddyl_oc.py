@@ -41,9 +41,8 @@ class TestCrocoddylOCImportGuard:
                 oc_mod.extract_joint_torques(([], []), None)  # type: ignore
 
 
-class TestExerciseNameValidation:
-    def test_rejects_invalid_exercise_name(self) -> None:
-        """Validates exercise name even when crocoddyl is missing."""
+class TestCyclicOCPImportGuard:
+    def test_cyclic_ocp_raises_without_crocoddyl(self) -> None:
         with patch.dict("sys.modules", {"crocoddyl": None, "pinocchio": None}):
             import importlib
 
@@ -51,13 +50,33 @@ class TestExerciseNameValidation:
 
             importlib.reload(oc_mod)
 
-            # The import guard fires before validation, so we test
-            # the validation function directly
-            with pytest.raises(ValueError, match="Unknown exercise"):
-                oc_mod._validate_exercise_name("invalid_exercise")
+            with pytest.raises(ImportError, match="Crocoddyl is not installed"):
+                oc_mod.create_cyclic_ocp("<robot/>", "gait")
+
+    def test_cyclic_ocp_validates_exercise_name(self) -> None:
+        from pinocchio_models.shared.contracts.preconditions import (
+            require_valid_exercise_name,
+        )
+
+        # Validation function is now in shared preconditions
+        with pytest.raises(ValueError, match="Unknown exercise"):
+            require_valid_exercise_name("not_a_real_exercise")
+
+
+class TestExerciseNameValidation:
+    def test_rejects_invalid_exercise_name(self) -> None:
+        """Validates exercise name via shared preconditions."""
+        from pinocchio_models.shared.contracts.preconditions import (
+            require_valid_exercise_name,
+        )
+
+        with pytest.raises(ValueError, match="Unknown exercise"):
+            require_valid_exercise_name("invalid_exercise")
 
     def test_accepts_valid_exercise_names(self) -> None:
-        import pinocchio_models.addons.crocoddyl.optimal_control as oc_mod
+        from pinocchio_models.shared.contracts.preconditions import (
+            require_valid_exercise_name,
+        )
 
         for name in (
             "back_squat",
@@ -65,8 +84,10 @@ class TestExerciseNameValidation:
             "deadlift",
             "snatch",
             "clean_and_jerk",
+            "gait",
+            "sit_to_stand",
         ):
-            oc_mod._validate_exercise_name(name)
+            require_valid_exercise_name(name)
 
 
 class TestExtractJointTorques:

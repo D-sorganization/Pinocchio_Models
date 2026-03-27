@@ -19,3 +19,8 @@ venv/
 *.log
 .DS_Store
 Thumbs.db
+.hypothesis/
+fix_mypy*.py
+mypy*.txt
+pin_issues.json
+.ci_trigger.py

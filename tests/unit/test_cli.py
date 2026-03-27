@@ -24,7 +24,7 @@ class TestCLI:
             result = main(["all", "--output-dir", tmpdir])
             assert result == 0
             files = list(Path(tmpdir).glob("*.urdf"))
-            assert len(files) == 5
+            assert len(files) == 7
 
     def test_generates_with_custom_parameters(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

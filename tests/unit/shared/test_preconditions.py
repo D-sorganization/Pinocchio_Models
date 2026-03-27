@@ -10,6 +10,7 @@ from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
     require_shape,
     require_unit_vector,
+    require_valid_exercise_name,
 )
 
 
@@ -88,3 +89,17 @@ class TestRequireShape:
     def test_rejects_wrong_shape(self) -> None:
         with pytest.raises(ValueError, match="must have shape"):
             require_shape(np.zeros((2, 3)), (3, 3), "m")
+
+
+class TestRequireValidExerciseName:
+    def test_accepts_valid_names(self) -> None:
+        for name in ("back_squat", "deadlift", "gait", "sit_to_stand"):
+            require_valid_exercise_name(name)
+
+    def test_rejects_unknown_name(self) -> None:
+        with pytest.raises(ValueError, match="Unknown exercise"):
+            require_valid_exercise_name("jumping_jacks")
+
+    def test_error_lists_valid_options(self) -> None:
+        with pytest.raises(ValueError, match="back_squat"):
+            require_valid_exercise_name("invalid")

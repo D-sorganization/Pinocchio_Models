@@ -1,5 +1,3 @@
-from numba import jit
-
 """Pink inverse kinematics for computing exercise target poses.
 
 Uses Pink's task-based IK to solve for joint configurations that
@@ -10,12 +8,13 @@ Usage requires the optional ``pink`` extra::
     pip install pinocchio-models[pink]
 """
 
-from __future__ import annotations  # noqa: E402, F404
+from __future__ import annotations
 
-from dataclasses import dataclass, field  # noqa: E402
-from typing import Any  # noqa: E402
+import logging
+from dataclasses import dataclass, field
+from typing import Any
 
-import numpy as np  # noqa: E402
+import numpy as np
 
 try:
     import pink
@@ -25,14 +24,12 @@ try:
 except ImportError:
     _HAS_PINK = False
 
-import logging  # noqa: E402
-
-from pinocchio_models.shared.constants import (  # noqa: E402
-    HIP_FLEXION_MAX,
-    VALID_EXERCISE_NAMES,
-)
-from pinocchio_models.shared.contracts.preconditions import (  # noqa: E402
+from pinocchio_models.shared.constants import HIP_FLEXION_MAX
+from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
+)
+from pinocchio_models.shared.contracts.preconditions import (
+    require_valid_exercise_name as _validate_exercise_name,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,15 +40,6 @@ def _require_pink() -> None:
     if not _HAS_PINK:
         raise ImportError(
             "Pink is not installed. Install with: pip install pinocchio-models[pink]"
-        )
-
-
-def _validate_exercise_name(exercise_name: str) -> None:
-    """Validate that exercise_name is a recognized exercise."""
-    if exercise_name not in VALID_EXERCISE_NAMES:
-        raise ValueError(
-            f"Unknown exercise '{exercise_name}'. "
-            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -222,7 +210,6 @@ _EXERCISE_PHASES: dict[str, list[tuple[str, float]]] = {
 }
 
 
-@jit(nopython=True, fastmath=True)
 def compute_exercise_keyframes(
     urdf_str: str,
     exercise_name: str,
