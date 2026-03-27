@@ -79,6 +79,7 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     add_link,
     add_revolute_joint,
     add_virtual_link,
+    make_box_geometry,
     make_cylinder_geometry,
 )
 
@@ -163,11 +164,7 @@ def _add_bilateral_limb_simple(
             visual_geometry=make_cylinder_geometry(radius, length),
         )
 
-        parent_full = (
-            f"{parent_name}_{side}"
-            if parent_name in _BILATERAL_SEGMENTS
-            else parent_name
-        )
+        parent_full = f"{parent_name}_{side}" if parent_name in _BILATERAL_SEGMENTS else parent_name
         add_revolute_joint(
             robot,
             name=f"{coord_prefix}_{side}",
@@ -215,9 +212,7 @@ def _add_bilateral_3dof(
         virt1 = f"{coord_prefix}_{side}_virtual_1"
         virt2 = f"{coord_prefix}_{side}_virtual_2"
 
-        parent_full = (
-            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
-        )
+        parent_full = f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
 
         # Virtual link 1
         add_virtual_link(robot, name=virt1)
@@ -304,9 +299,7 @@ def _add_bilateral_2dof(
         body_name = f"{seg_name}_{side}"
         virt1 = f"{coord_prefix}_{side}_virtual_1"
 
-        parent_full = (
-            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
-        )
+        parent_full = f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
 
         # Virtual link
         add_virtual_link(robot, name=virt1)
@@ -568,5 +561,16 @@ def create_full_body(
         second_min=ANKLE_INVERSION_MIN,
         second_max=ANKLE_INVERSION_MAX,
     )
+
+    # --- Foot collision geometry (sole contact box) ---
+    # Each foot gets a box collision at the sole for ground contact.
+    # Dimensions: 0.26 x 0.10 x 0.02 m, centered 0.01 m below frame origin.
+    _SOLE_COLLISION_DIMS = (0.26, 0.10, 0.02)
+    for side in ("l", "r"):
+        foot_link = robot.find(f".//link[@name='foot_{side}']")
+        if foot_link is not None:
+            collision = ET.SubElement(foot_link, "collision")
+            ET.SubElement(collision, "origin", xyz="0 0 -0.01", rpy="0 0 0")
+            collision.append(make_box_geometry(*_SOLE_COLLISION_DIMS))
 
     return links
