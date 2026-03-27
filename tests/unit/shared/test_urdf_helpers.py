@@ -126,8 +126,12 @@ class TestSetJointDefault:
     def test_sets_initial_position(self) -> None:
         robot = ET.Element("robot", name="test")
         add_revolute_joint(
-            robot, name="hip_l_flex", parent="p", child="c",
-            origin_xyz=(0, 0, 0), axis=(1, 0, 0),
+            robot,
+            name="hip_l_flex",
+            parent="p",
+            child="c",
+            origin_xyz=(0, 0, 0),
+            axis=(1, 0, 0),
         )
         set_joint_default(robot, "hip", 1.23, exact_suffix="_flex")
         joint = robot.find("joint[@name='hip_l_flex']")
@@ -137,8 +141,12 @@ class TestSetJointDefault:
     def test_ignores_unmatched_joints(self) -> None:
         robot = ET.Element("robot", name="test")
         add_revolute_joint(
-            robot, name="knee_l", parent="p", child="c",
-            origin_xyz=(0, 0, 0), axis=(0, 1, 0),
+            robot,
+            name="knee_l",
+            parent="p",
+            child="c",
+            origin_xyz=(0, 0, 0),
+            axis=(0, 1, 0),
         )
         set_joint_default(robot, "hip", 0.5)
         joint = robot.find("joint[@name='knee_l']")
@@ -148,12 +156,20 @@ class TestSetJointDefault:
     def test_exact_suffix_filters(self) -> None:
         robot = ET.Element("robot", name="test")
         add_revolute_joint(
-            robot, name="hip_l_flex", parent="p", child="c",
-            origin_xyz=(0, 0, 0), axis=(1, 0, 0),
+            robot,
+            name="hip_l_flex",
+            parent="p",
+            child="c",
+            origin_xyz=(0, 0, 0),
+            axis=(1, 0, 0),
         )
         add_revolute_joint(
-            robot, name="hip_l_adduct", parent="p", child="c2",
-            origin_xyz=(0, 0, 0), axis=(0, 0, 1),
+            robot,
+            name="hip_l_adduct",
+            parent="p",
+            child="c2",
+            origin_xyz=(0, 0, 0),
+            axis=(0, 0, 1),
         )
         set_joint_default(robot, "hip", 0.7, exact_suffix="_flex")
         flex_joint = robot.find("joint[@name='hip_l_flex']")

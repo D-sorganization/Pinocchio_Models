@@ -1,6 +1,0 @@
-tests\unit\shared\test_body_model.py:33: error: Function is missing a return type annotation  [no-untyped-def]
-tests\unit\shared\test_barbell.py:58: error: Function is missing a return type annotation  [no-untyped-def]
-tests\unit\addons\test_pink_ik.py:30: error: Argument 1 to "solve_pose" has incompatible type "None"; expected "IKProblem"  [arg-type]
-tests\unit\addons\test_crocoddyl_oc.py:31: error: Argument 1 to "solve_trajectory" has incompatible type "None"; expected "ExerciseOCP"  [arg-type]
-tests\unit\addons\test_crocoddyl_oc.py:42: error: Argument 2 to "extract_joint_torques" has incompatible type "None"; expected "ExerciseOCP"  [arg-type]
-Found 5 errors in 4 files (checked 62 source files)

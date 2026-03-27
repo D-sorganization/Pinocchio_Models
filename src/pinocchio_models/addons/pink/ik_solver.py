@@ -38,7 +38,9 @@ logger = logging.getLogger(__name__)
 def _require_pink() -> None:
     """Raise ImportError with installation instructions if Pink is missing."""
     if not _HAS_PINK:
-        raise ImportError("Pink is not installed. Install with: pip install pinocchio-models[pink]")
+        raise ImportError(
+            "Pink is not installed. Install with: pip install pinocchio-models[pink]"
+        )
 
 
 @dataclass(frozen=True)
