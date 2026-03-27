@@ -23,7 +23,10 @@ from pinocchio_models.shared.contracts.preconditions import (
     require_non_negative,
     require_positive,
 )
-from pinocchio_models.shared.utils.geometry import cylinder_inertia
+from pinocchio_models.shared.utils.geometry import (
+    cylinder_inertia,
+    hollow_cylinder_inertia,
+)
 from pinocchio_models.shared.utils.urdf_helpers import (
     add_fixed_joint,
     add_link,
@@ -129,11 +132,27 @@ def create_barbell_links(
     )
     _shaft_iyy, _shaft_izz = _shaft_izz, _shaft_iyy  # Y-axis cylinder correction
 
-    sleeve_total_mass = spec.sleeve_mass + spec.plate_mass_per_side
+    # Compute bare sleeve inertia
     _slv_ixx, _slv_iyy, _slv_izz = cylinder_inertia(
-        sleeve_total_mass, spec.sleeve_radius, spec.sleeve_length
+        spec.sleeve_mass, spec.sleeve_radius, spec.sleeve_length
     )
     _slv_iyy, _slv_izz = _slv_izz, _slv_iyy  # Y-axis cylinder correction
+
+    # Add plate inertia using correct plate radius (0.225 m), not sleeve radius
+    if spec.plate_mass_per_side > 0:
+        plate_thickness = max(0.01, spec.plate_mass_per_side * 0.002)
+        _plt_ixx, _plt_iyy, _plt_izz = hollow_cylinder_inertia(
+            spec.plate_mass_per_side,
+            inner_radius=spec.sleeve_radius,
+            outer_radius=0.225,
+            length=plate_thickness,
+        )
+        _plt_iyy, _plt_izz = _plt_izz, _plt_iyy  # Y-axis cylinder correction
+        _slv_ixx += _plt_ixx
+        _slv_iyy += _plt_iyy
+        _slv_izz += _plt_izz
+
+    sleeve_total_mass = spec.sleeve_mass + spec.plate_mass_per_side
 
     # Rotate visual cylinders 90° about X so they render along Y (not Z).
     _barbell_visual_rpy = (math.pi / 2, 0.0, 0.0)

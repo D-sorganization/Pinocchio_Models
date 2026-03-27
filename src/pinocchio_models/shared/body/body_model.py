@@ -95,6 +95,14 @@ _SEGMENT_TABLE: dict[str, dict[str, float]] = {
 }
 
 
+# Segments that are duplicated bilaterally (_l and _r suffixes).
+# Central segments (pelvis, torso, head) are NOT bilateral and must
+# NOT be resolved with a side suffix.
+_BILATERAL_SEGMENTS: frozenset[str] = frozenset(
+    {"upper_arm", "forearm", "hand", "thigh", "shank", "foot"}
+)
+
+
 def _seg(spec: BodyModelSpec, name: str) -> tuple[float, float, float]:
     """Return (mass, length, radius) for a named segment."""
     s = _SEGMENT_TABLE[name]
@@ -138,7 +146,9 @@ def _add_bilateral_limb(
         )
 
         parent_full = (
-            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
+            f"{parent_name}_{side}"
+            if parent_name in _BILATERAL_SEGMENTS
+            else parent_name
         )
         add_revolute_joint(
             robot,
