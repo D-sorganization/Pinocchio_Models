@@ -37,7 +37,8 @@ def _validate_exercise_name(exercise_name: str) -> None:
     """Validate that exercise_name is a recognized exercise."""
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise ValueError(
-            f"Unknown exercise '{exercise_name}'. " f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -59,7 +60,9 @@ def create_viewer(model_name: str, urdf_str: str) -> Any:
     _require_gepetto()
 
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-    visual_model = pin.buildGeomFromModelAndXML(model, urdf_str, pin.GeometryType.VISUAL)
+    visual_model = pin.buildGeomFromModelAndXML(
+        model, urdf_str, pin.GeometryType.VISUAL
+    )
     data = model.createData()
 
     viewer = GepettoVisualizer(model, data, visual_model)

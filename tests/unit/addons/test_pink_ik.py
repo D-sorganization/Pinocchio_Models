@@ -79,6 +79,6 @@ class TestExercisePhases:
 
         for name, phases in ik_mod._EXERCISE_PHASES.items():
             for phase_name, fraction in phases:
-                assert (
-                    0.0 <= fraction <= 1.0
-                ), f"{name}/{phase_name} fraction {fraction} out of range"
+                assert 0.0 <= fraction <= 1.0, (
+                    f"{name}/{phase_name} fraction {fraction} out of range"
+                )

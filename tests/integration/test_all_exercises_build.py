@@ -29,26 +29,34 @@ ALL_BUILDERS = [
 
 
 class TestAllExercisesBuild:
-    @pytest.mark.parametrize("name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS])
+    @pytest.mark.parametrize(
+        "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
+    )
     def test_produces_valid_urdf(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
         assert root.tag == "robot"
 
-    @pytest.mark.parametrize("name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS])
+    @pytest.mark.parametrize(
+        "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
+    )
     def test_model_name_matches(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
         assert root.get("name") == name  # type: ignore
 
-    @pytest.mark.parametrize("name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS])
+    @pytest.mark.parametrize(
+        "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
+    )
     def test_has_links_and_joints(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
         assert len(root.findall("link")) > 0
         assert len(root.findall("joint")) > 0
 
-    @pytest.mark.parametrize("name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS])
+    @pytest.mark.parametrize(
+        "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
+    )
     def test_minimum_link_count(self, name: Any, builder: Any) -> None:
         """Every exercise should have at least 32 links (29 body + 3 barbell)."""
         xml_str = builder()
@@ -56,7 +64,9 @@ class TestAllExercisesBuild:
         links = root.findall("link")
         assert len(links) >= 32
 
-    @pytest.mark.parametrize("name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS])
+    @pytest.mark.parametrize(
+        "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
+    )
     def test_all_masses_positive(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
@@ -65,7 +75,9 @@ class TestAllExercisesBuild:
             mass = float(mass_el.get("value"))  # type: ignore
             assert mass > 0, f"{link.get('name')} mass={mass}"  # type: ignore
 
-    @pytest.mark.parametrize("name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS])
+    @pytest.mark.parametrize(
+        "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
+    )
     def test_barbell_present(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)

@@ -17,15 +17,23 @@ from pinocchio_models.shared.utils.geometry import (
 )
 
 # Strategy for positive floats suitable for physics parameters
-positive_float = st.floats(min_value=0.01, max_value=1e4, allow_nan=False, allow_infinity=False)
-small_float = st.floats(min_value=-10.0, max_value=10.0, allow_nan=False, allow_infinity=False)
-angle = st.floats(min_value=-2 * np.pi, max_value=2 * np.pi, allow_nan=False, allow_infinity=False)
+positive_float = st.floats(
+    min_value=0.01, max_value=1e4, allow_nan=False, allow_infinity=False
+)
+small_float = st.floats(
+    min_value=-10.0, max_value=10.0, allow_nan=False, allow_infinity=False
+)
+angle = st.floats(
+    min_value=-2 * np.pi, max_value=2 * np.pi, allow_nan=False, allow_infinity=False
+)
 
 
 class TestCylinderInertiaProperties:
     @given(mass=positive_float, radius=positive_float, length=positive_float)
     @settings(max_examples=50)
-    def test_all_inertias_positive(self, mass: float, radius: float, length: float) -> None:
+    def test_all_inertias_positive(
+        self, mass: float, radius: float, length: float
+    ) -> None:
         ixx, iyy, izz = cylinder_inertia(mass, radius, length)
         assert ixx > 0
         assert iyy > 0
@@ -33,13 +41,17 @@ class TestCylinderInertiaProperties:
 
     @given(mass=positive_float, radius=positive_float, length=positive_float)
     @settings(max_examples=50)
-    def test_transverse_symmetry(self, mass: float, radius: float, length: float) -> None:
+    def test_transverse_symmetry(
+        self, mass: float, radius: float, length: float
+    ) -> None:
         ixx, iyy, _izz = cylinder_inertia(mass, radius, length)
         assert abs(ixx - iyy) < 1e-10 * max(abs(ixx), 1.0)
 
     @given(mass=positive_float, radius=positive_float, length=positive_float)
     @settings(max_examples=50)
-    def test_triangle_inequality(self, mass: float, radius: float, length: float) -> None:
+    def test_triangle_inequality(
+        self, mass: float, radius: float, length: float
+    ) -> None:
         ixx, iyy, izz = cylinder_inertia(mass, radius, length)
         assert ixx + iyy >= izz
         assert ixx + izz >= iyy
@@ -47,7 +59,9 @@ class TestCylinderInertiaProperties:
 
     @given(mass=positive_float, radius=positive_float, length=positive_float)
     @settings(max_examples=50)
-    def test_scales_linearly_with_mass(self, mass: float, radius: float, length: float) -> None:
+    def test_scales_linearly_with_mass(
+        self, mass: float, radius: float, length: float
+    ) -> None:
         ixx1, iyy1, izz1 = cylinder_inertia(mass, radius, length)
         ixx2, iyy2, izz2 = cylinder_inertia(2 * mass, radius, length)
         assert abs(ixx2 - 2 * ixx1) < 1e-10 * max(abs(ixx2), 1.0)
@@ -63,7 +77,9 @@ class TestRectangularPrismInertiaProperties:
         depth=positive_float,
     )
     @settings(max_examples=50)
-    def test_all_positive(self, mass: float, width: float, height: float, depth: float) -> None:
+    def test_all_positive(
+        self, mass: float, width: float, height: float, depth: float
+    ) -> None:
         ixx, iyy, izz = rectangular_prism_inertia(mass, width, height, depth)
         assert ixx > 0
         assert iyy > 0
@@ -109,7 +125,9 @@ class TestParallelAxisShiftProperties:
         dz=small_float,
     )
     @settings(max_examples=50)
-    def test_inertia_never_decreases(self, mass: float, dx: float, dy: float, dz: float) -> None:
+    def test_inertia_never_decreases(
+        self, mass: float, dx: float, dy: float, dz: float
+    ) -> None:
         inertia = (1.0, 1.0, 1.0)
         result = parallel_axis_shift(mass, inertia, np.array([dx, dy, dz]))
         assert result[0] >= inertia[0] - 1e-10

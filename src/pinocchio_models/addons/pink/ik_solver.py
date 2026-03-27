@@ -27,7 +27,10 @@ except ImportError:
 
 import logging  # noqa: E402
 
-from pinocchio_models.shared.constants import HIP_FLEXION_MAX, VALID_EXERCISE_NAMES  # noqa: E402
+from pinocchio_models.shared.constants import (  # noqa: E402
+    HIP_FLEXION_MAX,
+    VALID_EXERCISE_NAMES,
+)
 from pinocchio_models.shared.contracts.preconditions import (  # noqa: E402
     require_positive,
 )
@@ -38,14 +41,17 @@ logger = logging.getLogger(__name__)
 def _require_pink() -> None:
     """Raise ImportError with installation instructions if Pink is missing."""
     if not _HAS_PINK:
-        raise ImportError("Pink is not installed. Install with: pip install pinocchio-models[pink]")
+        raise ImportError(
+            "Pink is not installed. Install with: pip install pinocchio-models[pink]"
+        )
 
 
 def _validate_exercise_name(exercise_name: str) -> None:
     """Validate that exercise_name is a recognized exercise."""
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise ValueError(
-            f"Unknown exercise '{exercise_name}'. " f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 

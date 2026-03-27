@@ -36,9 +36,7 @@ class TrajectoryResult:
     iterations: int
 
 
-def interpolate_phases(
-    objective: ExerciseObjective, n_frames: int = 50
-) -> np.ndarray:
+def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.ndarray:
     """Linearly interpolate between exercise phases to generate keyframes.
 
     Returns an array of shape ``(n_frames, n_joints)`` where joints are sorted

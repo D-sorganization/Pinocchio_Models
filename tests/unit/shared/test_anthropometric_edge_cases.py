@@ -68,9 +68,9 @@ class TestAnthropometricEdgeCases:
         for segment in ("upper_arm", "forearm", "hand", "thigh", "shank", "foot"):
             left_mass = link_masses[f"{segment}_l"]
             right_mass = link_masses[f"{segment}_r"]
-            assert left_mass == pytest.approx(
-                right_mass
-            ), f"{segment} L/R mass mismatch: {left_mass} vs {right_mass}"
+            assert left_mass == pytest.approx(right_mass), (
+                f"{segment} L/R mass mismatch: {left_mass} vs {right_mass}"
+            )
 
     def test_rejects_zero_mass(self) -> None:
         with pytest.raises(ValueError, match="must be positive"):
@@ -91,7 +91,9 @@ class TestAnthropometricEdgeCases:
             assert limit is not None, f"Joint {joint.get('name')} missing limits"  # type: ignore
             lower = float(limit.get("lower"))  # type: ignore
             upper = float(limit.get("upper"))  # type: ignore
-            assert lower < upper, f"Joint {joint.get('name')}: lower ({lower}) >= upper ({upper})"
+            assert lower < upper, (
+                f"Joint {joint.get('name')}: lower ({lower}) >= upper ({upper})"
+            )
 
     def test_all_inertias_satisfy_triangle_inequality(self) -> None:
         """All body inertias should satisfy the triangle inequality."""

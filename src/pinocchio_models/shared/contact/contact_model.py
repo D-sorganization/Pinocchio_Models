@@ -120,7 +120,8 @@ def get_exercise_contacts(exercise_name: str, model: Any = None) -> ContactSpec:
     """
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise ValueError(
-            f"Unknown exercise '{exercise_name}'. " f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
     foot_contacts = _foot_corner_contacts("foot_l") + _foot_corner_contacts("foot_r")

@@ -39,7 +39,8 @@ def _require_crocoddyl() -> None:
     """Raise ImportError with instructions if Crocoddyl is missing."""
     if not _HAS_CROCODDYL:
         raise ImportError(
-            "Crocoddyl is not installed. " "Install with: pip install pinocchio-models[crocoddyl]"
+            "Crocoddyl is not installed. "
+            "Install with: pip install pinocchio-models[crocoddyl]"
         )
 
 
@@ -47,7 +48,8 @@ def _validate_exercise_name(exercise_name: str) -> None:
     """Validate that exercise_name is a recognized exercise."""
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise ValueError(
-            f"Unknown exercise '{exercise_name}'. " f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -199,7 +201,9 @@ def create_exercise_ocp(
         )
 
     # Integrated action models
-    running_models = [crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)]
+    running_models = [
+        crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)
+    ]
     terminal_model = crocoddyl.IntegratedActionModelEuler(terminal_dam, 0.0)
 
     # Shooting problem
