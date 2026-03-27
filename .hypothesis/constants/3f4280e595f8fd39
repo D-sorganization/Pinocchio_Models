@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\shared\body\body_model.py
+# hypothesis_version: 6.151.9
+
+[-1.0, 0.006, 0.014, 0.016, 0.018, 0.02, 0.023, 0.025, 0.028, 0.037, 0.04, 0.047, 0.05, 0.06, 0.08, 0.081, 0.085, 0.1, 0.13, 0.142, 0.146, 0.186, 0.245, 0.246, 0.288, 0.355, 1.0, 1.75, 2.0, 80.0, 'adduct', 'ankle', 'deviate', 'elbow', 'flex', 'foot', 'forearm', 'hand', 'head', 'height', 'hip', 'invert', 'knee', 'l', 'length_frac', 'lumbar_flex', 'lumbar_lateral', 'lumbar_rotate', 'lumbar_virtual_1', 'lumbar_virtual_2', 'mass_frac', 'neck', 'pelvis', 'r', 'radius_frac', 'rotate', 'shank', 'shoulder', 'thigh', 'torso', 'total_mass', 'upper_arm', 'wrist']

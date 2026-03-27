@@ -54,9 +54,7 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
         numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        set_joint_default(
-            robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE, exact_suffix="_flex"
-        )
+        set_joint_default(robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "elbow", BENCH_PRESS_ELBOW_ANGLE)
         set_joint_default(robot, "hip", BENCH_PRESS_HIP_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "knee", BENCH_PRESS_KNEE_ANGLE)

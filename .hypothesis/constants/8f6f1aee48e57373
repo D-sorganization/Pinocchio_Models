@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\exercises\squat\squat_model.py
+# hypothesis_version: 6.151.9
+
+[0.03, 0.288, 1.75, 60.0, 80.0, '_flex', 'ankle', 'back_squat', 'barbell_shaft', 'barbell_to_torso', 'hip', 'knee', 'torso']

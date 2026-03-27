@@ -1,3 +1,5 @@
+from numba import jit
+
 """Pink inverse kinematics for computing exercise target poses.
 
 Uses Pink's task-based IK to solve for joint configurations that
@@ -214,6 +216,7 @@ _EXERCISE_PHASES: dict[str, list[tuple[str, float]]] = {
 }
 
 
+@jit(nopython=True, fastmath=True)
 def compute_exercise_keyframes(
     urdf_str: str,
     exercise_name: str,

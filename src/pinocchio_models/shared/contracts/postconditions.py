@@ -36,9 +36,7 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
     if root.tag != "robot":
         raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
 
-    link_names: set[str] = {
-        el.get("name", "") for el in root.findall("link") if el.get("name")
-    }
+    link_names: set[str] = {el.get("name", "") for el in root.findall("link") if el.get("name")}
 
     child_parent_map: dict[str, str] = {}
     for joint in root.findall("joint"):
@@ -64,9 +62,7 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
 
         # (b) Verify child link name exists in the declared link set.
         if child_link and child_link not in link_names:
-            raise ValueError(
-                f"Joint '{joint_name}' references unknown child link '{child_link}'"
-            )
+            raise ValueError(f"Joint '{joint_name}' references unknown child link '{child_link}'")
 
         # (c) Assert no link appears as child of more than one joint
         # (URDF single-parent-per-link constraint).
@@ -85,20 +81,14 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
 def ensure_positive_mass(mass: float, body_name: str) -> None:
     """Validate that a body's mass is positive after computation."""
     if mass <= 0:
-        raise ValueError(
-            f"Postcondition violated: {body_name} mass={mass} is not positive"
-        )
+        raise ValueError(f"Postcondition violated: {body_name} mass={mass} is not positive")
 
 
-def ensure_positive_definite_inertia(
-    ixx: float, iyy: float, izz: float, body_name: str
-) -> None:
+def ensure_positive_definite_inertia(ixx: float, iyy: float, izz: float, body_name: str) -> None:
     """Validate that principal inertias are positive (necessary for PD)."""
     for label, val in [("Ixx", ixx), ("Iyy", iyy), ("Izz", izz)]:
         if val <= 0:
-            raise ValueError(
-                f"Postcondition violated: {body_name} {label}={val} not positive"
-            )
+            raise ValueError(f"Postcondition violated: {body_name} {label}={val} not positive")
     # Triangle inequality for principal inertias
     if ixx + iyy < izz or ixx + izz < iyy or iyy + izz < ixx:
         raise ValueError(

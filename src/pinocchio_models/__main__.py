@@ -91,9 +91,7 @@ def main(argv: list[str] | None = None) -> int:
         format="%(levelname)s: %(message)s",
     )
 
-    exercises = (
-        sorted(VALID_EXERCISE_NAMES) if args.exercise == "all" else [args.exercise]
-    )
+    exercises = sorted(VALID_EXERCISE_NAMES) if args.exercise == "all" else [args.exercise]
 
     for exercise_name in exercises:
         builder_fn = _BUILDERS[exercise_name]

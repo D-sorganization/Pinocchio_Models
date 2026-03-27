@@ -22,9 +22,7 @@ from pinocchio_models.shared.contracts.preconditions import (
 )
 
 
-def cylinder_inertia(
-    mass: float, radius: float, length: float
-) -> tuple[float, float, float]:
+def cylinder_inertia(mass: float, radius: float, length: float) -> tuple[float, float, float]:
     """Compute principal inertias (Ixx, Iyy, Izz) for a solid cylinder.
 
     The cylinder axis is aligned with the Z-axis (URDF convention).

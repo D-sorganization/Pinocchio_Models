@@ -1,0 +1,4 @@
+# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\exercises\clean_and_jerk\clean_and_jerk_model.py
+# hypothesis_version: 6.151.9
+
+[1.75, 50.0, 80.0, '_flex', 'ankle', 'clean_and_jerk', 'hip', 'knee', 'lumbar']
