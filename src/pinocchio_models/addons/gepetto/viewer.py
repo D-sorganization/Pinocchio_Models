@@ -21,7 +21,9 @@ except ImportError:
     _HAS_GEPETTO = False
 
 from pinocchio_models.shared.barbell import BarbellSpec
-from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
+from pinocchio_models.shared.contracts.preconditions import (  # noqa: F401
+    require_valid_exercise_name as _validate_exercise_name,
+)
 
 
 def _require_gepetto() -> None:
@@ -30,15 +32,6 @@ def _require_gepetto() -> None:
         raise ImportError(
             "Gepetto-viewer is not installed. "
             "Install with: pip install pinocchio-models[gepetto]"
-        )
-
-
-def _validate_exercise_name(exercise_name: str) -> None:
-    """Validate that exercise_name is a recognized exercise."""
-    if exercise_name not in VALID_EXERCISE_NAMES:
-        raise ValueError(
-            f"Unknown exercise '{exercise_name}'. "
-            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 

@@ -61,6 +61,15 @@ class ExerciseModelBuilder(ABC):
         """Human-readable exercise name used in the URDF model."""
 
     @property
+    def uses_barbell(self) -> bool:
+        """Whether this exercise uses a barbell.
+
+        Override to ``False`` in bodyweight exercises (gait, sit-to-stand)
+        so that ``build()`` skips barbell creation entirely.
+        """
+        return True
+
+    @property
     def grip_offset_fraction(self) -> float:
         """Fraction of shaft_length from center to each grip point.
 
@@ -127,6 +136,11 @@ class ExerciseModelBuilder(ABC):
         """Build the complete URDF model XML and return as string.
 
         Postcondition: returned string is well-formed URDF XML.
+
+        When :attr:`uses_barbell` is ``False`` the barbell links are
+        not created and ``attach_barbell`` is still called so that
+        subclasses can add alternative fixtures (e.g. a chair for
+        sit-to-stand).
         """
         logger.info("Building %s model", self.exercise_name)
 
@@ -135,10 +149,12 @@ class ExerciseModelBuilder(ABC):
         # Build body (pelvis is root link)
         body_links = create_full_body(robot, self.config.body_spec)
 
-        # Build barbell
-        barbell_links = create_barbell_links(robot, self.config.barbell_spec)
+        # Build barbell only when the exercise requires one
+        barbell_links: dict[str, ET.Element] = {}
+        if self.uses_barbell:
+            barbell_links = create_barbell_links(robot, self.config.barbell_spec)
 
-        # Exercise-specific attachment
+        # Exercise-specific attachment (or alternative fixture)
         self.attach_barbell(robot, body_links, barbell_links)
 
         # Exercise-specific initial pose

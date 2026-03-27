@@ -48,6 +48,10 @@ class SitToStandModelBuilder(ExerciseModelBuilder):
     def exercise_name(self) -> str:
         return "sit_to_stand"
 
+    @property
+    def uses_barbell(self) -> bool:
+        return False
+
     def attach_barbell(
         self,
         robot: ET.Element,

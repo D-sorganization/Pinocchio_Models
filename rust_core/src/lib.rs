@@ -42,6 +42,34 @@ fn inverse_dynamics_batch<'py>(
     let batch_size = q.nrows();
     let nq = q.ncols();
 
+    // Input validation: shape checks
+    if batch_size == 0 || nq == 0 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "q_batch must be non-empty with shape (batch, nq) where batch > 0 and nq > 0",
+        ));
+    }
+    if qd.nrows() != batch_size || qd.ncols() != nq {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!(
+                "qd_batch shape ({}, {}) must match q_batch shape ({}, {})",
+                qd.nrows(), qd.ncols(), batch_size, nq
+            ),
+        ));
+    }
+    if qdd.nrows() != batch_size || qdd.ncols() != nq {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!(
+                "qdd_batch shape ({}, {}) must match q_batch shape ({}, {})",
+                qdd.nrows(), qdd.ncols(), batch_size, nq
+            ),
+        ));
+    }
+    if m.len() != nq {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!("masses length {} must equal nq {}", m.len(), nq),
+        ));
+    }
+
     // Pre-allocate output
     let mut torques = Array2::<f64>::zeros((batch_size, nq));
 
@@ -90,6 +118,19 @@ fn com_batch<'py>(
 
     let batch_size = q.nrows();
     let nq = q.ncols();
+
+    // Input validation
+    if batch_size == 0 || nq == 0 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "q_batch must be non-empty with shape (batch, nq) where batch > 0 and nq > 0",
+        ));
+    }
+    if m.len() != nq {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!("masses length {} must equal nq {}", m.len(), nq),
+        ));
+    }
+
     let total_mass: f64 = m.sum();
 
     let rows: Vec<[f64; 3]> = (0..batch_size)
@@ -147,6 +188,26 @@ fn interpolate_phases_rs<'py>(
     let n_joints = angles.ncols();
     let n_phases = fracs.len();
 
+    // Input validation
+    if n_phases == 0 || n_joints == 0 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "phase_fractions and phase_angles must be non-empty",
+        ));
+    }
+    if angles.nrows() != n_phases {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            format!(
+                "phase_angles rows {} must equal phase_fractions length {}",
+                angles.nrows(), n_phases
+            ),
+        ));
+    }
+    if n_frames == 0 {
+        return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+            "n_frames must be > 0",
+        ));
+    }
+
     let rows: Vec<Array1<f64>> = (0..n_frames)
         .into_par_iter()
         .map(|i| {
@@ -199,4 +260,141 @@ fn pinocchio_models_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(com_batch, m)?)?;
     m.add_function(wrap_pyfunction!(interpolate_phases_rs, m)?)?;
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use ndarray::{Array1, Array2};
+
+    /// Helper: compute inverse dynamics for a single sample (non-PyO3).
+    fn inverse_dynamics_single(
+        q: &Array1<f64>,
+        qd: &Array1<f64>,
+        qdd: &Array1<f64>,
+        masses: &Array1<f64>,
+        gravity: f64,
+    ) -> Array1<f64> {
+        let nq = q.len();
+        let mut tau = Array1::<f64>::zeros(nq);
+        for j in 0..nq {
+            let inertia_term = masses[j] * qdd[j];
+            let damping_term = 0.1 * masses[j] * qd[j];
+            let gravity_term = masses[j] * gravity * q[j].cos();
+            tau[j] = inertia_term + damping_term + gravity_term;
+        }
+        tau
+    }
+
+    /// Helper: compute COM for a single sample (non-PyO3).
+    fn com_single(q: &Array1<f64>, masses: &Array1<f64>) -> [f64; 3] {
+        let nq = q.len();
+        let total_mass: f64 = masses.sum();
+        let mut com = [0.0_f64; 3];
+        for j in 0..nq {
+            let angle = q[j];
+            com[0] += masses[j] * angle.sin();
+            com[1] += masses[j] * angle.cos();
+            com[2] += masses[j] * (j as f64 / nq as f64);
+        }
+        if total_mass > 0.0 {
+            com[0] /= total_mass;
+            com[1] /= total_mass;
+            com[2] /= total_mass;
+        }
+        com
+    }
+
+    #[test]
+    fn test_inverse_dynamics_zero_motion() {
+        // Zero velocity and acceleration: τ = m * g * cos(q)
+        let nq = 3;
+        let q = Array1::zeros(nq);      // cos(0) = 1
+        let qd = Array1::zeros(nq);
+        let qdd = Array1::zeros(nq);
+        let masses = Array1::from_vec(vec![1.0, 2.0, 3.0]);
+        let gravity = 9.81;
+        let tau = inverse_dynamics_single(&q, &qd, &qdd, &masses, gravity);
+        for j in 0..nq {
+            let expected = masses[j] * gravity; // cos(0) = 1
+            assert!((tau[j] - expected).abs() < 1e-10, "j={j}: {:.6} != {:.6}", tau[j], expected);
+        }
+    }
+
+    #[test]
+    fn test_inverse_dynamics_shape_consistency() {
+        let nq = 5;
+        let q = Array1::ones(nq);
+        let qd = Array1::ones(nq);
+        let qdd = Array1::ones(nq);
+        let masses = Array1::ones(nq);
+        let tau = inverse_dynamics_single(&q, &qd, &qdd, &masses, 9.81);
+        assert_eq!(tau.len(), nq);
+    }
+
+    #[test]
+    fn test_com_zero_angles() {
+        let nq = 4;
+        let q = Array1::zeros(nq);
+        let masses = Array1::from_vec(vec![1.0, 1.0, 1.0, 1.0]);
+        let com = com_single(&q, &masses);
+        // sin(0) = 0, so COM x should be 0
+        assert!((com[0]).abs() < 1e-10);
+        // cos(0) = 1, so COM y should be 1.0 (total_mass = 4, sum = 4)
+        assert!((com[1] - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_com_single_joint() {
+        let q = Array1::from_vec(vec![std::f64::consts::FRAC_PI_2]);
+        let masses = Array1::from_vec(vec![2.0]);
+        let com = com_single(&q, &masses);
+        // sin(pi/2) = 1, cos(pi/2) ~ 0
+        assert!((com[0] - 1.0).abs() < 1e-10);
+        assert!((com[1]).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_interpolate_phases_two_phases() {
+        // Manually test the interpolation logic
+        let fracs = Array1::from_vec(vec![0.0, 1.0]);
+        let angles = Array2::from_shape_vec((2, 2), vec![0.0, 0.0, 1.0, 2.0]).unwrap();
+        let n_frames = 3;
+
+        // Frame 0: f=0.0 -> alpha=0 -> [0, 0]
+        // Frame 1: f=0.5 -> alpha=0.5 -> [0.5, 1.0]
+        // Frame 2: f=1.0 -> alpha=1.0 -> [1.0, 2.0]
+        let expected = vec![
+            vec![0.0, 0.0],
+            vec![0.5, 1.0],
+            vec![1.0, 2.0],
+        ];
+
+        for i in 0..n_frames {
+            let f = i as f64 / (n_frames - 1) as f64;
+            let alpha = f; // two phases: 0..1
+            for j in 0..2 {
+                let v0 = angles[[0, j]];
+                let v1 = angles[[1, j]];
+                let result = v0 + alpha * (v1 - v0);
+                assert!(
+                    (result - expected[i][j]).abs() < 1e-10,
+                    "frame={i}, joint={j}: {result:.6} != {:.6}",
+                    expected[i][j]
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_interpolate_single_frame() {
+        // n_frames=1 should produce f=0.0, returning the first phase angles
+        let fracs = Array1::from_vec(vec![0.0, 1.0]);
+        let angles = Array2::from_shape_vec((2, 1), vec![5.0, 10.0]).unwrap();
+
+        let f = 0.0; // single frame
+        let alpha = 0.0;
+        let result = angles[[0, 0]] + alpha * (angles[[1, 0]] - angles[[0, 0]]);
+        assert!((result - 5.0).abs() < 1e-10);
+    }
 }

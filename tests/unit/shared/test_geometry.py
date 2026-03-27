@@ -7,6 +7,7 @@ import pytest
 
 from pinocchio_models.shared.utils.geometry import (
     cylinder_inertia,
+    hollow_cylinder_inertia,
     parallel_axis_shift,
     rectangular_prism_inertia,
     rotation_matrix_x,
@@ -34,6 +35,43 @@ class TestCylinderInertia:
     def test_rejects_negative_radius(self) -> None:
         with pytest.raises(ValueError, match="must be positive"):
             cylinder_inertia(1.0, -0.1, 1.0)
+
+
+class TestHollowCylinderInertia:
+    def test_known_values(self) -> None:
+        mass, r_in, r_out, length = 8.0, 0.05, 0.2, 0.5
+        ixx, iyy, izz = hollow_cylinder_inertia(mass, r_in, r_out, length)
+        r_sq_sum = r_in**2 + r_out**2
+        expected_izz = 0.5 * mass * r_sq_sum
+        expected_trans = (1.0 / 12.0) * mass * (3.0 * r_sq_sum + length**2)
+        assert izz == pytest.approx(expected_izz)
+        assert ixx == pytest.approx(expected_trans)
+        assert iyy == pytest.approx(expected_trans)
+
+    def test_approaches_solid_cylinder_when_inner_zero_ish(self) -> None:
+        """With a very small inner radius, result should approach solid cylinder."""
+        mass, r_out, length = 5.0, 0.1, 1.0
+        r_in = 1e-6  # tiny bore
+        h_ixx, h_iyy, h_izz = hollow_cylinder_inertia(mass, r_in, r_out, length)
+        s_ixx, s_iyy, s_izz = cylinder_inertia(mass, r_out, length)
+        assert h_izz == pytest.approx(s_izz, rel=1e-4)
+        assert h_ixx == pytest.approx(s_ixx, rel=1e-4)
+
+    def test_rejects_inner_ge_outer(self) -> None:
+        with pytest.raises(ValueError, match="inner_radius"):
+            hollow_cylinder_inertia(1.0, 0.2, 0.1, 0.5)
+
+    def test_rejects_equal_radii(self) -> None:
+        with pytest.raises(ValueError, match="inner_radius"):
+            hollow_cylinder_inertia(1.0, 0.1, 0.1, 0.5)
+
+    def test_rejects_zero_mass(self) -> None:
+        with pytest.raises(ValueError, match="must be positive"):
+            hollow_cylinder_inertia(0.0, 0.05, 0.1, 0.5)
+
+    def test_rejects_negative_length(self) -> None:
+        with pytest.raises(ValueError, match="must be positive"):
+            hollow_cylinder_inertia(1.0, 0.05, 0.1, -0.5)
 
 
 class TestRectangularPrismInertia:

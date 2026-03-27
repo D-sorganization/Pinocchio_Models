@@ -33,6 +33,16 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     make_cylinder_geometry,
 )
 
+# --- Named constants for barbell plate geometry ---
+# Standard Olympic plate outer radius (450 mm diameter / 2).
+PLATE_OUTER_RADIUS_M: float = 0.225
+
+# Minimum plate thickness in metres (prevents degenerate geometry at low mass).
+MIN_PLATE_THICKNESS_M: float = 0.01
+
+# Linear scaling factor: plate thickness = max(MIN, mass * this factor).
+PLATE_THICKNESS_PER_KG: float = 0.002
+
 
 @dataclass(frozen=True)
 class BarbellSpec:
@@ -140,11 +150,14 @@ def create_barbell_links(
 
     # Add plate inertia using correct plate radius (0.225 m), not sleeve radius
     if spec.plate_mass_per_side > 0:
-        plate_thickness = max(0.01, spec.plate_mass_per_side * 0.002)
+        plate_thickness = max(
+            MIN_PLATE_THICKNESS_M,
+            spec.plate_mass_per_side * PLATE_THICKNESS_PER_KG,
+        )
         _plt_ixx, _plt_iyy, _plt_izz = hollow_cylinder_inertia(
             spec.plate_mass_per_side,
             inner_radius=spec.sleeve_radius,
-            outer_radius=0.225,
+            outer_radius=PLATE_OUTER_RADIUS_M,
             length=plate_thickness,
         )
         _plt_iyy, _plt_izz = _plt_izz, _plt_iyy  # Y-axis cylinder correction
