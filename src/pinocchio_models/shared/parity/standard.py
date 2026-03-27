@@ -80,6 +80,8 @@ EXERCISE_PHASE_COUNTS = {
     "bench_press": 5,
     "snatch": 6,
     "clean_and_jerk": 8,
+    "gait": 8,
+    "sit_to_stand": 6,
 }
 
 GRAVITY = (0.0, 0.0, -9.80665)

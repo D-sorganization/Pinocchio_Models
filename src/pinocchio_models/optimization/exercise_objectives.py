@@ -408,6 +408,218 @@ CLEAN_AND_JERK_OBJECTIVE = ExerciseObjective(
 )
 
 # ---------------------------------------------------------------------------
+# Gait (8 phases — full gait cycle from heel strike to heel strike)
+# ---------------------------------------------------------------------------
+GAIT_OBJECTIVE = ExerciseObjective(
+    name="gait",
+    start_pose={
+        "hip_l_flex": _rad(30),
+        "hip_r_flex": _rad(-10),
+        "knee_l_flex": 0.0,
+        "knee_r_flex": _rad(-40),
+        "ankle_l_flex": _rad(-15),
+        "ankle_r_flex": _rad(-20),
+    },
+    end_pose={
+        "hip_l_flex": _rad(30),
+        "hip_r_flex": _rad(-10),
+        "knee_l_flex": 0.0,
+        "knee_r_flex": _rad(-40),
+        "ankle_l_flex": _rad(-15),
+        "ankle_r_flex": _rad(-20),
+    },
+    phases=(
+        Phase(
+            "heel_strike",
+            0.0,
+            {
+                "hip_l_flex": _rad(30),
+                "knee_l_flex": 0.0,
+                "ankle_l_flex": _rad(-15),
+                "hip_r_flex": _rad(-10),
+                "knee_r_flex": _rad(-40),
+                "ankle_r_flex": _rad(-20),
+            },
+        ),
+        Phase(
+            "loading_response",
+            0.12,
+            {
+                "hip_l_flex": _rad(25),
+                "knee_l_flex": _rad(-15),
+                "ankle_l_flex": _rad(-10),
+                "hip_r_flex": _rad(-10),
+                "knee_r_flex": _rad(-40),
+                "ankle_r_flex": _rad(-25),
+            },
+        ),
+        Phase(
+            "mid_stance",
+            0.30,
+            {
+                "hip_l_flex": _rad(5),
+                "knee_l_flex": _rad(-5),
+                "ankle_l_flex": _rad(10),
+                "hip_r_flex": _rad(5),
+                "knee_r_flex": _rad(-5),
+                "ankle_r_flex": 0.0,
+            },
+        ),
+        Phase(
+            "terminal_stance",
+            0.50,
+            {
+                "hip_l_flex": _rad(-10),
+                "knee_l_flex": 0.0,
+                "ankle_l_flex": _rad(15),
+                "hip_r_flex": _rad(20),
+                "knee_r_flex": 0.0,
+                "ankle_r_flex": _rad(-5),
+            },
+        ),
+        Phase(
+            "pre_swing",
+            0.62,
+            {
+                "hip_l_flex": _rad(-10),
+                "knee_l_flex": _rad(-40),
+                "ankle_l_flex": _rad(-20),
+                "hip_r_flex": _rad(30),
+                "knee_r_flex": 0.0,
+                "ankle_r_flex": _rad(-15),
+            },
+        ),
+        Phase(
+            "initial_swing",
+            0.75,
+            {
+                "hip_l_flex": _rad(15),
+                "knee_l_flex": _rad(-60),
+                "ankle_l_flex": _rad(-5),
+                "hip_r_flex": _rad(25),
+                "knee_r_flex": _rad(-15),
+                "ankle_r_flex": _rad(-10),
+            },
+        ),
+        Phase(
+            "mid_swing",
+            0.87,
+            {
+                "hip_l_flex": _rad(25),
+                "knee_l_flex": _rad(-30),
+                "ankle_l_flex": 0.0,
+                "hip_r_flex": _rad(5),
+                "knee_r_flex": _rad(-5),
+                "ankle_r_flex": _rad(10),
+            },
+        ),
+        Phase(
+            "terminal_swing",
+            1.0,
+            {
+                "hip_l_flex": _rad(30),
+                "knee_l_flex": 0.0,
+                "ankle_l_flex": _rad(-15),
+                "hip_r_flex": _rad(-10),
+                "knee_r_flex": _rad(-40),
+                "ankle_r_flex": _rad(-20),
+            },
+        ),
+    ),
+    bar_path_constraint="vertical",
+    balance_mode="bilateral_stance",
+)
+
+# ---------------------------------------------------------------------------
+# Sit-to-Stand (6 phases)
+# ---------------------------------------------------------------------------
+SIT_TO_STAND_OBJECTIVE = ExerciseObjective(
+    name="sit_to_stand",
+    start_pose={
+        "hip_l_flex": _rad(90),
+        "hip_r_flex": _rad(90),
+        "knee_l_flex": _rad(-90),
+        "knee_r_flex": _rad(-90),
+        "ankle_l_flex": _rad(15),
+        "ankle_r_flex": _rad(15),
+        "lumbar_flex": _rad(10),
+    },
+    end_pose={
+        "hip_l_flex": 0.0,
+        "hip_r_flex": 0.0,
+        "knee_l_flex": 0.0,
+        "knee_r_flex": 0.0,
+        "ankle_l_flex": 0.0,
+        "ankle_r_flex": 0.0,
+        "lumbar_flex": 0.0,
+    },
+    phases=(
+        Phase(
+            "seated",
+            0.0,
+            {
+                "hip_l_flex": _rad(90),
+                "knee_l_flex": _rad(-90),
+                "ankle_l_flex": _rad(15),
+                "lumbar_flex": _rad(10),
+            },
+        ),
+        Phase(
+            "weight_shift",
+            0.15,
+            {
+                "hip_l_flex": _rad(100),
+                "knee_l_flex": _rad(-85),
+                "ankle_l_flex": _rad(20),
+                "lumbar_flex": _rad(30),
+            },
+        ),
+        Phase(
+            "seat_off",
+            0.35,
+            {
+                "hip_l_flex": _rad(80),
+                "knee_l_flex": _rad(-80),
+                "ankle_l_flex": _rad(20),
+                "lumbar_flex": _rad(25),
+            },
+        ),
+        Phase(
+            "momentum_transfer",
+            0.55,
+            {
+                "hip_l_flex": _rad(50),
+                "knee_l_flex": _rad(-50),
+                "ankle_l_flex": _rad(10),
+                "lumbar_flex": _rad(15),
+            },
+        ),
+        Phase(
+            "extension",
+            0.80,
+            {
+                "hip_l_flex": _rad(20),
+                "knee_l_flex": _rad(-20),
+                "ankle_l_flex": _rad(5),
+                "lumbar_flex": _rad(5),
+            },
+        ),
+        Phase(
+            "standing",
+            1.0,
+            {
+                "hip_l_flex": 0.0,
+                "knee_l_flex": 0.0,
+                "ankle_l_flex": 0.0,
+                "lumbar_flex": 0.0,
+            },
+        ),
+    ),
+    bar_path_constraint="vertical",
+    balance_mode="bilateral_stance",
+)
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 EXERCISE_OBJECTIVES: dict[str, ExerciseObjective] = {
@@ -416,6 +628,8 @@ EXERCISE_OBJECTIVES: dict[str, ExerciseObjective] = {
     "bench_press": BENCH_PRESS_OBJECTIVE,
     "snatch": SNATCH_OBJECTIVE,
     "clean_and_jerk": CLEAN_AND_JERK_OBJECTIVE,
+    "gait": GAIT_OBJECTIVE,
+    "sit_to_stand": SIT_TO_STAND_OBJECTIVE,
 }
 
 

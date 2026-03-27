@@ -9,6 +9,8 @@ class TestConvenienceImports:
             BenchPressModelBuilder,
             CleanAndJerkModelBuilder,
             DeadliftModelBuilder,
+            GaitModelBuilder,
+            SitToStandModelBuilder,
             SnatchModelBuilder,
             SquatModelBuilder,
         )
@@ -16,6 +18,8 @@ class TestConvenienceImports:
         assert BenchPressModelBuilder is not None
         assert CleanAndJerkModelBuilder is not None
         assert DeadliftModelBuilder is not None
+        assert GaitModelBuilder is not None
+        assert SitToStandModelBuilder is not None
         assert SnatchModelBuilder is not None
         assert SquatModelBuilder is not None
 
@@ -24,6 +28,8 @@ class TestConvenienceImports:
             build_bench_press_model,
             build_clean_and_jerk_model,
             build_deadlift_model,
+            build_gait_model,
+            build_sit_to_stand_model,
             build_snatch_model,
             build_squat_model,
         )
@@ -31,6 +37,8 @@ class TestConvenienceImports:
         assert callable(build_bench_press_model)
         assert callable(build_clean_and_jerk_model)
         assert callable(build_deadlift_model)
+        assert callable(build_gait_model)
+        assert callable(build_sit_to_stand_model)
         assert callable(build_snatch_model)
         assert callable(build_squat_model)
 

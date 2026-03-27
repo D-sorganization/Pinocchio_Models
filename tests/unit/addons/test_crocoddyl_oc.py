@@ -41,6 +41,32 @@ class TestCrocoddylOCImportGuard:
                 oc_mod.extract_joint_torques(([], []), None)  # type: ignore
 
 
+class TestCyclicOCPImportGuard:
+    def test_cyclic_ocp_raises_without_crocoddyl(self) -> None:
+        with patch.dict("sys.modules", {"crocoddyl": None, "pinocchio": None}):
+            import importlib
+
+            import pinocchio_models.addons.crocoddyl.optimal_control as oc_mod
+
+            importlib.reload(oc_mod)
+
+            with pytest.raises(ImportError, match="Crocoddyl is not installed"):
+                oc_mod.create_cyclic_ocp("<robot/>", "gait")
+
+    def test_cyclic_ocp_validates_exercise_name(self) -> None:
+        with patch.dict("sys.modules", {"crocoddyl": None, "pinocchio": None}):
+            import importlib
+
+            import pinocchio_models.addons.crocoddyl.optimal_control as oc_mod
+
+            importlib.reload(oc_mod)
+
+            # Import guard fires before validation, but validation
+            # function can be tested directly
+            with pytest.raises(ValueError, match="Unknown exercise"):
+                oc_mod._validate_exercise_name("not_a_real_exercise")
+
+
 class TestExerciseNameValidation:
     def test_rejects_invalid_exercise_name(self) -> None:
         """Validates exercise name even when crocoddyl is missing."""
@@ -65,6 +91,8 @@ class TestExerciseNameValidation:
             "deadlift",
             "snatch",
             "clean_and_jerk",
+            "gait",
+            "sit_to_stand",
         ):
             oc_mod._validate_exercise_name(name)
 

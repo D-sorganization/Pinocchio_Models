@@ -22,6 +22,10 @@ from pinocchio_models.exercises.clean_and_jerk.clean_and_jerk_model import (
     build_clean_and_jerk_model,
 )
 from pinocchio_models.exercises.deadlift.deadlift_model import build_deadlift_model
+from pinocchio_models.exercises.gait.gait_model import build_gait_model
+from pinocchio_models.exercises.sit_to_stand.sit_to_stand_model import (
+    build_sit_to_stand_model,
+)
 from pinocchio_models.exercises.snatch.snatch_model import build_snatch_model
 from pinocchio_models.exercises.squat.squat_model import build_squat_model
 from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
@@ -34,6 +38,8 @@ _BUILDERS: dict[str, Callable[..., str]] = {
     "deadlift": build_deadlift_model,
     "snatch": build_snatch_model,
     "clean_and_jerk": build_clean_and_jerk_model,
+    "gait": build_gait_model,
+    "sit_to_stand": build_sit_to_stand_model,
 }
 
 

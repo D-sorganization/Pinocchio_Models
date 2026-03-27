@@ -120,6 +120,16 @@ CLEAN_AND_JERK_KNEE_ANGLE: float = -math.radians(65)
 CLEAN_AND_JERK_LUMBAR_ANGLE: float = math.radians(10)
 CLEAN_AND_JERK_ANKLE_ANGLE: float = math.radians(18)  # Dorsiflexion at setup
 
+# Gait: natural standing (mid-stance ready position)
+GAIT_HIP_ANGLE: float = math.radians(5)  # Slight flexion
+GAIT_KNEE_ANGLE: float = -math.radians(5)  # Slight flexion
+GAIT_ANKLE_ANGLE: float = 0.0  # Neutral
+
+# Sit-to-stand: seated position (~90 deg hip/knee flexion)
+STS_HIP_ANGLE: float = math.radians(90)
+STS_KNEE_ANGLE: float = -math.radians(90)
+STS_ANKLE_ANGLE: float = math.radians(15)  # Slight dorsiflexion
+
 # --- Grip width fractions (fraction of shaft length from center) ---
 BENCH_PRESS_GRIP_FRACTION: float = 0.3
 DEADLIFT_GRIP_FRACTION: float = 0.3
@@ -134,6 +144,8 @@ VALID_EXERCISE_NAMES: frozenset[str] = frozenset(
         "deadlift",
         "snatch",
         "clean_and_jerk",
+        "gait",
+        "sit_to_stand",
     }
 )
 

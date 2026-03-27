@@ -39,7 +39,8 @@ def _require_crocoddyl() -> None:
     """Raise ImportError with instructions if Crocoddyl is missing."""
     if not _HAS_CROCODDYL:
         raise ImportError(
-            "Crocoddyl is not installed. " "Install with: pip install pinocchio-models[crocoddyl]"
+            "Crocoddyl is not installed. "
+            "Install with: pip install pinocchio-models[crocoddyl]"
         )
 
 
@@ -47,7 +48,8 @@ def _validate_exercise_name(exercise_name: str) -> None:
     """Validate that exercise_name is a recognized exercise."""
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise ValueError(
-            f"Unknown exercise '{exercise_name}'. " f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -199,11 +201,137 @@ def create_exercise_ocp(
         )
 
     # Integrated action models
-    running_models = [crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)]
+    running_models = [
+        crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)
+    ]
     terminal_model = crocoddyl.IntegratedActionModelEuler(terminal_dam, 0.0)
 
     # Shooting problem
     x0 = np.concatenate([pin.neutral(model), np.zeros(model.nv)])
+    problem = crocoddyl.ShootingProblem(x0, running_models, terminal_model)
+
+    return ExerciseOCP(
+        model=model,
+        state=state,
+        actuation=actuation,
+        problem=problem,
+        dt=dt,
+        n_steps=n_steps,
+        running_models=running_models,
+        terminal_model=terminal_model,
+    )
+
+
+def create_cyclic_ocp(
+    urdf_str: str,
+    exercise_name: str,
+    dt: float = 0.01,
+    n_steps: int = 100,
+    *,
+    periodicity_weight: float = 100.0,
+    use_contacts: bool = False,
+) -> ExerciseOCP:
+    """Create an OCP with periodicity constraints for cyclic motion (e.g. gait).
+
+    Adds a terminal cost penalizing the difference between the final
+    and initial configurations, encouraging the solver to find a
+    steady-state cycle where q_start ~ q_end.
+
+    Parameters
+    ----------
+    urdf_str : str
+        URDF XML string of the model.
+    exercise_name : str
+        Name of the exercise (must be one of the valid exercise names).
+    dt : float
+        Time step for discretization (seconds).
+    n_steps : int
+        Number of time steps in the horizon.
+    periodicity_weight : float
+        Weight on the periodicity (q_start ~ q_end) terminal cost.
+        Higher values enforce stricter cyclic behaviour.
+    use_contacts : bool
+        If True, add bilateral foot-ground contact constraints.
+
+    Returns
+    -------
+    ExerciseOCP
+        Configured cyclic OCP ready for solving.
+    """
+    _require_crocoddyl()
+    _validate_exercise_name(exercise_name)
+    require_positive(dt, "dt")
+    require_positive(float(n_steps), "n_steps")
+    require_positive(periodicity_weight, "periodicity_weight")
+
+    model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
+    state = crocoddyl.StateMultibody(model)
+    actuation = crocoddyl.ActuationModelFloatingBase(state)
+
+    # Running cost: effort regularization + state regularization
+    running_cost_model = crocoddyl.CostModelSum(state)
+    u_residual = crocoddyl.ResidualModelControl(state)
+    u_cost = crocoddyl.CostModelResidual(state, u_residual)
+    running_cost_model.addCost("effort", u_cost, 1e-3)
+
+    x_residual = crocoddyl.ResidualModelState(state)
+    x_cost = crocoddyl.CostModelResidual(state, x_residual)
+    running_cost_model.addCost("state_reg", x_cost, 1e-1)
+
+    # Terminal cost: state regularization + periodicity
+    terminal_cost_model = crocoddyl.CostModelSum(state)
+    terminal_cost_model.addCost("state_reg", x_cost, 1.0)
+
+    # Periodicity constraint: penalize (x_terminal - x_initial)
+    # Uses the state residual targeting x0, weighted heavily
+    x0 = np.concatenate([pin.neutral(model), np.zeros(model.nv)])
+    x_ref_residual = crocoddyl.ResidualModelState(state, x0)
+    x_ref_cost = crocoddyl.CostModelResidual(state, x_ref_residual)
+    terminal_cost_model.addCost("periodicity", x_ref_cost, periodicity_weight)
+
+    # Optionally add contact constraints
+    contacts = None
+    if use_contacts:
+        foot_frames = ["foot_l", "foot_r"]
+        contacts = _build_contact_models(model, state, foot_frames)
+
+        for fname in foot_frames:
+            frame_id = model.getFrameId(fname)
+            cone = crocoddyl.FrictionCone(
+                np.eye(3),
+                0.8,
+                4,
+                False,
+            )
+            friction_residual = crocoddyl.ResidualModelContactFrictionCone(
+                state, frame_id, cone, model.nv
+            )
+            friction_cost = crocoddyl.CostModelResidual(state, friction_residual)
+            running_cost_model.addCost(f"{fname}_friction", friction_cost, 1e-2)
+
+    # Differential action models
+    if contacts is not None:
+        running_dam = crocoddyl.DifferentialActionModelContactFwdDynamics(
+            state, actuation, contacts, running_cost_model
+        )
+        terminal_dam = crocoddyl.DifferentialActionModelContactFwdDynamics(
+            state, actuation, contacts, terminal_cost_model
+        )
+    else:
+        running_dam = crocoddyl.DifferentialActionModelFreeFwdDynamics(
+            state, actuation, running_cost_model
+        )
+        terminal_dam = crocoddyl.DifferentialActionModelFreeFwdDynamics(
+            state, actuation, terminal_cost_model
+        )
+
+    # Integrated action models
+    running_models = [
+        crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)
+    ]
+    terminal_model = crocoddyl.IntegratedActionModelEuler(terminal_dam, 0.0)
+
+    # Shooting problem
     problem = crocoddyl.ShootingProblem(x0, running_models, terminal_model)
 
     return ExerciseOCP(
