@@ -229,8 +229,7 @@ def _assemble_shooting_problem(
         )
 
     running_models = [
-        crocoddyl.IntegratedActionModelEuler(running_dam, dt)
-        for _ in range(n_steps)
+        crocoddyl.IntegratedActionModelEuler(running_dam, dt) for _ in range(n_steps)
     ]
     terminal_model = crocoddyl.IntegratedActionModelEuler(terminal_dam, 0.0)
     problem = crocoddyl.ShootingProblem(c.x0, running_models, terminal_model)

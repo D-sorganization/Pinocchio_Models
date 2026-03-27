@@ -164,7 +164,11 @@ def _add_bilateral_limb_simple(
             visual_geometry=make_cylinder_geometry(radius, length),
         )
 
-        parent_full = f"{parent_name}_{side}" if parent_name in _BILATERAL_SEGMENTS else parent_name
+        parent_full = (
+            f"{parent_name}_{side}"
+            if parent_name in _BILATERAL_SEGMENTS
+            else parent_name
+        )
         add_revolute_joint(
             robot,
             name=f"{coord_prefix}_{side}",
@@ -212,7 +216,9 @@ def _add_bilateral_3dof(
         virt1 = f"{coord_prefix}_{side}_virtual_1"
         virt2 = f"{coord_prefix}_{side}_virtual_2"
 
-        parent_full = f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
+        parent_full = (
+            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
+        )
 
         # Virtual link 1
         add_virtual_link(robot, name=virt1)
@@ -299,7 +305,9 @@ def _add_bilateral_2dof(
         body_name = f"{seg_name}_{side}"
         virt1 = f"{coord_prefix}_{side}_virtual_1"
 
-        parent_full = f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
+        parent_full = (
+            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
+        )
 
         # Virtual link
         add_virtual_link(robot, name=virt1)
