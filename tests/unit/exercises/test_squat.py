@@ -116,8 +116,6 @@ class TestSquatModelBuilder:
         assert HIP_FLEXION_MIN <= SQUAT_HIP_ANGLE <= HIP_FLEXION_MAX
 
     def test_custom_body_parameters(self) -> None:
-        xml_str = build_squat_model(
-            body_mass=100.0, height=1.90, plate_mass_per_side=80.0
-        )
+        xml_str = build_squat_model(body_mass=100.0, height=1.90, plate_mass_per_side=80.0)
         root = ET.fromstring(xml_str)
         assert len(root.findall("link")) >= 32

@@ -7,14 +7,9 @@ def fix_file(filepath):
 
     out_lines = []
     for line in lines:
-        if (
+        if (  # noqa: SIM102
             ("get(" in line or "find(" in line or "text" in line or "__iter__" in line)
-            and (
-                "assert" in line
-                or "float(" in line
-                or "split(" in line
-                or " in " in line
-            )
+            and ("assert" in line or "float(" in line or "split(" in line or " in " in line)
             or "total_mass =" in line
             or "bar_mass =" in line
             or "total_mass=" in line

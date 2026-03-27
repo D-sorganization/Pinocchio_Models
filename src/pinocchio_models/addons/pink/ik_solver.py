@@ -10,12 +10,12 @@ Usage requires the optional ``pink`` extra::
     pip install pinocchio-models[pink]
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402, F404
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass, field  # noqa: E402
+from typing import Any  # noqa: E402
 
-import numpy as np
+import numpy as np  # noqa: E402
 
 try:
     import pink
@@ -25,10 +25,10 @@ try:
 except ImportError:
     _HAS_PINK = False
 
-import logging
+import logging  # noqa: E402
 
-from pinocchio_models.shared.constants import HIP_FLEXION_MAX, VALID_EXERCISE_NAMES
-from pinocchio_models.shared.contracts.preconditions import (
+from pinocchio_models.shared.constants import HIP_FLEXION_MAX, VALID_EXERCISE_NAMES  # noqa: E402
+from pinocchio_models.shared.contracts.preconditions import (  # noqa: E402
     require_positive,
 )
 

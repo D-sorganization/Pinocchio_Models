@@ -1,0 +1,4 @@
+# file: c:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\shared\contact\contact_model.py
+# hypothesis_version: 6.151.9
+
+[-0.05, 0.0, 0.02, 0.1, 0.26, 0.6, 0.8, 0.9, 1.0, 2.0, 'bench_press', 'clean_and_jerk', 'deadlift', 'foot_l', 'foot_r', 'hand_l', 'hand_r', 'heel_lat', 'heel_med', 'snatch', 'toe_lat', 'toe_med', 'torso']

@@ -33,7 +33,7 @@ def fix_file(filepath):
         elif "builder: object" in line:
             line = line.replace("builder: object", "builder: Any")
 
-        if "import pytest" in line and i < 15:
+        if "import pytest" in line and i < 15:  # noqa: SIM102
             if "from typing import Any" not in "".join(lines[:20]):
                 line = line + "from typing import Any\n"
         out_lines.append(line)

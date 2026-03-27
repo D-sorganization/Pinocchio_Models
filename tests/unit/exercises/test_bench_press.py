@@ -69,8 +69,7 @@ class TestBenchPressModelBuilder:
         shoulder_flex_joints = [
             j
             for j in root.findall("joint")
-            if j.get("name", "").startswith("shoulder_")
-            and j.get("name", "").endswith("_flex")
+            if j.get("name", "").startswith("shoulder_") and j.get("name", "").endswith("_flex")
         ]
         assert len(shoulder_flex_joints) == 2
         for j in shoulder_flex_joints:
@@ -130,9 +129,7 @@ class TestBenchPressModelBuilder:
             SHOULDER_FLEXION_MIN,
         )
 
-        assert (
-            SHOULDER_FLEXION_MIN <= BENCH_PRESS_SHOULDER_ANGLE <= SHOULDER_FLEXION_MAX
-        )
+        assert SHOULDER_FLEXION_MIN <= BENCH_PRESS_SHOULDER_ANGLE <= SHOULDER_FLEXION_MAX
 
     def test_knee_angle_within_limits(self) -> None:
         """Knee initial angle must be within anatomical ROM."""
