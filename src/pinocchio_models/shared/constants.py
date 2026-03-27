@@ -47,8 +47,8 @@ KNEE_FLEXION_MIN: float = math.radians(-150)  # Full flexion -2.618
 KNEE_FLEXION_MAX: float = math.radians(0)
 
 # Ankle (dorsiflexion/plantarflexion) -- Winter (2009)
-ANKLE_FLEXION_MIN: float = math.radians(-45)  # Plantarflexion
-ANKLE_FLEXION_MAX: float = math.radians(30)  # Dorsiflexion
+ANKLE_FLEXION_MIN: float = math.radians(-50)  # Plantarflexion
+ANKLE_FLEXION_MAX: float = math.radians(20)  # Dorsiflexion
 
 # --- Initial pose angles (radians) for each exercise ---
 # Bench press: arms extended above chest (supine)
