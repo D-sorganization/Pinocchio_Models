@@ -105,13 +105,15 @@ class TestJointLimitConstants:
 
 
 class TestValidExerciseNames:
-    def test_contains_all_five_exercises(self) -> None:
-        assert len(VALID_EXERCISE_NAMES) == 5
+    def test_contains_all_exercises(self) -> None:
+        assert len(VALID_EXERCISE_NAMES) == 7
         assert "back_squat" in VALID_EXERCISE_NAMES
         assert "bench_press" in VALID_EXERCISE_NAMES
         assert "deadlift" in VALID_EXERCISE_NAMES
         assert "snatch" in VALID_EXERCISE_NAMES
         assert "clean_and_jerk" in VALID_EXERCISE_NAMES
+        assert "gait" in VALID_EXERCISE_NAMES
+        assert "sit_to_stand" in VALID_EXERCISE_NAMES
 
     def test_is_frozen(self) -> None:
         assert isinstance(VALID_EXERCISE_NAMES, frozenset)

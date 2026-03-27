@@ -20,6 +20,8 @@ EXPECTED_EXERCISES = [
     "bench_press",
     "snatch",
     "clean_and_jerk",
+    "gait",
+    "sit_to_stand",
 ]
 
 
