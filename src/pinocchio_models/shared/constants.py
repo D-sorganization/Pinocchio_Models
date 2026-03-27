@@ -15,10 +15,20 @@ import math
 # --- Joint range-of-motion limits (radians) ---
 # Winter (2009) anatomically validated ranges.
 
-# Lumbar spine (flexion/extension about Y)
-# Kapandji (2008) cites ~20-35° extension; deadlift lockout requires >10°.
+# Lumbar spine (flexion/extension about X-axis)
+# Kapandji (2008) cites ~20-35 deg extension; deadlift lockout requires >10 deg.
 LUMBAR_FLEXION_MIN: float = math.radians(-25)  # Extension ~25 deg
 LUMBAR_FLEXION_MAX: float = math.radians(45)  # Flexion ~45 deg
+
+# Lumbar lateral bending (about Z-axis) -- Kapandji (2008)
+# ~20 deg each side
+LUMBAR_LATERAL_MIN: float = math.radians(-20)  # Left lateral bend
+LUMBAR_LATERAL_MAX: float = math.radians(20)  # Right lateral bend
+
+# Lumbar axial rotation (about Y-axis) -- Kapandji (2008)
+# ~5-10 deg each side (limited by facet joint orientation)
+LUMBAR_ROTATION_MIN: float = math.radians(-10)  # Left rotation
+LUMBAR_ROTATION_MAX: float = math.radians(10)  # Right rotation
 
 # Neck (flexion/extension about Y)
 # Winter (2009) cites ~50-70° flexion and ~60° extension.
@@ -30,6 +40,16 @@ NECK_FLEXION_MAX: float = math.radians(70)  # Flexion ~70 deg
 SHOULDER_FLEXION_MIN: float = math.radians(-30)  # Extension
 SHOULDER_FLEXION_MAX: float = math.radians(180)  # Full flexion
 
+# Shoulder adduction/abduction (frontal plane, about Z-axis)
+# Kapandji (2008): adduction ~30 deg, abduction ~180 deg
+SHOULDER_ADDUCTION_MIN: float = -0.5236  # -30 deg (adduction past midline)
+SHOULDER_ADDUCTION_MAX: float = 3.1416  # 180 deg (full abduction)
+
+# Shoulder internal/external rotation (about Y-axis, long axis of humerus)
+# Kapandji (2008): ~90 deg internal, ~90 deg external
+SHOULDER_ROTATION_MIN: float = -1.5708  # -90 deg (external rotation)
+SHOULDER_ROTATION_MAX: float = 1.5708  # 90 deg (internal rotation)
+
 # Elbow (flexion only, 0 to ~150 degrees)
 ELBOW_FLEXION_MIN: float = math.radians(0)
 ELBOW_FLEXION_MAX: float = math.radians(150)  # 2.618
@@ -38,9 +58,24 @@ ELBOW_FLEXION_MAX: float = math.radians(150)  # 2.618
 WRIST_FLEXION_MIN: float = math.radians(-80)  # Extension
 WRIST_FLEXION_MAX: float = math.radians(70)  # Flexion
 
+# Wrist radial/ulnar deviation (about Z-axis) -- Winter (2009)
+# Radial deviation ~20 deg, ulnar deviation ~30 deg
+WRIST_DEVIATION_MIN: float = -0.3491  # -20 deg (radial deviation)
+WRIST_DEVIATION_MAX: float = 0.5236  # 30 deg (ulnar deviation)
+
 # Hip (flexion/extension about Y) -- Winter (2009)
 HIP_FLEXION_MIN: float = math.radians(-30)  # Extension
 HIP_FLEXION_MAX: float = math.radians(120)  # Flexion 2.0944
+
+# Hip adduction/abduction (frontal plane, about Z-axis)
+# Kapandji (2008): adduction ~30 deg, abduction ~45 deg
+HIP_ADDUCTION_MIN: float = -0.7854  # -45 deg (abduction)
+HIP_ADDUCTION_MAX: float = 0.5236  # 30 deg (adduction)
+
+# Hip internal/external rotation (about Y-axis, long axis of femur)
+# Kapandji (2008): ~45 deg internal, ~45 deg external
+HIP_ROTATION_MIN: float = -0.7854  # -45 deg (external rotation)
+HIP_ROTATION_MAX: float = 0.7854  # 45 deg (internal rotation)
 
 # Knee (flexion, negative convention since leg folds backward) -- Winter (2009)
 KNEE_FLEXION_MIN: float = math.radians(-150)  # Full flexion -2.618
@@ -49,6 +84,11 @@ KNEE_FLEXION_MAX: float = math.radians(0)
 # Ankle (dorsiflexion/plantarflexion) -- Winter (2009)
 ANKLE_FLEXION_MIN: float = math.radians(-45)  # Plantarflexion
 ANKLE_FLEXION_MAX: float = math.radians(30)  # Dorsiflexion
+
+# Ankle inversion/eversion (about longitudinal foot axis) -- Winter (2009)
+# Inversion ~20 deg, eversion ~20 deg
+ANKLE_INVERSION_MIN: float = -0.3491  # -20 deg (eversion)
+ANKLE_INVERSION_MAX: float = 0.3491  # 20 deg (inversion)
 
 # --- Initial pose angles (radians) for each exercise ---
 # Bench press: arms extended above chest (supine)

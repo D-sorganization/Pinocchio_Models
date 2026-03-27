@@ -109,6 +109,31 @@ def add_link(
     return link
 
 
+def add_virtual_link(
+    robot: ET.Element,
+    *,
+    name: str,
+) -> ET.Element:
+    """Append a zero-mass virtual link for compound (multi-DOF) joints.
+
+    URDF requires every joint to connect two distinct links. To model
+    a multi-DOF anatomical joint (e.g., 3-DOF hip) we chain sequential
+    revolute joints with virtual (massless) links between them.
+
+    URDF also requires non-zero mass, so we use a negligible mass
+    (1e-6 kg) and tiny inertia (1e-9 kg*m^2 on each principal axis).
+    """
+    return add_link(
+        robot,
+        name=name,
+        mass=1e-6,
+        origin_xyz=(0, 0, 0),
+        ixx=1e-9,
+        iyy=1e-9,
+        izz=1e-9,
+    )
+
+
 def add_revolute_joint(
     robot: ET.Element,
     *,
@@ -194,12 +219,23 @@ def serialize_model(root: ET.Element) -> str:
     return ET.tostring(root, encoding="unicode", xml_declaration=True)
 
 
-def set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
+def set_joint_default(
+    robot: ET.Element,
+    prefix: str,
+    value: float,
+    *,
+    exact_suffix: str | None = None,
+) -> None:
     """Set the ``initial_position`` metadata attribute on matching joints.
 
     Iterates over all ``<joint>`` children of *robot* and stamps an
     ``initial_position`` attribute on every joint whose ``name`` equals
     *prefix* **or** starts with ``"{prefix}_"``.
+
+    When *exact_suffix* is provided, only joints whose name ends with
+    that suffix are matched. This is useful for multi-DOF compound joints
+    where, e.g., only the ``_flex`` component should receive the initial
+    angle while ``_adduct`` and ``_rotate`` remain at zero.
 
     .. important::
         This attribute is **metadata only**.  Pinocchio does *not* read it
@@ -214,10 +250,16 @@ def set_joint_default(robot: ET.Element, prefix: str, value: float) -> None:
         Joint-name prefix, e.g. ``"hip"`` matches ``hip_l`` and ``hip_r``.
     value:
         Angle in radians to record as the default position.
+    exact_suffix:
+        If given, only match joints whose name ends with this suffix.
+        E.g. ``exact_suffix="_flex"`` with ``prefix="hip"`` matches
+        ``hip_l_flex`` and ``hip_r_flex`` but not ``hip_l_adduct``.
     """
     for joint in robot.findall("joint"):
         name = joint.get("name", "")
         if name == prefix or name.startswith(f"{prefix}_"):
+            if exact_suffix is not None and not name.endswith(exact_suffix):
+                continue
             joint.set("initial_position", f"{value:.6f}")
 
 

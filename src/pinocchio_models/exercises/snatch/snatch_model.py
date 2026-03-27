@@ -53,10 +53,10 @@ class SnatchModelBuilder(ExerciseModelBuilder):
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
         numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        set_joint_default(robot, "hip", SNATCH_HIP_ANGLE)
+        set_joint_default(robot, "hip", SNATCH_HIP_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
-        set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE)
-        set_joint_default(robot, "ankle", SNATCH_ANKLE_ANGLE)
+        set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE, exact_suffix="_flex")
+        set_joint_default(robot, "ankle", SNATCH_ANKLE_ANGLE, exact_suffix="_flex")
 
 
 def build_snatch_model(

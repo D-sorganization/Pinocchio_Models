@@ -2,10 +2,13 @@
 
 import xml.etree.ElementTree as ET
 
+import pytest
+
 from pinocchio_models.shared.utils.urdf_helpers import (
     add_fixed_joint,
     add_link,
     add_revolute_joint,
+    add_virtual_link,
     make_box_geometry,
     make_cylinder_geometry,
     make_sphere_geometry,
@@ -46,6 +49,29 @@ class TestAddLink:
         visual = link.find("visual")
         assert visual is not None
         assert visual.find("geometry/cylinder") is not None  # type: ignore
+
+
+class TestAddVirtualLink:
+    def test_creates_negligible_mass_link(self) -> None:
+        robot = ET.Element("robot", name="test")
+        link = add_virtual_link(robot, name="virt1")
+        assert link.get("name") == "virt1"  # type: ignore
+        inertial = link.find("inertial")
+        assert inertial is not None
+        mass = float(inertial.find("mass").get("value"))  # type: ignore
+        assert mass == pytest.approx(1e-6, abs=1e-10)
+
+    def test_virtual_link_has_tiny_inertia(self) -> None:
+        robot = ET.Element("robot", name="test")
+        link = add_virtual_link(robot, name="virt1")
+        inertia = link.find("inertial/inertia")
+        assert inertia is not None
+        # Inertia values (1e-9) are below 6-decimal-place precision,
+        # so they format to 0.000000 in the URDF XML. This is acceptable
+        # for virtual links whose only purpose is URDF topology.
+        for axis in ("ixx", "iyy", "izz"):
+            val = float(inertia.get(axis))  # type: ignore
+            assert val <= 1e-6, f"{axis}={val} should be negligible"
 
 
 class TestAddRevoluteJoint:

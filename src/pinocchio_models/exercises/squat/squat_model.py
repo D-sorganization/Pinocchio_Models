@@ -76,9 +76,9 @@ class SquatModelBuilder(ExerciseModelBuilder):
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
         numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        set_joint_default(robot, "hip", SQUAT_HIP_ANGLE)
+        set_joint_default(robot, "hip", SQUAT_HIP_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "knee", SQUAT_KNEE_ANGLE)
-        set_joint_default(robot, "ankle", SQUAT_ANKLE_ANGLE)
+        set_joint_default(robot, "ankle", SQUAT_ANKLE_ANGLE, exact_suffix="_flex")
 
 
 def build_squat_model(
