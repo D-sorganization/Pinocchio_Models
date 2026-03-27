@@ -53,10 +53,10 @@ class DeadliftModelBuilder(ExerciseModelBuilder):
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
         numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        set_joint_default(robot, "hip", DEADLIFT_HIP_ANGLE)
+        set_joint_default(robot, "hip", DEADLIFT_HIP_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "knee", DEADLIFT_KNEE_ANGLE)
-        set_joint_default(robot, "lumbar", DEADLIFT_LUMBAR_ANGLE)
-        set_joint_default(robot, "ankle", DEADLIFT_ANKLE_ANGLE)
+        set_joint_default(robot, "lumbar", DEADLIFT_LUMBAR_ANGLE, exact_suffix="_flex")
+        set_joint_default(robot, "ankle", DEADLIFT_ANKLE_ANGLE, exact_suffix="_flex")
 
 
 def build_deadlift_model(

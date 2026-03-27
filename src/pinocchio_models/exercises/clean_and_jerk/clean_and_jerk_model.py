@@ -53,10 +53,14 @@ class CleanAndJerkModelBuilder(ExerciseModelBuilder):
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
         numpy configuration vector for use with ``pin.forwardKinematics``.
         """
-        set_joint_default(robot, "hip", CLEAN_AND_JERK_HIP_ANGLE)
+        set_joint_default(robot, "hip", CLEAN_AND_JERK_HIP_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "knee", CLEAN_AND_JERK_KNEE_ANGLE)
-        set_joint_default(robot, "lumbar", CLEAN_AND_JERK_LUMBAR_ANGLE)
-        set_joint_default(robot, "ankle", CLEAN_AND_JERK_ANKLE_ANGLE)
+        set_joint_default(
+            robot, "lumbar", CLEAN_AND_JERK_LUMBAR_ANGLE, exact_suffix="_flex"
+        )
+        set_joint_default(
+            robot, "ankle", CLEAN_AND_JERK_ANKLE_ANGLE, exact_suffix="_flex"
+        )
 
 
 def build_clean_and_jerk_model(

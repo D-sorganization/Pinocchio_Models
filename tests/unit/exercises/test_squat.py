@@ -45,14 +45,15 @@ class TestSquatModelBuilder:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         links = root.findall("link")
-        assert len(links) >= 18
+        # 29 body + 3 barbell = 32 links minimum
+        assert len(links) >= 32
 
     def test_joint_types(self) -> None:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
         revolute = root.findall("joint[@type='revolute']")
         fixed = root.findall("joint[@type='fixed']")
-        assert len(revolute) >= 14
+        assert len(revolute) >= 28
         assert len(fixed) >= 3
 
     def test_torso_attachment_is_fixed(self) -> None:
@@ -65,12 +66,14 @@ class TestSquatModelBuilder:
     def test_initial_pose_sets_defaults(self) -> None:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
-        hip_joints = [
+        hip_flex_joints = [
             j
             for j in root.findall("joint")
             if j.get("name", "").startswith("hip_")  # type: ignore
+            and j.get("name", "").endswith("_flex")  # type: ignore
         ]
-        for j in hip_joints:
+        assert len(hip_flex_joints) == 2  # bilateral
+        for j in hip_flex_joints:
             assert j.get("initial_position") is not None  # type: ignore
             assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SQUAT_HIP_ANGLE, abs=1e-4
@@ -93,12 +96,14 @@ class TestSquatModelBuilder:
     def test_initial_pose_ankle_defaults(self) -> None:
         xml_str = build_squat_model()
         root = ET.fromstring(xml_str)
-        ankle_joints = [
+        ankle_flex_joints = [
             j
             for j in root.findall("joint")
             if j.get("name", "").startswith("ankle_")  # type: ignore
+            and j.get("name", "").endswith("_flex")  # type: ignore
         ]
-        for j in ankle_joints:
+        assert len(ankle_flex_joints) == 2  # bilateral
+        for j in ankle_flex_joints:
             assert j.get("initial_position") is not None  # type: ignore
             assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SQUAT_ANKLE_ANGLE, abs=1e-4
@@ -115,4 +120,4 @@ class TestSquatModelBuilder:
             body_mass=100.0, height=1.90, plate_mass_per_side=80.0
         )
         root = ET.fromstring(xml_str)
-        assert len(root.findall("link")) >= 18
+        assert len(root.findall("link")) >= 32
