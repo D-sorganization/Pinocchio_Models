@@ -1,13 +1,47 @@
-"""Cross-repo parity standard — canonical biomechanical parameters."""
+"""Cross-repo parity standard — canonical biomechanical parameters.
+
+Joint limits are derived from ``constants.py`` (the single source of
+truth, cited from Winter 2009 and Kapandji 2008). This module
+re-exports those values in a dictionary form suitable for cross-repo
+parity checks.
+"""
 
 from __future__ import annotations
 
-import math
-
-
-def _rad(deg: float) -> float:
-    return math.radians(deg)
-
+from pinocchio_models.shared.constants import (
+    ANKLE_FLEXION_MAX,
+    ANKLE_FLEXION_MIN,
+    ANKLE_INVERSION_MAX,
+    ANKLE_INVERSION_MIN,
+    ELBOW_FLEXION_MAX,
+    ELBOW_FLEXION_MIN,
+    HIP_ADDUCTION_MAX,
+    HIP_ADDUCTION_MIN,
+    HIP_FLEXION_MAX,
+    HIP_FLEXION_MIN,
+    HIP_ROTATION_MAX,
+    HIP_ROTATION_MIN,
+    KNEE_FLEXION_MAX,
+    KNEE_FLEXION_MIN,
+    LUMBAR_FLEXION_MAX,
+    LUMBAR_FLEXION_MIN,
+    LUMBAR_LATERAL_MAX,
+    LUMBAR_LATERAL_MIN,
+    LUMBAR_ROTATION_MAX,
+    LUMBAR_ROTATION_MIN,
+    NECK_FLEXION_MAX,
+    NECK_FLEXION_MIN,
+    SHOULDER_ADDUCTION_MAX,
+    SHOULDER_ADDUCTION_MIN,
+    SHOULDER_FLEXION_MAX,
+    SHOULDER_FLEXION_MIN,
+    SHOULDER_ROTATION_MAX,
+    SHOULDER_ROTATION_MIN,
+    WRIST_DEVIATION_MAX,
+    WRIST_DEVIATION_MIN,
+    WRIST_FLEXION_MAX,
+    WRIST_FLEXION_MIN,
+)
 
 STANDARD_BODY_MASS = 80.0
 STANDARD_HEIGHT = 1.75
@@ -36,23 +70,24 @@ SEGMENT_LENGTH_FRACTIONS = {
     "foot": 0.040,
 }
 
+# Derived from constants.py — single source of truth for joint limits.
 JOINT_LIMITS = {
-    "hip_flex": (_rad(-30), _rad(120)),
-    "hip_adduct": (_rad(-45), _rad(30)),
-    "hip_rotate": (_rad(-45), _rad(45)),
-    "knee_flex": (_rad(-150), _rad(0)),
-    "ankle_flex": (_rad(-20), _rad(50)),
-    "ankle_invert": (_rad(-20), _rad(20)),
-    "shoulder_flex": (_rad(-60), _rad(180)),
-    "shoulder_adduct": (_rad(-30), _rad(180)),
-    "shoulder_rotate": (_rad(-90), _rad(90)),
-    "elbow_flex": (_rad(0), _rad(150)),
-    "wrist_flex": (_rad(-70), _rad(70)),
-    "wrist_deviate": (_rad(-20), _rad(30)),
-    "lumbar_flex": (_rad(-30), _rad(45)),
-    "lumbar_lateral": (_rad(-30), _rad(30)),
-    "lumbar_rotate": (_rad(-30), _rad(30)),
-    "neck_flex": (_rad(-30), _rad(30)),
+    "hip_flex": (HIP_FLEXION_MIN, HIP_FLEXION_MAX),
+    "hip_adduct": (HIP_ADDUCTION_MIN, HIP_ADDUCTION_MAX),
+    "hip_rotate": (HIP_ROTATION_MIN, HIP_ROTATION_MAX),
+    "knee_flex": (KNEE_FLEXION_MIN, KNEE_FLEXION_MAX),
+    "ankle_flex": (ANKLE_FLEXION_MIN, ANKLE_FLEXION_MAX),
+    "ankle_invert": (ANKLE_INVERSION_MIN, ANKLE_INVERSION_MAX),
+    "shoulder_flex": (SHOULDER_FLEXION_MIN, SHOULDER_FLEXION_MAX),
+    "shoulder_adduct": (SHOULDER_ADDUCTION_MIN, SHOULDER_ADDUCTION_MAX),
+    "shoulder_rotate": (SHOULDER_ROTATION_MIN, SHOULDER_ROTATION_MAX),
+    "elbow_flex": (ELBOW_FLEXION_MIN, ELBOW_FLEXION_MAX),
+    "wrist_flex": (WRIST_FLEXION_MIN, WRIST_FLEXION_MAX),
+    "wrist_deviate": (WRIST_DEVIATION_MIN, WRIST_DEVIATION_MAX),
+    "lumbar_flex": (LUMBAR_FLEXION_MIN, LUMBAR_FLEXION_MAX),
+    "lumbar_lateral": (LUMBAR_LATERAL_MIN, LUMBAR_LATERAL_MAX),
+    "lumbar_rotate": (LUMBAR_ROTATION_MIN, LUMBAR_ROTATION_MAX),
+    "neck_flex": (NECK_FLEXION_MIN, NECK_FLEXION_MAX),
 }
 
 MENS_BARBELL = {
@@ -74,9 +109,11 @@ GROUND_FRICTION = {
     "dynamic": 0.6,
 }
 
+# Phase counts derived from exercise_objectives.py — the authoritative
+# source for the number of optimisation phases in each exercise.
 EXERCISE_PHASE_COUNTS = {
     "back_squat": 5,
-    "deadlift": 5,
+    "deadlift": 4,
     "bench_press": 5,
     "snatch": 6,
     "clean_and_jerk": 8,

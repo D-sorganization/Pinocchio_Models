@@ -140,7 +140,7 @@ class TestExercisePhases:
         assert EXERCISE_PHASE_COUNTS["back_squat"] == 5
 
     def test_deadlift_phases(self) -> None:
-        assert EXERCISE_PHASE_COUNTS["deadlift"] == 5
+        assert EXERCISE_PHASE_COUNTS["deadlift"] == 4
 
     def test_snatch_phases(self) -> None:
         assert EXERCISE_PHASE_COUNTS["snatch"] == 6

@@ -51,3 +51,18 @@ def require_shape(arr: ArrayLike, expected: tuple[int, ...], name: str) -> None:
     a = np.asarray(arr)
     if a.shape != expected:
         raise ValueError(f"{name} must have shape {expected}, got {a.shape}")
+
+
+def require_valid_exercise_name(exercise_name: str) -> None:
+    """Require *exercise_name* to be one of the recognised exercises.
+
+    Raises :class:`ValueError` with a descriptive message listing the
+    valid options when the name is not recognised.
+    """
+    from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
+
+    if exercise_name not in VALID_EXERCISE_NAMES:
+        raise ValueError(
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+        )
