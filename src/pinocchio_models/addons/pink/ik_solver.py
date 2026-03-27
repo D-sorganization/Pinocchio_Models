@@ -36,17 +36,14 @@ logger = logging.getLogger(__name__)
 def _require_pink() -> None:
     """Raise ImportError with installation instructions if Pink is missing."""
     if not _HAS_PINK:
-        raise ImportError(
-            "Pink is not installed. Install with: pip install pinocchio-models[pink]"
-        )
+        raise ImportError("Pink is not installed. Install with: pip install pinocchio-models[pink]")
 
 
 def _validate_exercise_name(exercise_name: str) -> None:
     """Validate that exercise_name is a recognized exercise."""
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise ValueError(
-            f"Unknown exercise '{exercise_name}'. "
-            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Unknown exercise '{exercise_name}'. " f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
 
@@ -91,6 +88,8 @@ def solve_pose(
     targets: dict[str, np.ndarray],
     max_iterations: int = 100,
     tolerance: float = 1e-4,
+    *,
+    ground_feet: bool = False,
 ) -> np.ndarray:
     """Solve for a joint configuration reaching the given targets.
 
@@ -104,6 +103,10 @@ def solve_pose(
         Maximum solver iterations.
     tolerance : float
         Convergence tolerance.
+    ground_feet : bool
+        If True, constrain ``foot_l`` and ``foot_r`` frames to
+        maintain Z=0 (ground contact). This prevents the model from
+        floating during IK.
 
     Returns
     -------
@@ -129,6 +132,19 @@ def solve_pose(
         )
         task.set_target(se3_target)
         tasks.append(task)
+
+    # Foot-on-ground constraints: pin feet at Z=0
+    if ground_feet:
+        for foot_name in ("foot_l", "foot_r"):
+            ground_pose = pin.SE3.Identity()
+            # Keep X/Y from neutral, set Z=0
+            foot_task = pink.tasks.FrameTask(
+                foot_name,
+                position_cost=10.0,  # High weight to enforce contact
+                orientation_cost=0.1,
+            )
+            foot_task.set_target(ground_pose)
+            tasks.append(foot_task)
 
     for _iteration in range(max_iterations):
         velocity = configuration.solve_ik(tasks, dt=0.01)
