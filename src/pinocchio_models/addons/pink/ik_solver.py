@@ -267,7 +267,7 @@ def compute_exercise_keyframes(
         try:
             root_joint_id = model.getJointId("root_joint")
             freeflyer_nq = model.joints[root_joint_id].nq
-        except Exception as _e:  # noqa: BLE001
+        except (RuntimeError, KeyError) as _e:
             logger.warning("root_joint not found in model, using fallback nq=7: %s", _e)
             freeflyer_nq = 7  # Fallback for standard FreeFlyer
         nq_actuated = model.nq - freeflyer_nq
