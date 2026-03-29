@@ -27,9 +27,8 @@ except ImportError:
 from pinocchio_models.shared.constants import HIP_FLEXION_MAX
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
-)
-from pinocchio_models.shared.contracts.preconditions import (
-    require_valid_exercise_name as _validate_exercise_name,
+    require_valid_exercise_name,
+    require_valid_urdf_string,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,6 +71,7 @@ def create_ik_problem(urdf_str: str, target_frames: list[str]) -> IKProblem:
         Configured IK problem ready for solving.
     """
     _require_pink()
+    require_valid_urdf_string(urdf_str)
 
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
     data = model.createData()
@@ -147,7 +147,12 @@ def solve_pose(
         q = pin.integrate(model, configuration.q, velocity * 0.01)
         configuration = pink.Configuration(model, data, q)
 
-        error = max(np.linalg.norm(task.compute_error(configuration)) for task in tasks)
+        error = float(
+            max(
+                float(np.linalg.norm(task.compute_error(configuration)))
+                for task in tasks
+            )
+        )
         if error < tolerance:
             break
 
@@ -236,7 +241,8 @@ def compute_exercise_keyframes(
         List of joint configuration vectors.
     """
     _require_pink()
-    _validate_exercise_name(exercise_name)
+    require_valid_urdf_string(urdf_str)
+    require_valid_exercise_name(exercise_name)
     require_positive(float(n_frames), "n_frames")
 
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())

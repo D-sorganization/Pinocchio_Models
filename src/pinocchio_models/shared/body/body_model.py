@@ -22,6 +22,12 @@ mass=80 kg) following Winter (2009) segment proportions.
 Convention: Z-up (vertical), X-forward. Pinocchio adds the floating
 base programmatically via pin.JointModelFreeFlyer().
 
+Joint axis convention note (issue #65):
+  Simple revolute joints (knee, elbow, ankle) use **Y-axis** for
+  sagittal-plane flexion.  Drake and MuJoCo often use **X-axis** for
+  the same motion.  See ``docs/joint_axis_convention.md`` for the full
+  mapping and porting guidance.
+
 Law of Demeter: exercise modules call create_full_body() and receive
 link elements -- they never manipulate segment internals.
 """
@@ -247,25 +253,15 @@ def _add_bilateral_ndof(
             current_parent = child_name
 
 
-def create_full_body(
+def _build_axial_chain(
     robot: ET.Element,
-    spec: BodyModelSpec | None = None,
-) -> dict[str, ET.Element]:
-    """Build the full-body model and append links/joints to the <robot>.
+    spec: BodyModelSpec,
+    links: dict[str, ET.Element],
+) -> tuple[float, float]:
+    """Stage 1: Build pelvis, torso (3-DOF lumbar), and head.
 
-    The pelvis is the root link. Pinocchio adds the floating base
-    programmatically via pin.JointModelFreeFlyer() when loading URDF.
-
-    Multi-DOF joints use intermediate virtual (zero-mass) links to
-    chain sequential revolute joints, as required by URDF's tree topology.
-
-    Returns dict of link name -> ET.Element for all created links.
+    Returns (pelvis_length, torso_length) needed by downstream stages.
     """
-    if spec is None:
-        spec = BodyModelSpec()
-
-    links: dict[str, ET.Element] = {}
-
     # --- Pelvis (root link -- Pinocchio adds FreeFlyer) ---
     p_mass, p_len, p_rad = _seg(spec, "pelvis")
     p_inertia = rectangular_prism_inertia(p_mass, p_rad * 2, p_len, p_rad * 2)
@@ -283,7 +279,6 @@ def create_full_body(
     t_mass, t_len, t_rad = _seg(spec, "torso")
     t_inertia = rectangular_prism_inertia(t_mass, t_rad * 2, t_len, t_rad * 2)
 
-    # Virtual links for lumbar compound joint
     add_virtual_link(robot, name="lumbar_virtual_1")
     add_revolute_joint(
         robot,
@@ -351,8 +346,16 @@ def create_full_body(
         upper=NECK_FLEXION_MAX,
     )
 
-    # --- Arms (3-DOF shoulder) ---
-    shoulder_z = t_len * SHOULDER_HEIGHT_FRAC
+    return p_len, t_len
+
+
+def _build_upper_limbs(
+    robot: ET.Element,
+    spec: BodyModelSpec,
+    torso_length: float,
+) -> None:
+    """Stage 2: Build bilateral arms -- shoulder, elbow, wrist."""
+    shoulder_z = torso_length * SHOULDER_HEIGHT_FRAC
     shoulder_y = spec.height * SHOULDER_LATERAL_FRAC_OF_HEIGHT
 
     _add_bilateral_ndof(
@@ -370,7 +373,6 @@ def create_full_body(
         ],
     )
 
-    # --- Elbow (1-DOF) ---
     _ua_mass, ua_len, _ua_rad = _seg(spec, "upper_arm")
     _add_bilateral_limb_simple(
         robot,
@@ -384,7 +386,6 @@ def create_full_body(
         range_max=ELBOW_FLEXION_MAX,
     )
 
-    # --- Wrist (2-DOF: flex, deviate) ---
     _fa_mass, fa_len, _fa_rad = _seg(spec, "forearm")
     _add_bilateral_ndof(
         robot,
@@ -400,7 +401,13 @@ def create_full_body(
         ],
     )
 
-    # --- Legs (3-DOF hip) ---
+
+def _build_lower_limbs(
+    robot: ET.Element,
+    spec: BodyModelSpec,
+    pelvis_length: float,
+) -> None:
+    """Stage 3: Build bilateral legs -- hip, knee, ankle, foot collision."""
     hip_y = spec.height * HIP_LATERAL_FRAC_OF_HEIGHT
 
     _add_bilateral_ndof(
@@ -408,7 +415,7 @@ def create_full_body(
         spec,
         seg_name="thigh",
         parent_name="pelvis",
-        parent_offset_z=-p_len / 2.0,
+        parent_offset_z=-pelvis_length / 2.0,
         parent_lateral_y=hip_y,
         coord_prefix="hip",
         joints=[
@@ -418,7 +425,6 @@ def create_full_body(
         ],
     )
 
-    # --- Knee (1-DOF) ---
     _th_mass, th_len, _th_rad = _seg(spec, "thigh")
     _add_bilateral_limb_simple(
         robot,
@@ -432,7 +438,6 @@ def create_full_body(
         range_max=KNEE_FLEXION_MAX,
     )
 
-    # --- Ankle (2-DOF: flex, invert) ---
     _sh_mass, sh_len, _sh_rad = _seg(spec, "shank")
     _add_bilateral_ndof(
         robot,
@@ -448,8 +453,7 @@ def create_full_body(
         ],
     )
 
-    # --- Foot collision geometry (sole contact box) ---
-    # Each foot gets a box collision at the sole for ground contact.
+    # Foot collision geometry (sole contact box)
     # Dimensions: 0.26 x 0.10 x 0.02 m, centered 0.01 m below frame origin.
     _SOLE_COLLISION_DIMS = (0.26, 0.10, 0.02)
     for side in ("l", "r"):
@@ -458,5 +462,34 @@ def create_full_body(
             collision = ET.SubElement(foot_link, "collision")
             ET.SubElement(collision, "origin", xyz="0 0 -0.01", rpy="0 0 0")
             collision.append(make_box_geometry(*_SOLE_COLLISION_DIMS))
+
+
+def create_full_body(
+    robot: ET.Element,
+    spec: BodyModelSpec | None = None,
+) -> dict[str, ET.Element]:
+    """Build the full-body model and append links/joints to the <robot>.
+
+    The pelvis is the root link. Pinocchio adds the floating base
+    programmatically via pin.JointModelFreeFlyer() when loading URDF.
+
+    Multi-DOF joints use intermediate virtual (zero-mass) links to
+    chain sequential revolute joints, as required by URDF's tree topology.
+
+    Internally delegates to three staged builders:
+      1. ``_build_axial_chain`` -- pelvis, torso (lumbar), head
+      2. ``_build_upper_limbs`` -- shoulders, elbows, wrists
+      3. ``_build_lower_limbs`` -- hips, knees, ankles, foot collision
+
+    Returns dict of link name -> ET.Element for all created links.
+    """
+    if spec is None:
+        spec = BodyModelSpec()
+
+    links: dict[str, ET.Element] = {}
+
+    pelvis_length, torso_length = _build_axial_chain(robot, spec, links)
+    _build_upper_limbs(robot, spec, torso_length)
+    _build_lower_limbs(robot, spec, pelvis_length)
 
     return links

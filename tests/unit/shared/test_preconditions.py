@@ -11,6 +11,7 @@ from pinocchio_models.shared.contracts.preconditions import (
     require_shape,
     require_unit_vector,
     require_valid_exercise_name,
+    require_valid_urdf_string,
 )
 
 
@@ -103,3 +104,34 @@ class TestRequireValidExerciseName:
     def test_error_lists_valid_options(self) -> None:
         with pytest.raises(ValueError, match="back_squat"):
             require_valid_exercise_name("invalid")
+
+
+class TestRequireValidUrdfString:
+    """Tests for URDF string validation (issue #55)."""
+
+    def test_accepts_valid_urdf(self) -> None:
+        urdf = '<?xml version="1.0" ?><robot name="test"></robot>'
+        require_valid_urdf_string(urdf)
+
+    def test_accepts_minimal_robot(self) -> None:
+        require_valid_urdf_string('<robot name="r"/>')
+
+    def test_rejects_empty_string(self) -> None:
+        with pytest.raises(ValueError, match="must not be empty"):
+            require_valid_urdf_string("")
+
+    def test_rejects_whitespace_only(self) -> None:
+        with pytest.raises(ValueError, match="must not be empty"):
+            require_valid_urdf_string("   \n  ")
+
+    def test_rejects_malformed_xml(self) -> None:
+        with pytest.raises(ValueError, match="not valid XML"):
+            require_valid_urdf_string("<robot><broken")
+
+    def test_rejects_non_robot_root(self) -> None:
+        with pytest.raises(ValueError, match="must be <robot>"):
+            require_valid_urdf_string("<model/>")
+
+    def test_rejects_html(self) -> None:
+        with pytest.raises(ValueError, match="must be <robot>"):
+            require_valid_urdf_string("<html><body>hi</body></html>")
