@@ -45,7 +45,7 @@ class DeadliftModelBuilder(ExerciseModelBuilder):
     def set_initial_pose(self, robot: ET.Element) -> None:
         """Set starting position: hip-hinged, bar on ground.
 
-        Hips flexed ~80 deg, knees ~60 deg, slight lumbar extension.
+        Hips flexed ~80 deg, knees ~60 deg, slight lumbar flexion.
 
         Note: ``initial_position`` XML attributes are metadata only —
         Pinocchio does not read them at load time.  Use
