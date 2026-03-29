@@ -15,10 +15,10 @@ Pinocchio-based multibody dynamics simulation for five classical barbell exercis
 ## Architecture
 
 - **URDF format** for all models (standard Pinocchio input)
-- **Z-up convention** (vertical is Z, forward is X)
+- **Z-up convention** (vertical is Z, forward is X). Pinocchio adds the floating base programmatically via `pin.JointModelFreeFlyer()`
+- **Joint Axis Convention**: Sagittal-plane flexion/extension joints (e.g., knees, elbows) rotate about the **Y-axis** in this Pinocchio implementation. This differs from Drake and MuJoCo standard conventions, which typically use the **X-axis** for primary flexion/extension. Users porting configurations between engines must apply a 90-degree rotational coordinate transform.
 - **Winter (2009)** anthropometric proportions for body segments
 - **IWF/IPF** regulation barbell dimensions
-- Pinocchio adds floating base programmatically via `pin.JointModelFreeFlyer()`
 
 ## Installation
 
