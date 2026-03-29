@@ -21,9 +21,7 @@ except ImportError:
     _HAS_GEPETTO = False
 
 from pinocchio_models.shared.barbell import BarbellSpec
-from pinocchio_models.shared.contracts.preconditions import (  # noqa: F401
-    require_valid_exercise_name as _validate_exercise_name,
-)
+from pinocchio_models.shared.contracts.preconditions import require_valid_urdf_string
 
 
 def _require_gepetto() -> None:
@@ -51,6 +49,7 @@ def create_viewer(model_name: str, urdf_str: str) -> Any:
         Viewer handle, or None if gepetto is unavailable.
     """
     _require_gepetto()
+    require_valid_urdf_string(urdf_str)
 
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
     visual_model = pin.buildGeomFromModelAndXML(
