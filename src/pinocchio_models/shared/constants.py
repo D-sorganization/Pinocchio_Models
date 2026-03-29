@@ -18,7 +18,9 @@ import math
 # Lumbar spine (flexion/extension about X-axis)
 # Kapandji (2008) cites ~20-35 deg extension; deadlift lockout requires >10 deg.
 LUMBAR_FLEXION_MIN: float = math.radians(-25)  # Extension ~25 deg
-LUMBAR_FLEXION_MAX: float = math.radians(60)  # Flexion ~60 deg (floor pulls require >45°; fixes #63)
+LUMBAR_FLEXION_MAX: float = math.radians(
+    60
+)  # Flexion ~60 deg (floor pulls require >45°; fixes #63)
 
 # Lumbar lateral bending (about Z-axis) -- Kapandji (2008)
 # ~20 deg each side
