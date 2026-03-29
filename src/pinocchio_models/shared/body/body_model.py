@@ -181,7 +181,7 @@ def _add_bilateral_limb_simple(
         )
 
 
-def _add_bilateral_3dof(
+def _add_bilateral_ndof(
     robot: ET.Element,
     spec: BodyModelSpec,
     *,
@@ -190,163 +190,61 @@ def _add_bilateral_3dof(
     parent_offset_z: float,
     parent_lateral_y: float,
     coord_prefix: str,
-    flex_axis: tuple[float, float, float],
-    flex_min: float,
-    flex_max: float,
-    second_name: str,
-    second_axis: tuple[float, float, float],
-    second_min: float,
-    second_max: float,
-    third_name: str,
-    third_axis: tuple[float, float, float],
-    third_min: float,
-    third_max: float,
+    joints: list[tuple[str, tuple[float, float, float], float, float]],
 ) -> None:
-    """Add bilateral 3-DOF compound joint with two virtual links per side.
+    """Add bilateral N-DOF compound joint with N-1 virtual links per side.
 
     Creates the chain:
-        parent -> [flex joint] -> virtual_1 -> [second joint] -> virtual_2
-            -> [third joint] -> real body link
+        parent -> [joint 1] -> virtual_1 -> [joint 2] -> ... -> real body link
     """
     mass, length, radius = _seg(spec, seg_name)
     inertia = cylinder_inertia(mass, radius, length)
 
     for side, sign in [("l", -1.0), ("r", 1.0)]:
         body_name = f"{seg_name}_{side}"
-        virt1 = f"{coord_prefix}_{side}_virtual_1"
-        virt2 = f"{coord_prefix}_{side}_virtual_2"
-
         parent_full = (
             f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
         )
 
-        # Virtual link 1
-        add_virtual_link(robot, name=virt1)
+        current_parent = parent_full
 
-        # Joint 1: flex
-        add_revolute_joint(
-            robot,
-            name=f"{coord_prefix}_{side}_flex",
-            parent=parent_full,
-            child=virt1,
-            origin_xyz=(0, sign * parent_lateral_y, parent_offset_z),
-            axis=flex_axis,
-            lower=flex_min,
-            upper=flex_max,
-        )
+        for i, (jname, jaxis, jmin, jmax) in enumerate(joints):
+            is_last = i == len(joints) - 1
 
-        # Virtual link 2
-        add_virtual_link(robot, name=virt2)
+            if not is_last:
+                virt_name = f"{coord_prefix}_{side}_virtual_{i + 1}"
+                add_virtual_link(robot, name=virt_name)
+                child_name = virt_name
+            else:
+                # The real body link is created before the final joint
+                # to maintain the order in the XML structure identical to before.
+                add_link(
+                    robot,
+                    name=body_name,
+                    mass=mass,
+                    origin_xyz=(0, 0, -length / 2.0),
+                    ixx=inertia[0],
+                    iyy=inertia[1],
+                    izz=inertia[2],
+                    visual_geometry=make_cylinder_geometry(radius, length),
+                )
+                child_name = body_name
 
-        # Joint 2: second DOF
-        add_revolute_joint(
-            robot,
-            name=f"{coord_prefix}_{side}_{second_name}",
-            parent=virt1,
-            child=virt2,
-            origin_xyz=(0, 0, 0),
-            axis=second_axis,
-            lower=second_min,
-            upper=second_max,
-        )
+            origin_xyz = (
+                (0, sign * parent_lateral_y, parent_offset_z) if i == 0 else (0, 0, 0)
+            )
 
-        # Real body link
-        add_link(
-            robot,
-            name=body_name,
-            mass=mass,
-            origin_xyz=(0, 0, -length / 2.0),
-            ixx=inertia[0],
-            iyy=inertia[1],
-            izz=inertia[2],
-            visual_geometry=make_cylinder_geometry(radius, length),
-        )
-
-        # Joint 3: third DOF
-        add_revolute_joint(
-            robot,
-            name=f"{coord_prefix}_{side}_{third_name}",
-            parent=virt2,
-            child=body_name,
-            origin_xyz=(0, 0, 0),
-            axis=third_axis,
-            lower=third_min,
-            upper=third_max,
-        )
-
-
-def _add_bilateral_2dof(
-    robot: ET.Element,
-    spec: BodyModelSpec,
-    *,
-    seg_name: str,
-    parent_name: str,
-    parent_offset_z: float,
-    parent_lateral_y: float,
-    coord_prefix: str,
-    first_name: str,
-    first_axis: tuple[float, float, float],
-    first_min: float,
-    first_max: float,
-    second_name: str,
-    second_axis: tuple[float, float, float],
-    second_min: float,
-    second_max: float,
-) -> None:
-    """Add bilateral 2-DOF compound joint with one virtual link per side.
-
-    Creates the chain:
-        parent -> [first joint] -> virtual_1 -> [second joint] -> real body link
-    """
-    mass, length, radius = _seg(spec, seg_name)
-    inertia = cylinder_inertia(mass, radius, length)
-
-    for side, sign in [("l", -1.0), ("r", 1.0)]:
-        body_name = f"{seg_name}_{side}"
-        virt1 = f"{coord_prefix}_{side}_virtual_1"
-
-        parent_full = (
-            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
-        )
-
-        # Virtual link
-        add_virtual_link(robot, name=virt1)
-
-        # Joint 1
-        add_revolute_joint(
-            robot,
-            name=f"{coord_prefix}_{side}_{first_name}",
-            parent=parent_full,
-            child=virt1,
-            origin_xyz=(0, sign * parent_lateral_y, parent_offset_z),
-            axis=first_axis,
-            lower=first_min,
-            upper=first_max,
-        )
-
-        # Real body link
-        add_link(
-            robot,
-            name=body_name,
-            mass=mass,
-            origin_xyz=(0, 0, -length / 2.0),
-            ixx=inertia[0],
-            iyy=inertia[1],
-            izz=inertia[2],
-            visual_geometry=make_cylinder_geometry(radius, length),
-        )
-
-        # Joint 2
-        add_revolute_joint(
-            robot,
-            name=f"{coord_prefix}_{side}_{second_name}",
-            parent=virt1,
-            child=body_name,
-            origin_xyz=(0, 0, 0),
-            axis=second_axis,
-            lower=second_min,
-            upper=second_max,
-        )
+            add_revolute_joint(
+                robot,
+                name=f"{coord_prefix}_{side}_{jname}",
+                parent=current_parent,
+                child=child_name,
+                origin_xyz=origin_xyz,
+                axis=jaxis,
+                lower=jmin,
+                upper=jmax,
+            )
+            current_parent = child_name
 
 
 def create_full_body(
@@ -457,7 +355,7 @@ def create_full_body(
     shoulder_z = t_len * SHOULDER_HEIGHT_FRAC
     shoulder_y = spec.height * SHOULDER_LATERAL_FRAC_OF_HEIGHT
 
-    _add_bilateral_3dof(
+    _add_bilateral_ndof(
         robot,
         spec,
         seg_name="upper_arm",
@@ -465,17 +363,11 @@ def create_full_body(
         parent_offset_z=shoulder_z,
         parent_lateral_y=shoulder_y,
         coord_prefix="shoulder",
-        flex_axis=(1, 0, 0),
-        flex_min=SHOULDER_FLEXION_MIN,
-        flex_max=SHOULDER_FLEXION_MAX,
-        second_name="adduct",
-        second_axis=(0, 0, 1),
-        second_min=SHOULDER_ADDUCTION_MIN,
-        second_max=SHOULDER_ADDUCTION_MAX,
-        third_name="rotate",
-        third_axis=(0, 1, 0),
-        third_min=SHOULDER_ROTATION_MIN,
-        third_max=SHOULDER_ROTATION_MAX,
+        joints=[
+            ("flex", (1, 0, 0), SHOULDER_FLEXION_MIN, SHOULDER_FLEXION_MAX),
+            ("adduct", (0, 0, 1), SHOULDER_ADDUCTION_MIN, SHOULDER_ADDUCTION_MAX),
+            ("rotate", (0, 1, 0), SHOULDER_ROTATION_MIN, SHOULDER_ROTATION_MAX),
+        ],
     )
 
     # --- Elbow (1-DOF) ---
@@ -494,7 +386,7 @@ def create_full_body(
 
     # --- Wrist (2-DOF: flex, deviate) ---
     _fa_mass, fa_len, _fa_rad = _seg(spec, "forearm")
-    _add_bilateral_2dof(
+    _add_bilateral_ndof(
         robot,
         spec,
         seg_name="hand",
@@ -502,20 +394,16 @@ def create_full_body(
         parent_offset_z=-fa_len,
         parent_lateral_y=0,
         coord_prefix="wrist",
-        first_name="flex",
-        first_axis=(0, 1, 0),
-        first_min=WRIST_FLEXION_MIN,
-        first_max=WRIST_FLEXION_MAX,
-        second_name="deviate",
-        second_axis=(0, 0, 1),
-        second_min=WRIST_DEVIATION_MIN,
-        second_max=WRIST_DEVIATION_MAX,
+        joints=[
+            ("flex", (0, 1, 0), WRIST_FLEXION_MIN, WRIST_FLEXION_MAX),
+            ("deviate", (0, 0, 1), WRIST_DEVIATION_MIN, WRIST_DEVIATION_MAX),
+        ],
     )
 
     # --- Legs (3-DOF hip) ---
     hip_y = spec.height * HIP_LATERAL_FRAC_OF_HEIGHT
 
-    _add_bilateral_3dof(
+    _add_bilateral_ndof(
         robot,
         spec,
         seg_name="thigh",
@@ -523,17 +411,11 @@ def create_full_body(
         parent_offset_z=-p_len / 2.0,
         parent_lateral_y=hip_y,
         coord_prefix="hip",
-        flex_axis=(1, 0, 0),
-        flex_min=HIP_FLEXION_MIN,
-        flex_max=HIP_FLEXION_MAX,
-        second_name="adduct",
-        second_axis=(0, 0, 1),
-        second_min=HIP_ADDUCTION_MIN,
-        second_max=HIP_ADDUCTION_MAX,
-        third_name="rotate",
-        third_axis=(0, 1, 0),
-        third_min=HIP_ROTATION_MIN,
-        third_max=HIP_ROTATION_MAX,
+        joints=[
+            ("flex", (1, 0, 0), HIP_FLEXION_MIN, HIP_FLEXION_MAX),
+            ("adduct", (0, 0, 1), HIP_ADDUCTION_MIN, HIP_ADDUCTION_MAX),
+            ("rotate", (0, 1, 0), HIP_ROTATION_MIN, HIP_ROTATION_MAX),
+        ],
     )
 
     # --- Knee (1-DOF) ---
@@ -552,7 +434,7 @@ def create_full_body(
 
     # --- Ankle (2-DOF: flex, invert) ---
     _sh_mass, sh_len, _sh_rad = _seg(spec, "shank")
-    _add_bilateral_2dof(
+    _add_bilateral_ndof(
         robot,
         spec,
         seg_name="foot",
@@ -560,14 +442,10 @@ def create_full_body(
         parent_offset_z=-sh_len,
         parent_lateral_y=0,
         coord_prefix="ankle",
-        first_name="flex",
-        first_axis=(0, 1, 0),
-        first_min=ANKLE_FLEXION_MIN,
-        first_max=ANKLE_FLEXION_MAX,
-        second_name="invert",
-        second_axis=(1, 0, 0),
-        second_min=ANKLE_INVERSION_MIN,
-        second_max=ANKLE_INVERSION_MAX,
+        joints=[
+            ("flex", (0, 1, 0), ANKLE_FLEXION_MIN, ANKLE_FLEXION_MAX),
+            ("invert", (1, 0, 0), ANKLE_INVERSION_MIN, ANKLE_INVERSION_MAX),
+        ],
     )
 
     # --- Foot collision geometry (sole contact box) ---
