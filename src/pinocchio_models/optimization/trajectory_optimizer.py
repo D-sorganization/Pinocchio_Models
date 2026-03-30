@@ -43,7 +43,18 @@ def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.n
     alphabetically by name.
 
     Uses vectorised numpy operations instead of per-element scalar loops.
+
+    Args:
+        objective: Exercise objective with ordered phase targets.
+        n_frames: Number of output keyframes (must be >= 2).
+
+    Raises:
+        ValueError: If n_frames < 2 or objective has no phases.
     """
+    if n_frames < 2:
+        raise ValueError(f"n_frames must be >= 2, got {n_frames}")
+    if not objective.phases:
+        raise ValueError("objective must have at least one phase")
     all_joints: set[str] = set()
     for phase in objective.phases:
         all_joints.update(phase.target_joints.keys())
