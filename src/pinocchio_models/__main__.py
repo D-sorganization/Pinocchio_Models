@@ -88,9 +88,24 @@ def _create_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """CLI entry point."""
+    """CLI entry point for Pinocchio model generation.
+
+    Args:
+        argv: Argument list (uses sys.argv if None).
+
+    Returns:
+        Exit code: 0 on success.
+    """
     parser = _create_parser()
     args = parser.parse_args(argv)
+
+    # DbC: validate numeric CLI arguments
+    if args.mass <= 0:
+        parser.error(f"--mass must be positive, got {args.mass}")
+    if args.height <= 0:
+        parser.error(f"--height must be positive, got {args.height}")
+    if args.plates < 0:
+        parser.error(f"--plates must be non-negative, got {args.plates}")
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.WARNING,
@@ -117,8 +132,9 @@ def main(argv: list[str] | None = None) -> int:
             out_path.write_text(urdf_str, encoding="utf-8")
             logger.info("Wrote %s", out_path)
         else:
-            sys.stdout.write(urdf_str)
-            sys.stdout.write("\n")
+            stdout = sys.stdout
+            stdout.write(urdf_str)
+            stdout.write("\n")
 
     return 0
 
