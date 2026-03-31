@@ -9,9 +9,27 @@ import numpy as np
 from pinocchio_models.optimization.exercise_objectives import ExerciseObjective
 
 
+def _validate_non_negative_weight(name: str, value: float) -> None:
+    """Validate that a weight is non-negative."""
+    if value < 0.0:
+        msg = f"{name} must be non-negative, got {value}"
+        raise ValueError(msg)
+
+
 @dataclass(frozen=True)
 class TrajectoryConfig:
-    """Parameters controlling the trajectory optimisation loop."""
+    """Parameters controlling the trajectory optimisation loop.
+
+    Attributes:
+        n_timesteps: Number of discrete time steps in trajectory.
+        dt: Time step duration in seconds.
+        max_iterations: Maximum optimiser iterations before stopping.
+        convergence_tol: Cost change threshold for convergence.
+        control_weight: Penalty weight on joint torque magnitudes.
+        state_weight: Weight for tracking target trajectory.
+        terminal_weight: Weight for reaching the final target pose.
+        balance_weight: Weight for keeping CoM over base of support.
+    """
 
     n_timesteps: int = 100
     dt: float = 0.01
@@ -21,6 +39,25 @@ class TrajectoryConfig:
     state_weight: float = 1.0
     terminal_weight: float = 10.0
     balance_weight: float = 5.0
+
+    def __post_init__(self) -> None:
+        """Validate configuration values are physically plausible."""
+        if self.n_timesteps < 1:
+            msg = f"n_timesteps must be >= 1, got {self.n_timesteps}"
+            raise ValueError(msg)
+        if self.dt <= 0.0:
+            msg = f"dt must be positive, got {self.dt}"
+            raise ValueError(msg)
+        if self.max_iterations < 1:
+            msg = f"max_iterations must be >= 1, got {self.max_iterations}"
+            raise ValueError(msg)
+        if self.convergence_tol <= 0.0:
+            msg = f"convergence_tol must be positive, got {self.convergence_tol}"
+            raise ValueError(msg)
+        _validate_non_negative_weight("control_weight", self.control_weight)
+        _validate_non_negative_weight("state_weight", self.state_weight)
+        _validate_non_negative_weight("terminal_weight", self.terminal_weight)
+        _validate_non_negative_weight("balance_weight", self.balance_weight)
 
 
 @dataclass
