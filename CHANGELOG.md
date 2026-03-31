@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2026-03-30
+## [Unreleased] - 2026-03-31
+
+### Documented (cross-repo duplication — issue #104)
+
+- **DRY**: Added header comment to `preconditions.py` documenting that the six
+  core `require_*` functions are intentionally duplicated across
+  Pinocchio_Models, MuJoCo_Models, and OpenSim_Models, and pointing to issue
+  #104 for migration options if a shared package is ever warranted.
 
 ### Fixed (A-N Assessment Remediation — issue #100)
 

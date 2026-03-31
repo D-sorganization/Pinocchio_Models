@@ -1,3 +1,11 @@
+# NOTE: The six core require_* functions in this module (require_positive,
+# require_non_negative, require_unit_vector, require_finite, require_in_range,
+# require_shape) are duplicated verbatim across Pinocchio_Models, MuJoCo_Models,
+# and OpenSim_Models.  The duplication is intentional: each repo is an
+# independent deployable and a cross-repo shared package adds coordination
+# overhead that is not yet warranted.  If that changes, see
+# D-sorganization/Pinocchio_Models#104 for context and migration options.
+
 """Design-by-Contract precondition checks.
 
 All public functions in this project validate inputs via these guards.
