@@ -79,6 +79,105 @@ def create_ik_problem(urdf_str: str, target_frames: list[str]) -> IKProblem:
     return IKProblem(model=model, data=data, target_frames=target_frames)
 
 
+def _build_target_tasks(targets: dict[str, np.ndarray]) -> list[Any]:
+    """Convert a targets dict into a list of Pink FrameTask objects.
+
+    Parameters
+    ----------
+    targets : dict[str, ndarray]
+        Mapping from frame name to desired SE(3) pose (4x4 matrix).
+
+    Returns
+    -------
+    list
+        Pink FrameTask instances with targets set.
+    """
+    tasks: list[Any] = []
+    for frame_name, target_pose in targets.items():
+        se3_target = pin.SE3(target_pose[:3, :3], target_pose[:3, 3])
+        task = pink.tasks.FrameTask(
+            frame_name,
+            position_cost=1.0,
+            orientation_cost=1.0,
+        )
+        task.set_target(se3_target)
+        tasks.append(task)
+    return tasks
+
+
+def _build_ground_tasks() -> list[Any]:
+    """Build foot-contact tasks that pin feet at Z=0.
+
+    Returns
+    -------
+    list
+        Two Pink FrameTask instances (foot_l, foot_r) with high position
+        weight to enforce ground contact.
+    """
+    tasks: list[Any] = []
+    for foot_name in ("foot_l", "foot_r"):
+        foot_task = pink.tasks.FrameTask(
+            foot_name,
+            position_cost=10.0,  # High weight to enforce contact
+            orientation_cost=0.1,
+        )
+        foot_task.set_target(pin.SE3.Identity())
+        tasks.append(foot_task)
+    return tasks
+
+
+def _ik_step(
+    configuration: Any,
+    model: Any,
+    data: Any,
+    tasks: list[Any],
+) -> Any:
+    """Advance the IK solver by one integration step.
+
+    Parameters
+    ----------
+    configuration : pink.Configuration
+        Current robot configuration.
+    model : pinocchio.Model
+        Pinocchio model.
+    data : pinocchio.Data
+        Pinocchio data.
+    tasks : list
+        Active Pink tasks for this step.
+
+    Returns
+    -------
+    pink.Configuration
+        Updated configuration after the integration step.
+    """
+    velocity = configuration.solve_ik(tasks, dt=0.01)
+    q = pin.integrate(model, configuration.q, velocity * 0.01)
+    return pink.Configuration(model, data, q)
+
+
+def _check_convergence(configuration: Any, tasks: list[Any], tolerance: float) -> bool:
+    """Return True if the maximum task error is below *tolerance*.
+
+    Parameters
+    ----------
+    configuration : pink.Configuration
+        Current robot configuration.
+    tasks : list
+        Active Pink tasks to evaluate.
+    tolerance : float
+        Convergence threshold.
+
+    Returns
+    -------
+    bool
+        True when all tasks are within tolerance.
+    """
+    error = float(
+        max(float(np.linalg.norm(task.compute_error(configuration))) for task in tasks)
+    )
+    return error < tolerance
+
+
 def solve_pose(
     problem: IKProblem,
     targets: dict[str, np.ndarray],
@@ -114,46 +213,18 @@ def solve_pose(
 
     model = problem.model
     data = problem.data
-    q = pin.neutral(model)
 
-    configuration = pink.Configuration(model, data, q)
-    tasks = []
-
-    for frame_name, target_pose in targets.items():
-        se3_target = pin.SE3(target_pose[:3, :3], target_pose[:3, 3])
-        task = pink.tasks.FrameTask(
-            frame_name,
-            position_cost=1.0,
-            orientation_cost=1.0,
-        )
-        task.set_target(se3_target)
-        tasks.append(task)
-
-    # Foot-on-ground constraints: pin feet at Z=0
+    # --- Setup phase ---
+    tasks = _build_target_tasks(targets)
     if ground_feet:
-        for foot_name in ("foot_l", "foot_r"):
-            ground_pose = pin.SE3.Identity()
-            # Keep X/Y from neutral, set Z=0
-            foot_task = pink.tasks.FrameTask(
-                foot_name,
-                position_cost=10.0,  # High weight to enforce contact
-                orientation_cost=0.1,
-            )
-            foot_task.set_target(ground_pose)
-            tasks.append(foot_task)
+        tasks.extend(_build_ground_tasks())
 
+    configuration = pink.Configuration(model, data, pin.neutral(model))
+
+    # --- Solve phase ---
     for _iteration in range(max_iterations):
-        velocity = configuration.solve_ik(tasks, dt=0.01)
-        q = pin.integrate(model, configuration.q, velocity * 0.01)
-        configuration = pink.Configuration(model, data, q)
-
-        error = float(
-            max(
-                float(np.linalg.norm(task.compute_error(configuration)))
-                for task in tasks
-            )
-        )
-        if error < tolerance:
+        configuration = _ik_step(configuration, model, data, tasks)
+        if _check_convergence(configuration, tasks, tolerance):
             break
 
     return configuration.q
