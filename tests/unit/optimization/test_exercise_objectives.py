@@ -137,6 +137,74 @@ class TestTrajectoryConfig:
         assert cfg.terminal_weight == 10.0
         assert cfg.balance_weight == 5.0
 
+    # ------------------------------------------------------------------
+    # __post_init__ validation – positive integer fields
+    # ------------------------------------------------------------------
+    @pytest.mark.parametrize("n_timesteps", [0, -1, -100])
+    def test_invalid_n_timesteps_raises(self, n_timesteps: int) -> None:
+        with pytest.raises(ValueError, match="n_timesteps"):
+            TrajectoryConfig(n_timesteps=n_timesteps)
+
+    @pytest.mark.parametrize("max_iterations", [0, -1, -50])
+    def test_invalid_max_iterations_raises(self, max_iterations: int) -> None:
+        with pytest.raises(ValueError, match="max_iterations"):
+            TrajectoryConfig(max_iterations=max_iterations)
+
+    # ------------------------------------------------------------------
+    # __post_init__ validation – positive float fields
+    # ------------------------------------------------------------------
+    @pytest.mark.parametrize("dt", [0.0, -0.001, -1.0])
+    def test_invalid_dt_raises(self, dt: float) -> None:
+        with pytest.raises(ValueError, match="dt"):
+            TrajectoryConfig(dt=dt)
+
+    @pytest.mark.parametrize("convergence_tol", [0.0, -1e-5, -1.0])
+    def test_invalid_convergence_tol_raises(self, convergence_tol: float) -> None:
+        with pytest.raises(ValueError, match="convergence_tol"):
+            TrajectoryConfig(convergence_tol=convergence_tol)
+
+    # ------------------------------------------------------------------
+    # __post_init__ validation – non-negative weight fields
+    # ------------------------------------------------------------------
+    @pytest.mark.parametrize(
+        "field,value",
+        [
+            ("control_weight", -1e-3),
+            ("state_weight", -1.0),
+            ("terminal_weight", -10.0),
+            ("balance_weight", -5.0),
+        ],
+    )
+    def test_negative_weight_raises(self, field: str, value: float) -> None:
+        with pytest.raises(ValueError, match=field):
+            TrajectoryConfig(**{field: value})
+
+    # Zero weights are allowed (disabling a cost term is valid)
+    @pytest.mark.parametrize(
+        "field",
+        ["control_weight", "state_weight", "terminal_weight", "balance_weight"],
+    )
+    def test_zero_weight_accepted(self, field: str) -> None:
+        cfg = TrajectoryConfig(**{field: 0.0})
+        assert getattr(cfg, field) == 0.0
+
+    # Minimum valid values for strictly-positive fields
+    def test_minimum_valid_n_timesteps(self) -> None:
+        cfg = TrajectoryConfig(n_timesteps=1)
+        assert cfg.n_timesteps == 1
+
+    def test_minimum_valid_max_iterations(self) -> None:
+        cfg = TrajectoryConfig(max_iterations=1)
+        assert cfg.max_iterations == 1
+
+    def test_minimum_valid_dt(self) -> None:
+        cfg = TrajectoryConfig(dt=1e-9)
+        assert cfg.dt == pytest.approx(1e-9)
+
+    def test_minimum_valid_convergence_tol(self) -> None:
+        cfg = TrajectoryConfig(convergence_tol=1e-12)
+        assert cfg.convergence_tol == pytest.approx(1e-12)
+
 
 class TestTrajectoryResult:
     def test_creation(self) -> None:
