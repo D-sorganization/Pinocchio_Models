@@ -1,10 +1,10 @@
 """Optimization objectives and trajectory tools for barbell movements."""
 
-from pinocchio_models.optimization.exercise_objectives import (  # noqa: I001
+from pinocchio_models.optimization.exercise_objectives import (
+    EXERCISE_OBJECTIVES,
     ExerciseObjective,
     Phase,
     get_exercise_objective,
-    EXERCISE_OBJECTIVES,
 )
 from pinocchio_models.optimization.trajectory_optimizer import (
     TrajectoryConfig,
@@ -13,11 +13,11 @@ from pinocchio_models.optimization.trajectory_optimizer import (
 )
 
 __all__ = [
+    "EXERCISE_OBJECTIVES",
     "ExerciseObjective",
     "Phase",
-    "get_exercise_objective",
-    "EXERCISE_OBJECTIVES",
     "TrajectoryConfig",
     "TrajectoryResult",
+    "get_exercise_objective",
     "interpolate_phases",
 ]

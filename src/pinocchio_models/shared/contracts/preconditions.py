@@ -1,3 +1,11 @@
+# NOTE: The six core require_* functions in this module (require_positive,
+# require_non_negative, require_unit_vector, require_finite, require_in_range,
+# require_shape) are duplicated verbatim across Pinocchio_Models, MuJoCo_Models,
+# and OpenSim_Models.  The duplication is intentional: each repo is an
+# independent deployable and a cross-repo shared package adds coordination
+# overhead that is not yet warranted.  If that changes, see
+# D-sorganization/Pinocchio_Models#104 for context and migration options.
+
 """Design-by-Contract precondition checks.
 
 All public functions in this project validate inputs via these guards.
@@ -51,6 +59,33 @@ def require_shape(arr: ArrayLike, expected: tuple[int, ...], name: str) -> None:
     a = np.asarray(arr)
     if a.shape != expected:
         raise ValueError(f"{name} must have shape {expected}, got {a.shape}")
+
+
+def require_valid_urdf_string(urdf_str: str) -> None:
+    """Validate that *urdf_str* is a well-formed URDF XML string.
+
+    Performs lightweight checks before dispatching to Pinocchio's
+    ``buildModelFromXML``, which gives opaque C++ errors on bad input.
+
+    Checks:
+    1. Non-empty string
+    2. Parseable XML
+    3. Root element is ``<robot>``
+
+    Raises :class:`ValueError` with a descriptive message on failure.
+    """
+    if not urdf_str or not urdf_str.strip():
+        raise ValueError("URDF string must not be empty")
+
+    import xml.etree.ElementTree as ET
+
+    try:
+        root = ET.fromstring(urdf_str)  # nosec B314 -- validating input
+    except ET.ParseError as exc:
+        raise ValueError(f"URDF string is not valid XML: {exc}") from exc
+
+    if root.tag != "robot":
+        raise ValueError(f"URDF root element must be <robot>, got <{root.tag}>")
 
 
 def require_valid_exercise_name(exercise_name: str) -> None:

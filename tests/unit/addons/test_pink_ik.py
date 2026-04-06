@@ -4,6 +4,10 @@ from unittest.mock import patch
 
 import pytest
 
+from pinocchio_models.shared.contracts.preconditions import (
+    require_valid_exercise_name,
+)
+
 
 class TestPinkIKImportGuard:
     def test_raises_import_error_without_pink(self) -> None:
@@ -15,7 +19,7 @@ class TestPinkIKImportGuard:
             importlib.reload(ik_mod)
 
             with pytest.raises(ImportError, match="Pink is not installed"):
-                ik_mod.create_ik_problem("<robot/>", ["frame1"])
+                ik_mod.create_ik_problem('<robot name="t"/>', ["frame1"])
 
     def test_solve_pose_raises_without_pink(self) -> None:
         with patch.dict("sys.modules", {"pinocchio": None, "pink": None}):
@@ -26,7 +30,7 @@ class TestPinkIKImportGuard:
             importlib.reload(ik_mod)
 
             with pytest.raises(ImportError, match="Pink is not installed"):
-                ik_mod.solve_pose(None, {})  # type: ignore
+                ik_mod.solve_pose(None, {})  # type: ignore[arg-type]
 
     def test_compute_keyframes_raises_without_pink(self) -> None:
         with patch.dict("sys.modules", {"pinocchio": None, "pink": None}):
@@ -37,19 +41,17 @@ class TestPinkIKImportGuard:
             importlib.reload(ik_mod)
 
             with pytest.raises(ImportError, match="Pink is not installed"):
-                ik_mod.compute_exercise_keyframes("<robot/>", "back_squat")
+                ik_mod.compute_exercise_keyframes('<robot name="t"/>', "back_squat")
 
 
 class TestExerciseNameValidation:
-    def test_rejects_invalid_exercise_name(self) -> None:
-        import pinocchio_models.addons.pink.ik_solver as ik_mod
+    """Exercise name validation uses the shared precondition (DRY, issue #79)."""
 
+    def test_rejects_invalid_exercise_name(self) -> None:
         with pytest.raises(ValueError, match="Unknown exercise"):
-            ik_mod._validate_exercise_name("invalid_exercise")
+            require_valid_exercise_name("invalid_exercise")
 
     def test_accepts_valid_exercise_names(self) -> None:
-        import pinocchio_models.addons.pink.ik_solver as ik_mod
-
         for name in (
             "back_squat",
             "bench_press",
@@ -57,7 +59,7 @@ class TestExerciseNameValidation:
             "snatch",
             "clean_and_jerk",
         ):
-            ik_mod._validate_exercise_name(name)
+            require_valid_exercise_name(name)
 
 
 class TestExercisePhases:
@@ -82,3 +84,19 @@ class TestExercisePhases:
                 assert 0.0 <= fraction <= 1.0, (
                     f"{name}/{phase_name} fraction {fraction} out of range"
                 )
+
+
+class TestUrdfValidation:
+    """URDF string validation before Pinocchio dispatch (issue #55)."""
+
+    def test_create_ik_problem_rejects_empty_urdf(self) -> None:
+        with patch.dict("sys.modules", {"pinocchio": None, "pink": None}):
+            import importlib
+
+            import pinocchio_models.addons.pink.ik_solver as ik_mod
+
+            importlib.reload(ik_mod)
+            ik_mod._HAS_PINK = True
+
+            with pytest.raises(ValueError, match="must not be empty"):
+                ik_mod.create_ik_problem("", ["frame1"])

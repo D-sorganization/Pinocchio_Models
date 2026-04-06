@@ -32,6 +32,7 @@ except ImportError:
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
     require_valid_exercise_name,
+    require_valid_urdf_string,
 )
 
 # --- Named constants for Crocoddyl OCP weights and physics ---
@@ -152,6 +153,7 @@ def _build_ocp_common(
     assembling the final shooting problem.
     """
     _require_crocoddyl()
+    require_valid_urdf_string(urdf_str)
     require_valid_exercise_name(exercise_name)
     require_positive(dt, "dt")
     require_positive(float(n_steps), "n_steps")

@@ -5,6 +5,7 @@ Each model must produce well-formed URDF XML with the correct structure:
 """
 
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 from typing import Any
 
 import pytest
@@ -28,7 +29,7 @@ _BARBELL_EXERCISES: frozenset[str] = frozenset(
     {"back_squat", "bench_press", "deadlift", "snatch", "clean_and_jerk"}
 )
 
-ALL_BUILDERS = [
+ALL_BUILDERS: list[tuple[str, Callable[[], str]]] = [
     ("back_squat", build_squat_model),
     ("bench_press", build_bench_press_model),
     ("deadlift", build_deadlift_model),
@@ -37,6 +38,11 @@ ALL_BUILDERS = [
     ("gait", build_gait_model),
     ("sit_to_stand", build_sit_to_stand_model),
 ]
+
+
+def _link_names(root: ET.Element) -> set[str]:
+    """Extract all link names from a URDF root element."""
+    return {name for el in root.findall("link") if (name := el.get("name")) is not None}
 
 
 class TestAllExercisesBuild:
@@ -54,7 +60,7 @@ class TestAllExercisesBuild:
     def test_model_name_matches(self, name: Any, builder: Any) -> None:
         xml_str = builder()
         root = ET.fromstring(xml_str)
-        assert root.get("name") == name  # type: ignore
+        assert root.get("name") == name
 
     @pytest.mark.parametrize(
         "name,builder", ALL_BUILDERS, ids=[n for n, _ in ALL_BUILDERS]
@@ -89,8 +95,12 @@ class TestAllExercisesBuild:
         root = ET.fromstring(xml_str)
         for link in root.findall("link"):
             mass_el = link.find("inertial/mass")
-            mass = float(mass_el.get("value"))  # type: ignore
-            assert mass > 0, f"{link.get('name')} mass={mass}"  # type: ignore
+            assert mass_el is not None, f"Link {link.get('name')} missing mass"
+            mass_val = mass_el.get("value")
+            assert mass_val is not None
+            mass = float(mass_val)
+            link_name = link.get("name", "<unnamed>")
+            assert mass > 0, f"{link_name} mass={mass}"
 
     @pytest.mark.parametrize(
         "name,builder",
@@ -101,10 +111,10 @@ class TestAllExercisesBuild:
         """Only barbell exercises should contain barbell links."""
         xml_str = builder()
         root = ET.fromstring(xml_str)
-        link_names = {ln.get("name") for ln in root.findall("link")}  # type: ignore
-        assert "barbell_shaft" in link_names
-        assert "barbell_left_sleeve" in link_names
-        assert "barbell_right_sleeve" in link_names
+        link_set = _link_names(root)
+        assert "barbell_shaft" in link_set
+        assert "barbell_left_sleeve" in link_set
+        assert "barbell_right_sleeve" in link_set
 
     @pytest.mark.parametrize(
         "name,builder",
@@ -115,5 +125,78 @@ class TestAllExercisesBuild:
         """Bodyweight exercises must not contain barbell links."""
         xml_str = builder()
         root = ET.fromstring(xml_str)
-        link_names = {ln.get("name") for ln in root.findall("link")}  # type: ignore
-        assert "barbell_shaft" not in link_names
+        link_set = _link_names(root)
+        assert "barbell_shaft" not in link_set
+
+
+class TestGaitIntegration:
+    """Integration tests for gait model (issue #77)."""
+
+    def test_gait_builds_successfully(self) -> None:
+        """Gait model builds and produces valid URDF."""
+        xml_str = build_gait_model()
+        root = ET.fromstring(xml_str)
+        assert root.tag == "robot"
+        assert root.get("name") == "gait"
+
+    def test_gait_has_no_barbell(self) -> None:
+        """Gait is a bodyweight exercise with no barbell."""
+        xml_str = build_gait_model()
+        root = ET.fromstring(xml_str)
+        link_set = _link_names(root)
+        assert "barbell_shaft" not in link_set
+
+    def test_gait_has_bilateral_legs(self) -> None:
+        """Gait model must have both left and right leg segments."""
+        xml_str = build_gait_model()
+        root = ET.fromstring(xml_str)
+        link_set = _link_names(root)
+        for side in ("l", "r"):
+            assert f"thigh_{side}" in link_set
+            assert f"shank_{side}" in link_set
+            assert f"foot_{side}" in link_set
+
+    def test_gait_foot_collision_geometry(self) -> None:
+        """Gait model feet should have collision geometry for ground contact."""
+        xml_str = build_gait_model()
+        root = ET.fromstring(xml_str)
+        for side in ("l", "r"):
+            foot = root.find(f".//link[@name='foot_{side}']")
+            assert foot is not None, f"foot_{side} link missing"
+            collision = foot.find("collision")
+            assert collision is not None, f"foot_{side} missing collision geometry"
+
+
+class TestSitToStandIntegration:
+    """Integration tests for sit-to-stand model (issue #77)."""
+
+    def test_sit_to_stand_builds_successfully(self) -> None:
+        """Sit-to-stand model builds and produces valid URDF."""
+        xml_str = build_sit_to_stand_model()
+        root = ET.fromstring(xml_str)
+        assert root.tag == "robot"
+        assert root.get("name") == "sit_to_stand"
+
+    def test_sit_to_stand_has_no_barbell(self) -> None:
+        """Sit-to-stand is a bodyweight exercise with no barbell."""
+        xml_str = build_sit_to_stand_model()
+        root = ET.fromstring(xml_str)
+        link_set = _link_names(root)
+        assert "barbell_shaft" not in link_set
+
+    def test_sit_to_stand_has_chair_fixture(self) -> None:
+        """Sit-to-stand model should have a chair fixture link."""
+        xml_str = build_sit_to_stand_model()
+        root = ET.fromstring(xml_str)
+        link_set = _link_names(root)
+        # Chair fixture is expected for sit-to-stand
+        assert "chair_seat" in link_set
+
+    def test_sit_to_stand_has_full_body(self) -> None:
+        """Sit-to-stand model must have core body segments."""
+        xml_str = build_sit_to_stand_model()
+        root = ET.fromstring(xml_str)
+        link_set = _link_names(root)
+        assert "pelvis" in link_set
+        assert "torso" in link_set
+        assert "head" in link_set

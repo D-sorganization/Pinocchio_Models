@@ -12,6 +12,7 @@ from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
     require_shape,
     require_unit_vector,
+    require_valid_urdf_string,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "require_positive",
     "require_shape",
     "require_unit_vector",
+    "require_valid_urdf_string",
 ]

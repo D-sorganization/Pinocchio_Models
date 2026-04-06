@@ -5,6 +5,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pinocchio_models.shared.barbell import BarbellSpec
+from pinocchio_models.shared.contracts.preconditions import (
+    require_valid_exercise_name,
+)
 
 
 class TestGepettoViewerImportGuard:
@@ -18,7 +21,7 @@ class TestGepettoViewerImportGuard:
             importlib.reload(viewer_mod)
 
             with pytest.raises(ImportError, match="Gepetto-viewer is not installed"):
-                viewer_mod.create_viewer("test", "<robot/>")
+                viewer_mod.create_viewer("test", '<robot name="t"/>')
 
     def test_display_configuration_raises_without_gepetto(self) -> None:
         with patch.dict("sys.modules", {"pinocchio": None}):
@@ -45,15 +48,13 @@ class TestGepettoViewerImportGuard:
 
 
 class TestExerciseNameValidation:
-    def test_rejects_invalid_exercise_name(self) -> None:
-        import pinocchio_models.addons.gepetto.viewer as viewer_mod
+    """Exercise name validation uses the shared precondition (DRY, issue #79)."""
 
+    def test_rejects_invalid_exercise_name(self) -> None:
         with pytest.raises(ValueError, match="Unknown exercise"):
-            viewer_mod._validate_exercise_name("not_an_exercise")
+            require_valid_exercise_name("not_an_exercise")
 
     def test_accepts_valid_exercise_names(self) -> None:
-        import pinocchio_models.addons.gepetto.viewer as viewer_mod
-
         for name in (
             "back_squat",
             "bench_press",
@@ -61,7 +62,7 @@ class TestExerciseNameValidation:
             "snatch",
             "clean_and_jerk",
         ):
-            viewer_mod._validate_exercise_name(name)
+            require_valid_exercise_name(name)
 
 
 class TestCreateViewerWithMock:
@@ -88,7 +89,7 @@ class TestCreateViewerWithMock:
             viewer_mod.GepettoVisualizer = mock_viz_class
             viewer_mod._HAS_GEPETTO = True
 
-            result = viewer_mod.create_viewer("test_model", "<robot/>")
+            result = viewer_mod.create_viewer("test_model", '<robot name="t"/>')
 
             mock_pin.buildModelFromXML.assert_called_once()
             mock_viewer_instance.initViewer.assert_called_once()
@@ -106,5 +107,31 @@ class TestDisplayConfiguration:
             mock_viewer = MagicMock()
             viewer_mod.display_configuration(mock_viewer, [0, 0, 0])
             mock_viewer.display.assert_called_once_with([0, 0, 0])
+        finally:
+            viewer_mod._HAS_GEPETTO = original
+
+
+class TestUrdfValidation:
+    """URDF string validation before Pinocchio dispatch (issue #55)."""
+
+    def test_create_viewer_rejects_empty_urdf(self) -> None:
+        import pinocchio_models.addons.gepetto.viewer as viewer_mod
+
+        original = viewer_mod._HAS_GEPETTO
+        viewer_mod._HAS_GEPETTO = True
+        try:
+            with pytest.raises(ValueError, match="must not be empty"):
+                viewer_mod.create_viewer("test", "")
+        finally:
+            viewer_mod._HAS_GEPETTO = original
+
+    def test_create_viewer_rejects_malformed_xml(self) -> None:
+        import pinocchio_models.addons.gepetto.viewer as viewer_mod
+
+        original = viewer_mod._HAS_GEPETTO
+        viewer_mod._HAS_GEPETTO = True
+        try:
+            with pytest.raises(ValueError, match="not valid XML"):
+                viewer_mod.create_viewer("test", "<broken>")
         finally:
             viewer_mod._HAS_GEPETTO = original
