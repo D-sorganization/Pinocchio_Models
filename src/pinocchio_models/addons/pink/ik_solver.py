@@ -11,6 +11,7 @@ Usage requires the optional ``pink`` extra::
 from __future__ import annotations
 
 import logging
+import warnings
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -211,6 +212,18 @@ def solve_pose(
     _require_pink()
     require_positive(float(max_iterations), "max_iterations")
 
+    for frame_name, pose in targets.items():
+        pose_arr = np.asarray(pose)
+        if pose_arr.shape != (4, 4):
+            raise ValueError(
+                f"SE(3) pose for frame '{frame_name}' must be a (4, 4) matrix, "
+                f"got shape {pose_arr.shape}"
+            )
+        if not np.all(np.isfinite(pose_arr)):
+            raise ValueError(
+                f"SE(3) pose for frame '{frame_name}' contains non-finite values"
+            )
+
     model = problem.model
     data = problem.data
 
@@ -222,10 +235,21 @@ def solve_pose(
     configuration = pink.Configuration(model, data, pin.neutral(model))
 
     # --- Solve phase ---
+    converged = False
     for _iteration in range(max_iterations):
         configuration = _ik_step(configuration, model, data, tasks)
         if _check_convergence(configuration, tasks, tolerance):
+            converged = True
             break
+
+    if not converged:
+        warnings.warn(
+            f"IK did not converge within {max_iterations} iterations "
+            f"(tolerance={tolerance}). The returned configuration may not satisfy "
+            "all target constraints.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     return configuration.q
 

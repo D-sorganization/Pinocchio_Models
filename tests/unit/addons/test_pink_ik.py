@@ -100,3 +100,82 @@ class TestUrdfValidation:
 
             with pytest.raises(ValueError, match="must not be empty"):
                 ik_mod.create_ik_problem("", ["frame1"])
+
+
+class TestSolvePoseDbCContracts:
+    """DbC contracts for solve_pose (issue #124)."""
+
+    def test_rejects_non_matrix_target_pose(self) -> None:
+        """targets values must be (4,4) SE(3) matrices."""
+        import importlib
+
+        import numpy as np
+
+        import pinocchio_models.addons.pink.ik_solver as ik_mod
+
+        importlib.reload(ik_mod)
+        ik_mod._HAS_PINK = True
+
+        from unittest.mock import MagicMock
+
+        mock_problem = MagicMock()
+        bad_targets = {"frame1": np.zeros((3, 4))}  # wrong shape
+
+        with pytest.raises(ValueError, match="SE\\(3\\) pose.*must be a \\(4, 4\\)"):
+            ik_mod.solve_pose(mock_problem, bad_targets)
+
+    def test_rejects_non_finite_target_pose(self) -> None:
+        """targets values must be finite."""
+        import importlib
+
+        import numpy as np
+
+        import pinocchio_models.addons.pink.ik_solver as ik_mod
+
+        importlib.reload(ik_mod)
+        ik_mod._HAS_PINK = True
+
+        from unittest.mock import MagicMock
+
+        mock_problem = MagicMock()
+        nan_pose = np.eye(4)
+        nan_pose[0, 0] = float("nan")
+        bad_targets = {"frame1": nan_pose}
+
+        with pytest.raises(ValueError, match="SE\\(3\\) pose.*non-finite"):
+            ik_mod.solve_pose(mock_problem, bad_targets)
+
+    def test_warns_when_ik_does_not_converge(self) -> None:
+        """solve_pose should warn when max_iterations exhausted without convergence."""
+        import importlib
+        from unittest.mock import MagicMock, patch
+
+        import numpy as np
+
+        import pinocchio_models.addons.pink.ik_solver as ik_mod
+
+        importlib.reload(ik_mod)
+        ik_mod._HAS_PINK = True
+
+        mock_pin = MagicMock()
+        mock_pin.neutral.return_value = np.zeros(7)
+        mock_pink_lib = MagicMock()
+        mock_configuration = MagicMock()
+        mock_configuration.q = np.zeros(7)
+        mock_pink_lib.Configuration.return_value = mock_configuration
+
+        ik_mod.pin = mock_pin
+        ik_mod.pink = mock_pink_lib
+
+        mock_problem = MagicMock()
+        mock_problem.model = MagicMock()
+        mock_problem.data = MagicMock()
+        targets = {"frame1": np.eye(4)}
+
+        with (
+            patch.object(ik_mod, "_build_target_tasks", return_value=[MagicMock()]),
+            patch.object(ik_mod, "_ik_step", return_value=mock_configuration),
+            patch.object(ik_mod, "_check_convergence", return_value=False),
+            pytest.warns(UserWarning, match="IK did not converge"),
+        ):
+            ik_mod.solve_pose(mock_problem, targets, max_iterations=5)

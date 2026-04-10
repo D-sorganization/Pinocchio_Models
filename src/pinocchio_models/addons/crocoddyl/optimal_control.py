@@ -352,6 +352,11 @@ def solve_trajectory(
     _require_crocoddyl()
 
     if initial_state is not None:
+        if not np.all(np.isfinite(initial_state)):
+            raise ValueError(
+                "initial_state contains non-finite values (NaN or Inf). "
+                "Provide a valid finite state vector."
+            )
         ocp.problem.x0 = initial_state
 
     solver = crocoddyl.SolverDDP(ocp.problem)
