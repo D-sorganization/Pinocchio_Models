@@ -108,3 +108,63 @@ class TestExtractJointTorques:
             np.testing.assert_array_equal(result, np.array(controls))
         finally:
             oc_mod._HAS_CROCODDYL = original
+
+
+class TestSolveTrajectoryDbCContracts:
+    """DbC contracts for solve_trajectory (issue #124)."""
+
+    def test_rejects_non_finite_initial_state(self) -> None:
+        """initial_state must be finite."""
+        import pinocchio_models.addons.crocoddyl.optimal_control as oc_mod
+
+        original = oc_mod._HAS_CROCODDYL
+        oc_mod._HAS_CROCODDYL = True
+        try:
+            mock_ocp = MagicMock()
+            bad_state = np.array([float("nan"), 1.0, 2.0])
+            with pytest.raises(ValueError, match="initial_state.*non-finite"):
+                oc_mod.solve_trajectory(mock_ocp, initial_state=bad_state)
+        finally:
+            oc_mod._HAS_CROCODDYL = original
+
+    def test_rejects_inf_initial_state(self) -> None:
+        """initial_state must not contain Inf."""
+        import pinocchio_models.addons.crocoddyl.optimal_control as oc_mod
+
+        original = oc_mod._HAS_CROCODDYL
+        oc_mod._HAS_CROCODDYL = True
+        try:
+            mock_ocp = MagicMock()
+            bad_state = np.array([float("inf"), 1.0, 2.0])
+            with pytest.raises(ValueError, match="initial_state.*non-finite"):
+                oc_mod.solve_trajectory(mock_ocp, initial_state=bad_state)
+        finally:
+            oc_mod._HAS_CROCODDYL = original
+
+    def test_accepts_valid_initial_state(self) -> None:
+        """solve_trajectory should proceed normally with a valid finite initial state."""
+        import pinocchio_models.addons.crocoddyl.optimal_control as oc_mod
+
+        original_flag = oc_mod._HAS_CROCODDYL
+        original_cro = getattr(oc_mod, "crocoddyl", None)
+        oc_mod._HAS_CROCODDYL = True
+        mock_cro = MagicMock()
+        mock_solver = MagicMock()
+        mock_solver.xs = [np.zeros(10)]
+        mock_solver.us = [np.zeros(3)]
+        mock_cro.SolverDDP.return_value = mock_solver
+        oc_mod.crocoddyl = mock_cro
+        try:
+            mock_ocp = MagicMock()
+            valid_state = np.zeros(10)
+            states, controls = oc_mod.solve_trajectory(
+                mock_ocp, initial_state=valid_state
+            )
+            assert len(states) == 1
+            assert len(controls) == 1
+        finally:
+            oc_mod._HAS_CROCODDYL = original_flag
+            if original_cro is None:
+                del oc_mod.crocoddyl
+            else:
+                oc_mod.crocoddyl = original_cro
