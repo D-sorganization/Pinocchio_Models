@@ -148,11 +148,11 @@ class TestSolvePoseDbCContracts:
     def test_warns_when_ik_does_not_converge(self) -> None:
         """solve_pose should warn when max_iterations exhausted without convergence."""
         import importlib
+        from unittest.mock import MagicMock, patch
 
         import numpy as np
 
         import pinocchio_models.addons.pink.ik_solver as ik_mod
-        from unittest.mock import MagicMock, patch
 
         importlib.reload(ik_mod)
         ik_mod._HAS_PINK = True
@@ -172,10 +172,10 @@ class TestSolvePoseDbCContracts:
         mock_problem.data = MagicMock()
         targets = {"frame1": np.eye(4)}
 
-        with patch.object(ik_mod, "_build_target_tasks", return_value=[MagicMock()]):
-            with patch.object(ik_mod, "_ik_step", return_value=mock_configuration):
-                with patch.object(ik_mod, "_check_convergence", return_value=False):
-                    with pytest.warns(UserWarning, match="IK did not converge"):
-                        ik_mod.solve_pose(
-                            mock_problem, targets, max_iterations=5
-                        )
+        with (
+            patch.object(ik_mod, "_build_target_tasks", return_value=[MagicMock()]),
+            patch.object(ik_mod, "_ik_step", return_value=mock_configuration),
+            patch.object(ik_mod, "_check_convergence", return_value=False),
+            pytest.warns(UserWarning, match="IK did not converge"),
+        ):
+            ik_mod.solve_pose(mock_problem, targets, max_iterations=5)
