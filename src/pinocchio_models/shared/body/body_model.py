@@ -243,6 +243,25 @@ def _build_upper_limbs(
     )
 
 
+def _add_foot_collision(
+    robot: ET.Element,
+    side: str,
+    dims: tuple[float, float, float],
+) -> None:
+    """Attach sole contact-box collision geometry for the given side.
+
+    Args:
+        robot: The root ``<robot>`` XML element.
+        side: ``'l'`` or ``'r'``.
+        dims: ``(length, width, height)`` of the sole contact box in metres.
+    """
+    foot_link = robot.find(f".//link[@name='foot_{side}']")
+    if foot_link is not None:
+        collision = ET.SubElement(foot_link, "collision")
+        ET.SubElement(collision, "origin", xyz="0 0 -0.01", rpy="0 0 0")
+        collision.append(make_box_geometry(*dims))
+
+
 def _build_lower_limbs(
     robot: ET.Element,
     spec: BodyModelSpec,
@@ -294,15 +313,9 @@ def _build_lower_limbs(
         ],
     )
 
-    # Foot collision geometry (sole contact box)
-    # Dimensions: 0.26 x 0.10 x 0.02 m, centered 0.01 m below frame origin.
     _SOLE_COLLISION_DIMS = (0.26, 0.10, 0.02)
     for side in ("l", "r"):
-        foot_link = robot.find(f".//link[@name='foot_{side}']")
-        if foot_link is not None:
-            collision = ET.SubElement(foot_link, "collision")
-            ET.SubElement(collision, "origin", xyz="0 0 -0.01", rpy="0 0 0")
-            collision.append(make_box_geometry(*_SOLE_COLLISION_DIMS))
+        _add_foot_collision(robot, side, _SOLE_COLLISION_DIMS)
 
 
 def create_full_body(
