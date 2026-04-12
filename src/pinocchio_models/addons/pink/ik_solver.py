@@ -6,6 +6,12 @@ place the barbell at target positions for each exercise phase.
 Usage requires the optional ``pink`` extra::
 
     pip install pinocchio-models[pink]
+
+This module is a thin facade. The Pink task builders and integration
+step helpers live in :mod:`ik_solver_tasks`; the exercise phase
+tables live in :mod:`ik_solver_phases`. Public API and attribute
+names are preserved so existing imports and test mocks continue to
+work.
 """
 
 from __future__ import annotations
@@ -32,7 +38,24 @@ from pinocchio_models.shared.contracts.preconditions import (
     require_valid_urdf_string,
 )
 
+# Re-export implementation helpers so tests can patch.object them on
+# this module (they are looked up by bare name in ``solve_pose``).
+from .ik_solver_phases import _EXERCISE_PHASES
+from .ik_solver_tasks import (
+    _build_ground_tasks,
+    _build_target_tasks,
+    _check_convergence,
+    _ik_step,
+)
+
 logger = logging.getLogger(__name__)
+
+__all__ = [
+    "IKProblem",
+    "compute_exercise_keyframes",
+    "create_ik_problem",
+    "solve_pose",
+]
 
 
 def _require_pink() -> None:
@@ -78,105 +101,6 @@ def create_ik_problem(urdf_str: str, target_frames: list[str]) -> IKProblem:
     data = model.createData()
 
     return IKProblem(model=model, data=data, target_frames=target_frames)
-
-
-def _build_target_tasks(targets: dict[str, np.ndarray]) -> list[Any]:
-    """Convert a targets dict into a list of Pink FrameTask objects.
-
-    Parameters
-    ----------
-    targets : dict[str, ndarray]
-        Mapping from frame name to desired SE(3) pose (4x4 matrix).
-
-    Returns
-    -------
-    list
-        Pink FrameTask instances with targets set.
-    """
-    tasks: list[Any] = []
-    for frame_name, target_pose in targets.items():
-        se3_target = pin.SE3(target_pose[:3, :3], target_pose[:3, 3])
-        task = pink.tasks.FrameTask(
-            frame_name,
-            position_cost=1.0,
-            orientation_cost=1.0,
-        )
-        task.set_target(se3_target)
-        tasks.append(task)
-    return tasks
-
-
-def _build_ground_tasks() -> list[Any]:
-    """Build foot-contact tasks that pin feet at Z=0.
-
-    Returns
-    -------
-    list
-        Two Pink FrameTask instances (foot_l, foot_r) with high position
-        weight to enforce ground contact.
-    """
-    tasks: list[Any] = []
-    for foot_name in ("foot_l", "foot_r"):
-        foot_task = pink.tasks.FrameTask(
-            foot_name,
-            position_cost=10.0,  # High weight to enforce contact
-            orientation_cost=0.1,
-        )
-        foot_task.set_target(pin.SE3.Identity())
-        tasks.append(foot_task)
-    return tasks
-
-
-def _ik_step(
-    configuration: Any,
-    model: Any,
-    data: Any,
-    tasks: list[Any],
-) -> Any:
-    """Advance the IK solver by one integration step.
-
-    Parameters
-    ----------
-    configuration : pink.Configuration
-        Current robot configuration.
-    model : pinocchio.Model
-        Pinocchio model.
-    data : pinocchio.Data
-        Pinocchio data.
-    tasks : list
-        Active Pink tasks for this step.
-
-    Returns
-    -------
-    pink.Configuration
-        Updated configuration after the integration step.
-    """
-    velocity = configuration.solve_ik(tasks, dt=0.01)
-    q = pin.integrate(model, configuration.q, velocity * 0.01)
-    return pink.Configuration(model, data, q)
-
-
-def _check_convergence(configuration: Any, tasks: list[Any], tolerance: float) -> bool:
-    """Return True if the maximum task error is below *tolerance*.
-
-    Parameters
-    ----------
-    configuration : pink.Configuration
-        Current robot configuration.
-    tasks : list
-        Active Pink tasks to evaluate.
-    tolerance : float
-        Convergence threshold.
-
-    Returns
-    -------
-    bool
-        True when all tasks are within tolerance.
-    """
-    error = float(
-        max(float(np.linalg.norm(task.compute_error(configuration))) for task in tasks)
-    )
-    return error < tolerance
 
 
 def solve_pose(
@@ -252,62 +176,6 @@ def solve_pose(
         )
 
     return configuration.q
-
-
-# Exercise phase definitions for keyframe generation.
-# Maps exercise_name -> list of (phase_name, hip_angle_fraction) pairs
-# where fraction 0.0 = start position, 1.0 = end position.
-_EXERCISE_PHASES: dict[str, list[tuple[str, float]]] = {
-    "back_squat": [
-        ("standing", 0.0),
-        ("descent_start", 0.2),
-        ("quarter_squat", 0.4),
-        ("half_squat", 0.6),
-        ("parallel", 0.8),
-        ("bottom", 1.0),
-        ("ascent_start", 0.8),
-        ("half_up", 0.5),
-        ("quarter_up", 0.25),
-        ("lockout", 0.0),
-    ],
-    "bench_press": [
-        ("lockout", 0.0),
-        ("descent_start", 0.15),
-        ("mid_descent", 0.4),
-        ("chest_touch", 1.0),
-        ("press_start", 0.9),
-        ("mid_press", 0.5),
-        ("near_lockout", 0.15),
-        ("lockout_end", 0.0),
-    ],
-    "deadlift": [
-        ("floor", 1.0),
-        ("break_floor", 0.85),
-        ("below_knee", 0.6),
-        ("above_knee", 0.4),
-        ("hip_drive", 0.2),
-        ("lockout", 0.0),
-    ],
-    "snatch": [
-        ("floor", 1.0),
-        ("first_pull", 0.7),
-        ("power_position", 0.3),
-        ("triple_ext", 0.0),
-        ("turnover", 0.5),
-        ("overhead_squat", 0.9),
-        ("recovery", 0.0),
-    ],
-    "clean_and_jerk": [
-        ("floor", 1.0),
-        ("first_pull", 0.7),
-        ("power_position", 0.3),
-        ("rack", 0.1),
-        ("dip", 0.3),
-        ("drive", 0.0),
-        ("split", 0.2),
-        ("recovery", 0.0),
-    ],
-}
 
 
 def compute_exercise_keyframes(
