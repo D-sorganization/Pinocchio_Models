@@ -73,6 +73,51 @@ class TrajectoryResult:
     iterations: int
 
 
+def _build_phase_arrays(
+    objective: ExerciseObjective,
+) -> tuple[list[str], np.ndarray, np.ndarray]:
+    """Return ``(joint_names, phase_fracs, phase_angles)`` for *objective*.
+
+    ``joint_names`` is the sorted union of joints across all phases.
+    ``phase_fracs`` has shape ``(n_phases,)`` and ``phase_angles`` has shape
+    ``(n_phases, n_joints)``.
+    """
+    all_joints: set[str] = set()
+    for phase in objective.phases:
+        all_joints.update(phase.target_joints.keys())
+    joint_names = sorted(all_joints)
+    n_joints = len(joint_names)
+
+    phase_fracs = np.array([p.fraction for p in objective.phases])
+    phase_angles = np.zeros((len(objective.phases), n_joints))
+    for p_idx, phase in enumerate(objective.phases):
+        for k, jname in enumerate(joint_names):
+            phase_angles[p_idx, k] = phase.target_joints.get(jname, 0.0)
+    return joint_names, phase_fracs, phase_angles
+
+
+def _interpolate_keyframes(
+    phase_fracs: np.ndarray, phase_angles: np.ndarray, n_frames: int
+) -> np.ndarray:
+    """Linearly interpolate keyframes from phase boundaries using numpy ops."""
+    fractions = np.linspace(0.0, 1.0, n_frames)
+
+    # np.searchsorted finds the insertion point; clamp to valid phase indices
+    indices = np.searchsorted(phase_fracs, fractions, side="right") - 1
+    indices = np.clip(indices, 0, len(phase_fracs) - 2)
+    next_indices = indices + 1
+
+    # Vectorised alpha computation
+    denom = phase_fracs[next_indices] - phase_fracs[indices]
+    safe_denom = np.where(denom == 0.0, 1.0, denom)
+    alpha = np.where(denom == 0.0, 0.0, (fractions - phase_fracs[indices]) / safe_denom)
+
+    # Vectorised interpolation: v0 + alpha * (v1 - v0)
+    v0 = phase_angles[indices]  # (n_frames, n_joints)
+    v1 = phase_angles[next_indices]  # (n_frames, n_joints)
+    return v0 + alpha[:, np.newaxis] * (v1 - v0)
+
+
 def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.ndarray:
     """Linearly interpolate between exercise phases to generate keyframes.
 
@@ -92,35 +137,6 @@ def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.n
         raise ValueError(f"n_frames must be >= 2, got {n_frames}")
     if not objective.phases:
         raise ValueError("objective must have at least one phase")
-    all_joints: set[str] = set()
-    for phase in objective.phases:
-        all_joints.update(phase.target_joints.keys())
-    joint_names = sorted(all_joints)
-    n_joints = len(joint_names)
 
-    # Build phase boundary arrays for vectorised lookup
-    phase_fracs = np.array([p.fraction for p in objective.phases])
-    phase_angles = np.zeros((len(objective.phases), n_joints))
-    for p_idx, phase in enumerate(objective.phases):
-        for k, jname in enumerate(joint_names):
-            phase_angles[p_idx, k] = phase.target_joints.get(jname, 0.0)
-
-    fractions = np.linspace(0.0, 1.0, n_frames)
-    keyframes = np.zeros((n_frames, n_joints))
-
-    # np.searchsorted finds the insertion point; clamp to valid phase indices
-    indices = np.searchsorted(phase_fracs, fractions, side="right") - 1
-    indices = np.clip(indices, 0, len(objective.phases) - 2)
-    next_indices = indices + 1
-
-    # Vectorised alpha computation
-    denom = phase_fracs[next_indices] - phase_fracs[indices]
-    safe_denom = np.where(denom == 0.0, 1.0, denom)
-    alpha = np.where(denom == 0.0, 0.0, (fractions - phase_fracs[indices]) / safe_denom)
-
-    # Vectorised interpolation: v0 + alpha * (v1 - v0)
-    v0 = phase_angles[indices]  # (n_frames, n_joints)
-    v1 = phase_angles[next_indices]  # (n_frames, n_joints)
-    keyframes = v0 + alpha[:, np.newaxis] * (v1 - v0)
-
-    return keyframes
+    _joint_names, phase_fracs, phase_angles = _build_phase_arrays(objective)
+    return _interpolate_keyframes(phase_fracs, phase_angles, n_frames)

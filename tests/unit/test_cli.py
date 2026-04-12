@@ -5,7 +5,9 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from pinocchio_models.__main__ import main
+import pytest
+
+from pinocchio_models.__main__ import _emit_urdf, main
 
 
 class TestCLI:
@@ -48,3 +50,31 @@ class TestCLI:
         """When no --output-dir, output goes to stdout."""
         result = main(["deadlift"])
         assert result == 0
+
+
+class TestValidateCliArgs:
+    def test_rejects_non_positive_mass(self) -> None:
+        with pytest.raises(SystemExit):
+            main(["back_squat", "--mass", "0", "--output-dir", "."])
+
+    def test_accepts_valid_args(self) -> None:
+        # Smoke-test through main; non-positive mass would have raised SystemExit.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            assert main(["back_squat", "--mass", "70", "--output-dir", tmpdir]) == 0
+
+
+class TestEmitUrdf:
+    def test_writes_urdf_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            out_dir = Path(tmpdir) / "models"
+            _emit_urdf("back_squat", '<robot name="r"/>', out_dir)
+            urdf_path = out_dir / "back_squat.urdf"
+            assert urdf_path.exists()
+            assert "robot" in urdf_path.read_text()
+
+    def test_stdout_when_output_dir_is_none(
+        self, capsys: pytest.CaptureFixture
+    ) -> None:
+        _emit_urdf("squat", '<robot name="r"/>', None)
+        captured = capsys.readouterr()
+        assert "<robot" in captured.out

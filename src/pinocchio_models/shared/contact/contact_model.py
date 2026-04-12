@@ -94,6 +94,43 @@ def _foot_corner_contacts(frame_name: str) -> list[ContactPoint]:
     ]
 
 
+def _both_feet_contacts() -> list[ContactPoint]:
+    """Return foot corner contacts for both left and right feet."""
+    return _foot_corner_contacts("foot_l") + _foot_corner_contacts("foot_r")
+
+
+def _bench_contact_for(exercise_name: str) -> ContactPoint | None:
+    """Return the back-on-bench contact point if *exercise_name* needs one."""
+    if exercise_name != "bench_press":
+        return None
+    return ContactPoint(
+        frame_name="torso",
+        local_position=(0.0, 0.0, -0.05),
+        normal=(0.0, 0.0, 1.0),
+        mu=0.6,
+    )
+
+
+def _barbell_contacts_for(exercise_name: str) -> list[ContactPoint] | None:
+    """Return hand-on-barbell contacts for barbell-grip exercises."""
+    if exercise_name not in ("deadlift", "snatch", "clean_and_jerk"):
+        return None
+    return [
+        ContactPoint(
+            frame_name="hand_l",
+            local_position=(0.0, 0.0, 0.0),
+            normal=(0.0, 0.0, 1.0),
+            mu=0.9,
+        ),
+        ContactPoint(
+            frame_name="hand_r",
+            local_position=(0.0, 0.0, 0.0),
+            normal=(0.0, 0.0, 1.0),
+            mu=0.9,
+        ),
+    ]
+
+
 def get_exercise_contacts(exercise_name: str, model: Any = None) -> ContactSpec:
     """Return contact specification for the given exercise.
 
@@ -124,37 +161,8 @@ def get_exercise_contacts(exercise_name: str, model: Any = None) -> ContactSpec:
             f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )
 
-    foot_contacts = _foot_corner_contacts("foot_l") + _foot_corner_contacts("foot_r")
-
-    bench_contact: ContactPoint | None = None
-    barbell_contacts: list[ContactPoint] | None = None
-
-    if exercise_name == "bench_press":
-        bench_contact = ContactPoint(
-            frame_name="torso",
-            local_position=(0.0, 0.0, -0.05),
-            normal=(0.0, 0.0, 1.0),
-            mu=0.6,
-        )
-
-    if exercise_name in ("deadlift", "snatch", "clean_and_jerk"):
-        barbell_contacts = [
-            ContactPoint(
-                frame_name="hand_l",
-                local_position=(0.0, 0.0, 0.0),
-                normal=(0.0, 0.0, 1.0),
-                mu=0.9,
-            ),
-            ContactPoint(
-                frame_name="hand_r",
-                local_position=(0.0, 0.0, 0.0),
-                normal=(0.0, 0.0, 1.0),
-                mu=0.9,
-            ),
-        ]
-
     return ContactSpec(
-        foot_contacts=foot_contacts,
-        bench_contact=bench_contact,
-        barbell_contacts=barbell_contacts,
+        foot_contacts=_both_feet_contacts(),
+        bench_contact=_bench_contact_for(exercise_name),
+        barbell_contacts=_barbell_contacts_for(exercise_name),
     )

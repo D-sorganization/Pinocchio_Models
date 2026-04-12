@@ -10,8 +10,31 @@ from pinocchio_models.shared.body.body_model import create_full_body
 from pinocchio_models.shared.contact.contact_model import (
     ContactPoint,
     ContactSpec,
+    _barbell_contacts_for,
+    _bench_contact_for,
+    _both_feet_contacts,
     get_exercise_contacts,
 )
+
+
+class TestExerciseContactHelpers:
+    def test_both_feet_returns_eight_corner_points(self) -> None:
+        feet = _both_feet_contacts()
+        assert len(feet) == 8
+        assert {c.frame_name for c in feet} == {"foot_l", "foot_r"}
+
+    def test_bench_contact_only_for_bench_press(self) -> None:
+        assert _bench_contact_for("back_squat") is None
+        bench = _bench_contact_for("bench_press")
+        assert bench is not None
+        assert bench.frame_name == "torso"
+
+    def test_barbell_contacts_for_barbell_lifts(self) -> None:
+        assert _barbell_contacts_for("back_squat") is None
+        for name in ("deadlift", "snatch", "clean_and_jerk"):
+            contacts = _barbell_contacts_for(name)
+            assert contacts is not None
+            assert {c.frame_name for c in contacts} == {"hand_l", "hand_r"}
 
 
 class TestContactPoint:
