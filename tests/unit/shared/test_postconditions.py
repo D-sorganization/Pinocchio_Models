@@ -1,8 +1,13 @@
 """Tests for postcondition contract guards."""
 
+import xml.etree.ElementTree as ET
+
 import pytest
 
 from pinocchio_models.shared.contracts.postconditions import (
+    _collect_link_names,
+    _parse_robot_root,
+    _validate_joint_links,
     ensure_positive_definite_inertia,
     ensure_positive_mass,
     ensure_valid_urdf,
@@ -21,6 +26,43 @@ class TestEnsureValidUrdf:
     def test_rejects_non_robot_root(self) -> None:
         with pytest.raises(ValueError, match="root must be <robot>"):
             ensure_valid_urdf("<model/>")
+
+
+class TestParseRobotRoot:
+    def test_returns_root_for_valid_xml(self) -> None:
+        root = _parse_robot_root('<robot name="r"/>')
+        assert root.tag == "robot"
+
+    def test_rejects_non_robot_tag(self) -> None:
+        with pytest.raises(ValueError, match="root must be <robot>"):
+            _parse_robot_root("<thing/>")
+
+
+class TestCollectLinkNames:
+    def test_collects_named_links(self) -> None:
+        root = ET.fromstring('<robot><link name="a"/><link name="b"/><link/></robot>')
+        assert _collect_link_names(root) == {"a", "b"}
+
+
+class TestValidateJointLinks:
+    def test_rejects_unknown_child_link(self) -> None:
+        root = ET.fromstring(
+            '<robot><link name="a"/>'
+            '<joint name="j"><parent link="a"/><child link="ghost"/></joint>'
+            "</robot>"
+        )
+        with pytest.raises(ValueError, match="unknown child link"):
+            _validate_joint_links(root, {"a"})
+
+    def test_rejects_duplicate_child_link(self) -> None:
+        root = ET.fromstring(
+            '<robot><link name="a"/><link name="b"/>'
+            '<joint name="j1"><parent link="a"/><child link="b"/></joint>'
+            '<joint name="j2"><parent link="a"/><child link="b"/></joint>'
+            "</robot>"
+        )
+        with pytest.raises(ValueError, match="exactly one parent joint"):
+            _validate_joint_links(root, {"a", "b"})
 
 
 class TestEnsurePositiveMass:

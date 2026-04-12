@@ -263,6 +263,48 @@ def set_joint_default(
             joint.set("initial_position", f"{value:.6f}")
 
 
+def _import_pinocchio() -> Any:
+    """Import and return the ``pinocchio`` module, with a clear error message."""
+    try:
+        import pinocchio as pin
+    except ImportError as exc:
+        raise ImportError(
+            "pinocchio and numpy are required for get_initial_configuration. "
+            "Install with: pip install pinocchio-models[all-addons]"
+        ) from exc
+    return pin
+
+
+def _parse_initial_positions(xml_str: str) -> list[tuple[str, float]]:
+    """Extract ``(joint_name, initial_position)`` pairs from URDF metadata."""
+    root = ET.fromstring(xml_str)  # nosec B314 -- xml_str is internally generated URDF
+    pairs: list[tuple[str, float]] = []
+    for joint_el in root.findall("joint"):
+        initial_pos_str = joint_el.get("initial_position")
+        if initial_pos_str is None:
+            continue
+        joint_name = joint_el.get("name", "")
+        pairs.append((joint_name, float(initial_pos_str)))
+    return pairs
+
+
+def _apply_initial_positions(
+    model: Any, q: Any, initial_positions: list[tuple[str, float]]
+) -> None:
+    """Write each ``(name, value)`` pair onto the matching DOF index of *q*."""
+    for joint_name, value in initial_positions:
+        try:
+            joint_id = model.getJointId(joint_name)
+        except (RuntimeError, KeyError) as _e:
+            logger.warning("Joint %s not found in model: %s", joint_name, _e)
+            continue
+        if joint_id >= len(model.joints):
+            continue
+        joint = model.joints[joint_id]
+        if joint.nq == 1:
+            q[joint.idx_q] = value
+
+
 def get_initial_configuration(model: Any, xml_str: str) -> Any:
     """Build a Pinocchio configuration vector from ``initial_position`` metadata.
 
@@ -312,33 +354,8 @@ def get_initial_configuration(model: Any, xml_str: str) -> Any:
         q0 = get_initial_configuration(model, urdf_str)
         pin.forwardKinematics(model, data, q0)
     """
-    try:
-        import pinocchio as pin
-    except ImportError as exc:
-        raise ImportError(
-            "pinocchio and numpy are required for get_initial_configuration. "
-            "Install with: pip install pinocchio-models[all-addons]"
-        ) from exc
-
+    pin = _import_pinocchio()
     q = pin.neutral(model)
-
-    root = ET.fromstring(xml_str)  # nosec B314 -- xml_str is internally generated URDF
-    for joint_el in root.findall("joint"):
-        initial_pos_str = joint_el.get("initial_position")
-        if initial_pos_str is None:
-            continue
-        joint_name = joint_el.get("name", "")
-        try:
-            joint_id = model.getJointId(joint_name)
-        except (RuntimeError, KeyError) as _e:
-            logger.warning("Joint %s not found in model: %s", joint_name, _e)
-            continue
-        if joint_id >= len(model.joints):
-            continue
-        joint = model.joints[joint_id]
-        idx_q = joint.idx_q
-        nq_j = joint.nq
-        if nq_j == 1:
-            q[idx_q] = float(initial_pos_str)
-
+    initial_positions = _parse_initial_positions(xml_str)
+    _apply_initial_positions(model, q, initial_positions)
     return q

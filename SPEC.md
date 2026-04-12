@@ -256,4 +256,5 @@ The repository is in active maintenance. Shared model generation is established,
 | Date | Version | Changes |
 | --- | --- | --- |
 | 2026-04-06 | 1.0.0 | Initial repository specification for Pinocchio_Models. |
+| 2026-04-11 | 1.0.1 | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved. |
 

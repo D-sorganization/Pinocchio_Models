@@ -11,6 +11,8 @@ from pinocchio_models.optimization.exercise_objectives import (
 from pinocchio_models.optimization.trajectory_optimizer import (
     TrajectoryConfig,
     TrajectoryResult,
+    _build_phase_arrays,
+    _interpolate_keyframes,
     interpolate_phases,
 )
 
@@ -221,3 +223,20 @@ class TestTrajectoryResult:
         assert result.converged is True
         assert result.cost == pytest.approx(0.42)
         assert result.joint_positions.shape == (n, nj)
+
+
+class TestInterpolatePhasesHelpers:
+    def test_build_phase_arrays_unions_joint_names(self) -> None:
+        objective = get_exercise_objective("back_squat")
+        joint_names, phase_fracs, phase_angles = _build_phase_arrays(objective)
+        assert joint_names == sorted(joint_names)
+        assert phase_fracs.shape == (len(objective.phases),)
+        assert phase_angles.shape == (len(objective.phases), len(joint_names))
+
+    def test_interpolate_keyframes_endpoints_match_phases(self) -> None:
+        phase_fracs = np.array([0.0, 0.5, 1.0])
+        phase_angles = np.array([[0.0, 1.0], [2.0, 3.0], [4.0, 5.0]])
+        keyframes = _interpolate_keyframes(phase_fracs, phase_angles, n_frames=5)
+        assert keyframes.shape == (5, 2)
+        np.testing.assert_allclose(keyframes[0], phase_angles[0])
+        np.testing.assert_allclose(keyframes[-1], phase_angles[-1])

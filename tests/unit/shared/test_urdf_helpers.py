@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from pinocchio_models.shared.utils.urdf_helpers import (
+    _parse_initial_positions,
     add_fixed_joint,
     add_link,
     add_revolute_joint,
@@ -16,6 +17,29 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     set_joint_default,
     vec3_str,
 )
+
+
+class TestParseInitialPositions:
+    def test_extracts_pairs_from_metadata(self) -> None:
+        xml_str = (
+            '<robot name="r">'
+            '<joint name="j1" initial_position="0.5"><parent link="a"/>'
+            '<child link="b"/></joint>'
+            '<joint name="j2"><parent link="b"/><child link="c"/></joint>'
+            '<joint name="j3" initial_position="-1.25"><parent link="c"/>'
+            '<child link="d"/></joint>'
+            "</robot>"
+        )
+        pairs = _parse_initial_positions(xml_str)
+        assert pairs == [("j1", 0.5), ("j3", -1.25)]
+
+    def test_returns_empty_when_no_metadata(self) -> None:
+        xml_str = (
+            '<robot name="r">'
+            '<joint name="j"><parent link="a"/><child link="b"/></joint>'
+            "</robot>"
+        )
+        assert _parse_initial_positions(xml_str) == []
 
 
 class TestVec3Str:

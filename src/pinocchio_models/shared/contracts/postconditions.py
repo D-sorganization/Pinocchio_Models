@@ -15,31 +15,24 @@ import xml.etree.ElementTree as ET
 logger = logging.getLogger(__name__)
 
 
-def ensure_valid_urdf(xml_string: str) -> ET.Element:
-    """Parse *xml_string* and return the root element.
-
-    Validates:
-    1. Well-formed XML with a ``<robot>`` root tag.
-    2. Every joint's ``child`` link name exists in the declared link set.
-    3. No link appears as ``child`` of more than one joint (single-parent rule).
-
-    Parent link names are checked with a warning only, because the body model
-    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
-    structurally intentional and do not need to match a declared link name.
-
-    Raises ValueError if any check fails.
-    """
+def _parse_robot_root(xml_string: str) -> ET.Element:
+    """Parse *xml_string* and verify the root element is ``<robot>``."""
     try:
         root = ET.fromstring(xml_string)  # nosec B314 — parsing self-generated XML
     except ET.ParseError as exc:
         raise ValueError(f"Generated URDF is not well-formed XML: {exc}") from exc
     if root.tag != "robot":
         raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
+    return root
 
-    link_names: set[str] = {
-        el.get("name", "") for el in root.findall("link") if el.get("name")
-    }
 
+def _collect_link_names(root: ET.Element) -> set[str]:
+    """Return the set of declared ``<link name=...>`` values under *root*."""
+    return {el.get("name", "") for el in root.findall("link") if el.get("name")}
+
+
+def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
+    """Validate joint parent/child references and the single-parent rule."""
     child_parent_map: dict[str, str] = {}
     for joint in root.findall("joint"):
         joint_name = joint.get("name", "<unnamed>")
@@ -79,6 +72,24 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
         if child_link:
             child_parent_map[child_link] = joint_name
 
+
+def ensure_valid_urdf(xml_string: str) -> ET.Element:
+    """Parse *xml_string* and return the root element.
+
+    Validates:
+    1. Well-formed XML with a ``<robot>`` root tag.
+    2. Every joint's ``child`` link name exists in the declared link set.
+    3. No link appears as ``child`` of more than one joint (single-parent rule).
+
+    Parent link names are checked with a warning only, because the body model
+    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
+    structurally intentional and do not need to match a declared link name.
+
+    Raises ValueError if any check fails.
+    """
+    root = _parse_robot_root(xml_string)
+    link_names = _collect_link_names(root)
+    _validate_joint_links(root, link_names)
     return root
 
 

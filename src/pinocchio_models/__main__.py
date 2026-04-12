@@ -87,6 +87,31 @@ def _create_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _validate_cli_args(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> None:
+    """DbC: validate numeric CLI arguments and exit via *parser* on failure."""
+    if args.mass <= 0:
+        parser.error(f"--mass must be positive, got {args.mass}")
+    if args.height <= 0:
+        parser.error(f"--height must be positive, got {args.height}")
+    if args.plates < 0:
+        parser.error(f"--plates must be non-negative, got {args.plates}")
+
+
+def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> None:
+    """Write *urdf_str* either to ``<output_dir>/<exercise>.urdf`` or stdout."""
+    if output_dir is not None:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        out_path = output_dir / f"{exercise_name}.urdf"
+        out_path.write_text(urdf_str, encoding="utf-8")
+        logger.info("Wrote %s", out_path)
+    else:
+        stdout = sys.stdout
+        stdout.write(urdf_str)
+        stdout.write("\n")
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point for Pinocchio model generation.
 
@@ -98,14 +123,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     parser = _create_parser()
     args = parser.parse_args(argv)
-
-    # DbC: validate numeric CLI arguments
-    if args.mass <= 0:
-        parser.error(f"--mass must be positive, got {args.mass}")
-    if args.height <= 0:
-        parser.error(f"--height must be positive, got {args.height}")
-    if args.plates < 0:
-        parser.error(f"--plates must be non-negative, got {args.plates}")
+    _validate_cli_args(parser, args)
 
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.WARNING,
@@ -119,22 +137,12 @@ def main(argv: list[str] | None = None) -> int:
     for exercise_name in exercises:
         builder_fn = _BUILDERS[exercise_name]
         logger.info("Generating %s model", exercise_name)
-
         urdf_str = builder_fn(
             body_mass=args.mass,
             height=args.height,
             plate_mass_per_side=args.plates,
         )
-
-        if args.output_dir is not None:
-            args.output_dir.mkdir(parents=True, exist_ok=True)
-            out_path = args.output_dir / f"{exercise_name}.urdf"
-            out_path.write_text(urdf_str, encoding="utf-8")
-            logger.info("Wrote %s", out_path)
-        else:
-            stdout = sys.stdout
-            stdout.write(urdf_str)
-            stdout.write("\n")
+        _emit_urdf(exercise_name, urdf_str, args.output_dir)
 
     return 0
 
