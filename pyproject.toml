@@ -30,7 +30,7 @@ gepetto = [
     "gepetto-viewer-corba>=5.0.0",
 ]
 pink = [
-    "pin-pink>=3.0.0",
+    "pin-pink>=4.1.0",
 ]
 crocoddyl = [
     "crocoddyl>=2.0.0",
