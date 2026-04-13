@@ -33,7 +33,7 @@ pink = [
     "pin-pink>=4.1.0",
 ]
 crocoddyl = [
-    "crocoddyl>=2.0.0",
+    "crocoddyl>=3.2.0",
 ]
 all-addons = [
     "pinocchio-models[pinocchio,gepetto,pink,crocoddyl]",
