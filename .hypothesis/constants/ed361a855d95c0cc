@@ -1,4 +1,0 @@
-# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\__main__.py
-# hypothesis_version: 6.151.9
-
-[0.0, 1.75, 80.0, '--height', '--mass', '--output-dir', '--plates', '--verbose', '-v', 'Generating %s model', 'Wrote %s', '__main__', 'all', 'back_squat', 'bench_press', 'clean_and_jerk', 'deadlift', 'exercise', 'pinocchio-models', 'snatch', 'store_true', 'utf-8']

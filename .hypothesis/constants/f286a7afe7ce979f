@@ -1,4 +1,0 @@
-# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\__init__.py
-# hypothesis_version: 6.151.9
-
-['BarbellSpec', 'BodyModelSpec', 'DeadliftModelBuilder', 'ExerciseConfig', 'ExerciseModelBuilder', 'SnatchModelBuilder', 'SquatModelBuilder', 'build_deadlift_model', 'build_snatch_model', 'build_squat_model']
