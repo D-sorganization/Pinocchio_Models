@@ -1,4 +1,0 @@
-# file: C:\Users\diete\Repositories\Pinocchio_Models\src\pinocchio_models\shared\contracts\postconditions.py
-# hypothesis_version: 6.151.9
-
-['Ixx', 'Iyy', 'Izz', 'robot']
