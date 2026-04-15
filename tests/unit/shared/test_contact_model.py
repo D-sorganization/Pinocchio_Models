@@ -13,6 +13,8 @@ from pinocchio_models.shared.contact.contact_model import (
     _barbell_contacts_for,
     _bench_contact_for,
     _both_feet_contacts,
+    _build_contact_spec,
+    _validate_exercise_name,
     get_exercise_contacts,
 )
 
@@ -35,6 +37,16 @@ class TestExerciseContactHelpers:
             contacts = _barbell_contacts_for(name)
             assert contacts is not None
             assert {c.frame_name for c in contacts} == {"hand_l", "hand_r"}
+
+    def test_validate_exercise_name_rejects_unknown_name(self) -> None:
+        with pytest.raises(ValueError, match="Unknown exercise"):
+            _validate_exercise_name("not_a_lift")
+
+    def test_build_contact_spec_combines_shared_and_specific_contacts(self) -> None:
+        spec = _build_contact_spec("bench_press")
+        assert len(spec.foot_contacts) == 8
+        assert spec.bench_contact is not None
+        assert spec.barbell_contacts is None
 
 
 class TestContactPoint:

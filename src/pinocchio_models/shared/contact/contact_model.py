@@ -131,6 +131,24 @@ def _barbell_contacts_for(exercise_name: str) -> list[ContactPoint] | None:
     ]
 
 
+def _validate_exercise_name(exercise_name: str) -> None:
+    """Validate contact lookup input before building a contact spec."""
+    if exercise_name not in VALID_EXERCISE_NAMES:
+        raise ValueError(
+            f"Unknown exercise '{exercise_name}'. "
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+        )
+
+
+def _build_contact_spec(exercise_name: str) -> ContactSpec:
+    """Assemble the contact spec for a validated exercise name."""
+    return ContactSpec(
+        foot_contacts=_both_feet_contacts(),
+        bench_contact=_bench_contact_for(exercise_name),
+        barbell_contacts=_barbell_contacts_for(exercise_name),
+    )
+
+
 def get_exercise_contacts(exercise_name: str, model: Any = None) -> ContactSpec:
     """Return contact specification for the given exercise.
 
@@ -155,14 +173,5 @@ def get_exercise_contacts(exercise_name: str, model: Any = None) -> ContactSpec:
     ValueError
         If *exercise_name* is not recognised.
     """
-    if exercise_name not in VALID_EXERCISE_NAMES:
-        raise ValueError(
-            f"Unknown exercise '{exercise_name}'. "
-            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
-        )
-
-    return ContactSpec(
-        foot_contacts=_both_feet_contacts(),
-        bench_contact=_bench_contact_for(exercise_name),
-        barbell_contacts=_barbell_contacts_for(exercise_name),
-    )
+    _validate_exercise_name(exercise_name)
+    return _build_contact_spec(exercise_name)
