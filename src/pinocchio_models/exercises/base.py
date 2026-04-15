@@ -85,25 +85,14 @@ class ExerciseModelBuilder(ABC):
         """
         return 0.3
 
-    def attach_barbell(
-        self,
-        robot: ET.Element,
-        body_links: dict[str, ET.Element],
-        barbell_links: dict[str, ET.Element],
-    ) -> None:
-        """Weld barbell shaft to both hands at grip position.
+    @staticmethod
+    def _attach_shaft_to_left_hand(robot: ET.Element, grip_offset: float) -> None:
+        """Weld ``barbell_shaft`` as a child of ``hand_l`` at ``-grip_offset``.
 
-        DRY: This default implementation covers bench press, deadlift,
-        snatch, and clean-and-jerk. The squat overrides this entirely
-        because the barbell sits on the torso, not in the hands.
+        URDF requires each link to have exactly one parent joint; attaching
+        barbell_shaft to hand_l only (and mirroring the right-hand grip via
+        a virtual link) keeps the topology a valid tree.
         """
-        grip_offset = self.config.barbell_spec.shaft_length * self.grip_offset_fraction
-
-        # Attach barbell_shaft to left hand — barbell_shaft has exactly one parent.
-        # URDF requires each link to have exactly one parent joint; the original
-        # code made barbell_shaft the child of two separate joints (one per hand),
-        # which is topologically invalid. The fix: barbell_shaft is the child of
-        # hand_l only.
         add_fixed_joint(
             robot,
             name="barbell_to_hand_l",
@@ -112,12 +101,15 @@ class ExerciseModelBuilder(ABC):
             origin_xyz=(0, -grip_offset, 0),
         )
 
-        # Add a zero-mass virtual grip anchor for the right hand.  hand_r already
-        # has wrist_r as its parent joint; URDF does not allow a second parent.
-        # The grip_r link hangs off barbell_shaft at the symmetric grip position,
-        # representing the right-hand contact point without creating a kinematic
-        # cycle.  This produces the valid chain:
-        #   hand_l → barbell_shaft → barbell_grip_r  (topology: valid tree)
+    @staticmethod
+    def _attach_virtual_grip_right(robot: ET.Element, grip_offset: float) -> None:
+        """Create the zero-mass ``barbell_grip_r`` anchor and fix it to the shaft.
+
+        hand_r already has ``wrist_r`` as its URDF parent, so adding a second
+        parent would be invalid.  We hang ``barbell_grip_r`` off
+        ``barbell_shaft`` at the symmetric grip position, producing the valid
+        tree ``hand_l -> barbell_shaft -> barbell_grip_r``.
+        """
         add_link(
             robot,
             name="barbell_grip_r",
@@ -134,6 +126,22 @@ class ExerciseModelBuilder(ABC):
             child="barbell_grip_r",
             origin_xyz=(0, 2 * grip_offset, 0),
         )
+
+    def attach_barbell(
+        self,
+        robot: ET.Element,
+        body_links: dict[str, ET.Element],
+        barbell_links: dict[str, ET.Element],
+    ) -> None:
+        """Weld barbell shaft to both hands at grip position.
+
+        DRY: This default implementation covers bench press, deadlift,
+        snatch, and clean-and-jerk. The squat overrides this entirely
+        because the barbell sits on the torso, not in the hands.
+        """
+        grip_offset = self.config.barbell_spec.shaft_length * self.grip_offset_fraction
+        self._attach_shaft_to_left_hand(robot, grip_offset)
+        self._attach_virtual_grip_right(robot, grip_offset)
 
     @abstractmethod
     def set_initial_pose(self, robot: ET.Element) -> None:

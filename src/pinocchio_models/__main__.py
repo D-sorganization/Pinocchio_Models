@@ -43,17 +43,17 @@ _BUILDERS: dict[str, Callable[..., str]] = {
 }
 
 
-def _create_parser() -> argparse.ArgumentParser:
-    """Build the argument parser."""
-    parser = argparse.ArgumentParser(
-        prog="pinocchio-models",
-        description="Generate Pinocchio URDF models for barbell exercises.",
-    )
+def _add_exercise_argument(parser: argparse.ArgumentParser) -> None:
+    """Add the positional ``exercise`` argument (choices + ``all``)."""
     parser.add_argument(
         "exercise",
         choices=[*sorted(VALID_EXERCISE_NAMES), "all"],
         help="Exercise to generate (or 'all' for all exercises).",
     )
+
+
+def _add_anthropometry_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add anthropometry / loading arguments (``--mass``, ``--height``, ``--plates``)."""
     parser.add_argument(
         "--mass",
         type=float,
@@ -72,6 +72,10 @@ def _create_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="Plate mass per side in kg (default: 0.0).",
     )
+
+
+def _add_output_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add output / verbosity arguments (``--output-dir``, ``-v``)."""
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -84,6 +88,17 @@ def _create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable verbose logging.",
     )
+
+
+def _create_parser() -> argparse.ArgumentParser:
+    """Build the argument parser composed from focused helper groups."""
+    parser = argparse.ArgumentParser(
+        prog="pinocchio-models",
+        description="Generate Pinocchio URDF models for barbell exercises.",
+    )
+    _add_exercise_argument(parser)
+    _add_anthropometry_arguments(parser)
+    _add_output_arguments(parser)
     return parser
 
 

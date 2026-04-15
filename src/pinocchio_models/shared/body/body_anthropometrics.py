@@ -80,6 +80,60 @@ def _seg(spec: BodyModelSpec, name: str) -> tuple[float, float, float]:
     return mass, length, radius
 
 
+def _resolve_bilateral_parent(parent_name: str, side: str) -> str:
+    """Return the actual parent-link name for *side*.
+
+    Bilateral segments (e.g. ``thigh``) must be suffixed with ``_l`` or
+    ``_r`` to match the link created on that side; central segments
+    (``pelvis``, ``torso``) already carry their own name and are returned
+    unchanged.
+    """
+    if parent_name in _BILATERAL_SEGMENTS:
+        return f"{parent_name}_{side}"
+    return parent_name
+
+
+def _add_limb_side_simple(
+    robot: ET.Element,
+    *,
+    side: str,
+    sign: float,
+    seg_name: str,
+    parent_name: str,
+    mass: float,
+    length: float,
+    radius: float,
+    inertia: tuple[float, float, float],
+    parent_offset_z: float,
+    parent_lateral_y: float,
+    coord_prefix: str,
+    range_min: float,
+    range_max: float,
+) -> None:
+    """Add a single-DOF limb segment (link + revolute joint) for one side."""
+    body_name = f"{seg_name}_{side}"
+    add_link(
+        robot,
+        name=body_name,
+        mass=mass,
+        origin_xyz=(0, 0, -length / 2.0),
+        ixx=inertia[0],
+        iyy=inertia[1],
+        izz=inertia[2],
+        visual_geometry=make_cylinder_geometry(radius, length),
+    )
+    add_revolute_joint(
+        robot,
+        name=f"{coord_prefix}_{side}",
+        parent=_resolve_bilateral_parent(parent_name, side),
+        child=body_name,
+        origin_xyz=(0, sign * parent_lateral_y, parent_offset_z),
+        axis=(0, 1, 0),
+        lower=range_min,
+        upper=range_max,
+    )
+
+
 def _add_bilateral_limb_simple(
     robot: ET.Element,
     spec: BodyModelSpec,
@@ -101,33 +155,22 @@ def _add_bilateral_limb_simple(
     mass, length, radius = _seg(spec, seg_name)
     inertia = cylinder_inertia(mass, radius, length)
 
-    for side, sign in [("l", -1.0), ("r", 1.0)]:
-        body_name = f"{seg_name}_{side}"
-        add_link(
+    for side, sign in (("l", -1.0), ("r", 1.0)):
+        _add_limb_side_simple(
             robot,
-            name=body_name,
+            side=side,
+            sign=sign,
+            seg_name=seg_name,
+            parent_name=parent_name,
             mass=mass,
-            origin_xyz=(0, 0, -length / 2.0),
-            ixx=inertia[0],
-            iyy=inertia[1],
-            izz=inertia[2],
-            visual_geometry=make_cylinder_geometry(radius, length),
-        )
-
-        parent_full = (
-            f"{parent_name}_{side}"
-            if parent_name in _BILATERAL_SEGMENTS
-            else parent_name
-        )
-        add_revolute_joint(
-            robot,
-            name=f"{coord_prefix}_{side}",
-            parent=parent_full,
-            child=body_name,
-            origin_xyz=(0, sign * parent_lateral_y, parent_offset_z),
-            axis=(0, 1, 0),
-            lower=range_min,
-            upper=range_max,
+            length=length,
+            radius=radius,
+            inertia=inertia,
+            parent_offset_z=parent_offset_z,
+            parent_lateral_y=parent_lateral_y,
+            coord_prefix=coord_prefix,
+            range_min=range_min,
+            range_max=range_max,
         )
 
 
