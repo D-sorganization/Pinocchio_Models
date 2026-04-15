@@ -19,6 +19,11 @@ class TestRequirePositive:
     def test_accepts_positive(self) -> None:
         require_positive(1.0, "x")
 
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+    def test_rejects_non_finite(self, value: float) -> None:
+        with pytest.raises(ValueError, match="non-finite"):
+            require_positive(value, "x")
+
     def test_rejects_zero(self) -> None:
         with pytest.raises(ValueError, match="must be positive"):
             require_positive(0.0, "x")
@@ -38,6 +43,11 @@ class TestRequireNonNegative:
     def test_rejects_negative(self) -> None:
         with pytest.raises(ValueError, match="must be non-negative"):
             require_non_negative(-0.1, "x")
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+    def test_rejects_non_finite(self, value: float) -> None:
+        with pytest.raises(ValueError, match="non-finite"):
+            require_non_negative(value, "x")
 
 
 class TestRequireUnitVector:
@@ -81,6 +91,11 @@ class TestRequireInRange:
     def test_rejects_above(self) -> None:
         with pytest.raises(ValueError, match="must be in"):
             require_in_range(11.0, 0.0, 10.0, "x")
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+    def test_rejects_non_finite(self, value: float) -> None:
+        with pytest.raises(ValueError, match="non-finite"):
+            require_in_range(value, 0.0, 10.0, "x")
 
 
 class TestRequireShape:
