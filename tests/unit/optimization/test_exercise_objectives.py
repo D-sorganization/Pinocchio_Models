@@ -8,11 +8,13 @@ from pinocchio_models.optimization.exercise_objectives import (
     ExerciseObjective,
     get_exercise_objective,
 )
+from pinocchio_models.optimization.objectives.common import Phase
 from pinocchio_models.optimization.trajectory_optimizer import (
     TrajectoryConfig,
     TrajectoryResult,
     _build_phase_arrays,
     _interpolate_keyframes,
+    _validate_interpolation_inputs,
     interpolate_phases,
 )
 
@@ -122,6 +124,67 @@ class TestInterpolatePhases:
             np.testing.assert_allclose(
                 result[-1, k], expected, atol=1e-10, err_msg=f"{name}/{jname} end"
             )
+
+
+class TestTrajectoryInterpolationHelpers:
+    def test_validate_interpolation_inputs_rejects_small_frame_count(self) -> None:
+        objective = ExerciseObjective(
+            name="demo",
+            start_pose={},
+            end_pose={},
+            phases=(Phase("start", 0.0, {"hip": 0.0}),),
+            bar_path_constraint="vertical",
+            balance_mode="bilateral_stance",
+        )
+
+        with pytest.raises(ValueError, match="n_frames must be >= 2"):
+            _validate_interpolation_inputs(objective, 1)
+
+    def test_validate_interpolation_inputs_rejects_empty_phases(self) -> None:
+        objective = ExerciseObjective(
+            name="demo",
+            start_pose={},
+            end_pose={},
+            phases=(),
+            bar_path_constraint="vertical",
+            balance_mode="bilateral_stance",
+        )
+
+        with pytest.raises(ValueError, match="at least one phase"):
+            _validate_interpolation_inputs(objective, 2)
+
+    def test_build_phase_arrays_collects_sorted_joints(self) -> None:
+        objective = ExerciseObjective(
+            name="demo",
+            start_pose={},
+            end_pose={},
+            phases=(
+                Phase("start", 0.0, {"knee": 0.5}),
+                Phase("finish", 1.0, {"hip": 1.5, "knee": 1.0}),
+            ),
+            bar_path_constraint="vertical",
+            balance_mode="bilateral_stance",
+        )
+
+        joint_names, phase_fracs, phase_angles = _build_phase_arrays(objective)
+
+        assert joint_names == ["hip", "knee"]
+        np.testing.assert_allclose(phase_fracs, [0.0, 1.0])
+        np.testing.assert_allclose(
+            phase_angles,
+            np.array([[0.0, 0.5], [1.5, 1.0]]),
+        )
+
+    def test_interpolate_keyframes_generates_expected_rows(self) -> None:
+        phase_fracs = np.array([0.0, 1.0])
+        phase_angles = np.array([[0.0, 10.0], [10.0, 20.0]])
+
+        result = _interpolate_keyframes(phase_fracs, phase_angles, n_frames=3)
+
+        np.testing.assert_allclose(
+            result,
+            np.array([[0.0, 10.0], [5.0, 15.0], [10.0, 20.0]]),
+        )
 
 
 # ------------------------------------------------------------------

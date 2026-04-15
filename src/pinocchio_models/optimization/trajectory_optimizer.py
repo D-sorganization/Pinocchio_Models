@@ -118,25 +118,17 @@ def _interpolate_keyframes(
     return v0 + alpha[:, np.newaxis] * (v1 - v0)
 
 
-def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.ndarray:
-    """Linearly interpolate between exercise phases to generate keyframes.
-
-    Returns an array of shape ``(n_frames, n_joints)`` where joints are sorted
-    alphabetically by name.
-
-    Uses vectorised numpy operations instead of per-element scalar loops.
-
-    Args:
-        objective: Exercise objective with ordered phase targets.
-        n_frames: Number of output keyframes (must be >= 2).
-
-    Raises:
-        ValueError: If n_frames < 2 or objective has no phases.
-    """
+def _validate_interpolation_inputs(objective: ExerciseObjective, n_frames: int) -> None:
+    """Reject interpolation requests that cannot produce a valid timeline."""
     if n_frames < 2:
         raise ValueError(f"n_frames must be >= 2, got {n_frames}")
     if not objective.phases:
         raise ValueError("objective must have at least one phase")
+
+
+def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.ndarray:
+    """Return a linearly interpolated joint-angle timeline for *objective*."""
+    _validate_interpolation_inputs(objective, n_frames)
 
     _joint_names, phase_fracs, phase_angles = _build_phase_arrays(objective)
     return _interpolate_keyframes(phase_fracs, phase_angles, n_frames)
