@@ -1,6 +1,7 @@
 """Tests for URDF XML generation helpers."""
 
 import xml.etree.ElementTree as ET
+from types import SimpleNamespace
 
 import pytest
 
@@ -8,6 +9,8 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     _add_collision,
     _add_inertial,
     _add_visual,
+    _apply_initial_positions,
+    _build_initial_configuration,
     _parse_initial_positions,
     add_fixed_joint,
     add_link,
@@ -249,6 +252,51 @@ class TestSetJointDefault:
 
 class TestGetInitialConfiguration:
     """Tests for get_initial_configuration (requires pinocchio)."""
+
+    def test_build_initial_configuration_overlays_scalar_defaults(self) -> None:
+        fake_pin = SimpleNamespace(neutral=lambda model: [0.0, 0.0, 0.0])
+
+        class FakeModel:
+            joints = [
+                None,
+                SimpleNamespace(idx_q=0, nq=1),
+                SimpleNamespace(idx_q=1, nq=1),
+            ]
+
+            def getJointId(self, name: str) -> int:
+                return {"hip_l": 1, "knee_l": 2}[name]
+
+        q = _build_initial_configuration(
+            fake_pin,
+            FakeModel(),
+            [("hip_l", 1.25), ("knee_l", -0.5)],
+        )
+
+        assert q == [1.25, -0.5, 0.0]
+
+    def test_apply_initial_positions_skips_missing_and_multidof_joints(self) -> None:
+        class FakeModel:
+            joints = [
+                None,
+                SimpleNamespace(idx_q=0, nq=1),
+                SimpleNamespace(idx_q=1, nq=2),
+            ]
+
+            def getJointId(self, name: str) -> int:
+                if name == "hip_l":
+                    return 1
+                if name == "hip_l_flex":
+                    return 2
+                raise KeyError(name)
+
+        q = [0.0, 0.0]
+        _apply_initial_positions(
+            FakeModel(),
+            q,
+            [("hip_l", 0.75), ("hip_l_flex", 1.5), ("missing", 2.0)],
+        )
+
+        assert q == [0.75, 0.0]
 
     def test_returns_config_with_initial_positions(self) -> None:
         """Build a real squat model and verify initial config uses defaults."""
