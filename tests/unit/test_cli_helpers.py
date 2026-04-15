@@ -68,3 +68,26 @@ def test_create_parser_composes_all_groups() -> None:
     assert ns.height == pytest.approx(1.7)
     assert ns.plates == pytest.approx(10.0)
     assert ns.verbose is True
+
+
+def test_resolve_exercise_list_single() -> None:
+    """A specific exercise name returns a single-element list."""
+    known = sorted(VALID_EXERCISE_NAMES)[0]
+    assert cli._resolve_exercise_list(known) == [known]
+
+
+def test_resolve_exercise_list_all_is_sorted_full_set() -> None:
+    """The ``all`` keyword expands to every exercise name, sorted."""
+    result = cli._resolve_exercise_list("all")
+    assert result == sorted(VALID_EXERCISE_NAMES)
+    assert set(result) == set(VALID_EXERCISE_NAMES)
+
+
+def test_configure_logging_verbose_flag() -> None:
+    """``_configure_logging(True)`` sets the root logger to DEBUG."""
+    import logging
+
+    cli._configure_logging(verbose=True)
+    assert logging.getLogger().level == logging.DEBUG
+    cli._configure_logging(verbose=False)
+    assert logging.getLogger().level == logging.WARNING

@@ -127,6 +127,33 @@ def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> No
         stdout.write("\n")
 
 
+def _configure_logging(verbose: bool) -> None:
+    """Configure root logger level + format for the CLI run."""
+    logging.basicConfig(
+        level=logging.DEBUG if verbose else logging.WARNING,
+        format="%(levelname)s: %(message)s",
+    )
+
+
+def _resolve_exercise_list(requested: str) -> list[str]:
+    """Expand the ``exercise`` CLI argument to a concrete list of exercise names."""
+    if requested == "all":
+        return sorted(VALID_EXERCISE_NAMES)
+    return [requested]
+
+
+def _generate_one(exercise_name: str, args: argparse.Namespace) -> None:
+    """Build the URDF for a single exercise and emit it per CLI args."""
+    builder_fn = _BUILDERS[exercise_name]
+    logger.info("Generating %s model", exercise_name)
+    urdf_str = builder_fn(
+        body_mass=args.mass,
+        height=args.height,
+        plate_mass_per_side=args.plates,
+    )
+    _emit_urdf(exercise_name, urdf_str, args.output_dir)
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point for Pinocchio model generation.
 
@@ -139,26 +166,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = _create_parser()
     args = parser.parse_args(argv)
     _validate_cli_args(parser, args)
-
-    logging.basicConfig(
-        level=logging.DEBUG if args.verbose else logging.WARNING,
-        format="%(levelname)s: %(message)s",
-    )
-
-    exercises = (
-        sorted(VALID_EXERCISE_NAMES) if args.exercise == "all" else [args.exercise]
-    )
-
-    for exercise_name in exercises:
-        builder_fn = _BUILDERS[exercise_name]
-        logger.info("Generating %s model", exercise_name)
-        urdf_str = builder_fn(
-            body_mass=args.mass,
-            height=args.height,
-            plate_mass_per_side=args.plates,
-        )
-        _emit_urdf(exercise_name, urdf_str, args.output_dir)
-
+    _configure_logging(args.verbose)
+    for exercise_name in _resolve_exercise_list(args.exercise):
+        _generate_one(exercise_name, args)
     return 0
 
 
