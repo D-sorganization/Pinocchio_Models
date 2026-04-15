@@ -7,7 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from pinocchio_models.__main__ import _emit_urdf, main
+from pinocchio_models.__main__ import (
+    _build_urdf_for,
+    _emit_urdf,
+    _selected_exercises,
+    main,
+)
 
 
 class TestCLI:
@@ -78,3 +83,22 @@ class TestEmitUrdf:
         _emit_urdf("squat", '<robot name="r"/>', None)
         captured = capsys.readouterr()
         assert "<robot" in captured.out
+
+
+class TestCliHelpers:
+    def test_selected_exercises_expands_all(self) -> None:
+        exercises = _selected_exercises("all")
+        assert "back_squat" in exercises
+        assert "bench_press" in exercises
+
+    def test_selected_exercises_keeps_single_name(self) -> None:
+        assert _selected_exercises("deadlift") == ["deadlift"]
+
+    def test_build_urdf_for_returns_robot_xml(self) -> None:
+        urdf = _build_urdf_for(
+            "back_squat",
+            body_mass=80.0,
+            height=1.75,
+            plate_mass_per_side=0.0,
+        )
+        assert "<robot" in urdf

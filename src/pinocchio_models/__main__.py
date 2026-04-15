@@ -127,6 +127,30 @@ def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> No
         stdout.write("\n")
 
 
+def _selected_exercises(exercise: str) -> list[str]:
+    """Return concrete exercise names for a single exercise or ``all``."""
+    if exercise == "all":
+        return sorted(VALID_EXERCISE_NAMES)
+    return [exercise]
+
+
+def _build_urdf_for(
+    exercise_name: str,
+    *,
+    body_mass: float,
+    height: float,
+    plate_mass_per_side: float,
+) -> str:
+    """Build one exercise URDF from validated scalar CLI inputs."""
+    builder_fn = _BUILDERS[exercise_name]
+    logger.info("Generating %s model", exercise_name)
+    return builder_fn(
+        body_mass=body_mass,
+        height=height,
+        plate_mass_per_side=plate_mass_per_side,
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point for Pinocchio model generation.
 
@@ -145,14 +169,9 @@ def main(argv: list[str] | None = None) -> int:
         format="%(levelname)s: %(message)s",
     )
 
-    exercises = (
-        sorted(VALID_EXERCISE_NAMES) if args.exercise == "all" else [args.exercise]
-    )
-
-    for exercise_name in exercises:
-        builder_fn = _BUILDERS[exercise_name]
-        logger.info("Generating %s model", exercise_name)
-        urdf_str = builder_fn(
+    for exercise_name in _selected_exercises(args.exercise):
+        urdf_str = _build_urdf_for(
+            exercise_name,
             body_mass=args.mass,
             height=args.height,
             plate_mass_per_side=args.plates,
