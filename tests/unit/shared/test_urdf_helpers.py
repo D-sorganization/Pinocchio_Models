@@ -5,6 +5,9 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from pinocchio_models.shared.utils.urdf_helpers import (
+    _add_collision,
+    _add_inertial,
+    _add_visual,
     _parse_initial_positions,
     add_fixed_joint,
     add_link,
@@ -51,6 +54,46 @@ class TestVec3Str:
 
 
 class TestAddLink:
+    def test_add_inertial_helper_formats_full_inertia_block(self) -> None:
+        link = ET.Element("link", name="body1")
+        inertial = _add_inertial(
+            link,
+            mass=5.0,
+            origin_xyz=(1.0, 2.0, 3.0),
+            origin_rpy=(0.1, 0.2, 0.3),
+            ixx=0.1,
+            iyy=0.2,
+            izz=0.3,
+            ixy=0.01,
+            ixz=0.02,
+            iyz=0.03,
+        )
+        assert inertial.find("origin").get("xyz") == "1.000000 2.000000 3.000000"  # type: ignore[union-attr]
+        assert inertial.find("origin").get("rpy") == "0.100000 0.200000 0.300000"  # type: ignore[union-attr]
+        assert inertial.find("mass").get("value") == "5.000000"  # type: ignore[union-attr]
+        inertia = inertial.find("inertia")
+        assert inertia is not None
+        assert inertia.get("ixy") == "0.010000"
+
+    def test_add_visual_helper_applies_visual_rotation(self) -> None:
+        link = ET.Element("link", name="body1")
+        visual = _add_visual(
+            link,
+            make_cylinder_geometry(0.05, 1.0),
+            visual_origin_rpy=(1.0, 0.0, 0.0),
+        )
+        assert visual.find("origin").get("rpy") == "1.000000 0.000000 0.000000"  # type: ignore[union-attr]
+        assert visual.find("geometry/cylinder") is not None
+
+    def test_add_collision_helper_uses_neutral_origin(self) -> None:
+        link = ET.Element("link", name="body1")
+        collision = _add_collision(link, make_box_geometry(1.0, 2.0, 3.0))
+        origin = collision.find("origin")
+        assert origin is not None
+        assert origin.get("xyz") == "0 0 0"
+        assert origin.get("rpy") == "0 0 0"
+        assert collision.find("geometry/box") is not None
+
     def test_creates_link_with_inertial(self) -> None:
         robot = ET.Element("robot", name="test")
         link = add_link(robot, name="body1", mass=5.0, ixx=0.1, iyy=0.2, izz=0.3)

@@ -44,6 +44,70 @@ def vec3_str(x: float, y: float, z: float) -> str:
     return f"{x:.6f} {y:.6f} {z:.6f}"
 
 
+def _add_inertial(
+    link: ET.Element,
+    *,
+    mass: float,
+    origin_xyz: tuple[float, float, float],
+    origin_rpy: tuple[float, float, float],
+    ixx: float,
+    iyy: float,
+    izz: float,
+    ixy: float,
+    ixz: float,
+    iyz: float,
+) -> ET.Element:
+    """Append the inertial block for a URDF link."""
+    inertial = ET.SubElement(link, "inertial")
+    ET.SubElement(
+        inertial,
+        "origin",
+        xyz=vec3_str(*origin_xyz),
+        rpy=vec3_str(*origin_rpy),
+    )
+    ET.SubElement(inertial, "mass", value=f"{mass:.6f}")
+    ET.SubElement(
+        inertial,
+        "inertia",
+        ixx=f"{ixx:.6f}",
+        iyy=f"{iyy:.6f}",
+        izz=f"{izz:.6f}",
+        ixy=f"{ixy:.6f}",
+        ixz=f"{ixz:.6f}",
+        iyz=f"{iyz:.6f}",
+    )
+    return inertial
+
+
+def _add_visual(
+    link: ET.Element,
+    visual_geometry: ET.Element,
+    *,
+    visual_origin_rpy: tuple[float, float, float],
+) -> ET.Element:
+    """Append the optional visual block for a URDF link."""
+    visual = ET.SubElement(link, "visual")
+    ET.SubElement(
+        visual,
+        "origin",
+        xyz="0 0 0",
+        rpy=vec3_str(*visual_origin_rpy),
+    )
+    visual.append(visual_geometry)
+    return visual
+
+
+def _add_collision(
+    link: ET.Element,
+    collision_geometry: ET.Element,
+) -> ET.Element:
+    """Append the optional collision block for a URDF link."""
+    collision = ET.SubElement(link, "collision")
+    ET.SubElement(collision, "origin", xyz="0 0 0", rpy="0 0 0")
+    collision.append(collision_geometry)
+    return collision
+
+
 def add_link(
     robot: ET.Element,
     *,
@@ -71,40 +135,28 @@ def add_link(
     """
     link = ET.SubElement(robot, "link", name=name)
 
-    # Inertial
-    inertial = ET.SubElement(link, "inertial")
-    ET.SubElement(
-        inertial,
-        "origin",
-        xyz=vec3_str(*origin_xyz),
-        rpy=vec3_str(*origin_rpy),
-    )
-    ET.SubElement(inertial, "mass", value=f"{mass:.6f}")
-    ET.SubElement(
-        inertial,
-        "inertia",
-        ixx=f"{ixx:.6f}",
-        iyy=f"{iyy:.6f}",
-        izz=f"{izz:.6f}",
-        ixy=f"{ixy:.6f}",
-        ixz=f"{ixz:.6f}",
-        iyz=f"{iyz:.6f}",
+    _add_inertial(
+        link,
+        mass=mass,
+        origin_xyz=origin_xyz,
+        origin_rpy=origin_rpy,
+        ixx=ixx,
+        iyy=iyy,
+        izz=izz,
+        ixy=ixy,
+        ixz=ixz,
+        iyz=iyz,
     )
 
     if visual_geometry is not None:
-        visual = ET.SubElement(link, "visual")
-        ET.SubElement(
-            visual,
-            "origin",
-            xyz="0 0 0",
-            rpy=vec3_str(*visual_origin_rpy),
+        _add_visual(
+            link,
+            visual_geometry,
+            visual_origin_rpy=visual_origin_rpy,
         )
-        visual.append(visual_geometry)
 
     if collision_geometry is not None:
-        collision = ET.SubElement(link, "collision")
-        ET.SubElement(collision, "origin", xyz="0 0 0", rpy="0 0 0")
-        collision.append(collision_geometry)
+        _add_collision(link, collision_geometry)
 
     return link
 
