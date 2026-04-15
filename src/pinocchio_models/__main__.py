@@ -128,10 +128,17 @@ def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> No
 
 
 def _configure_logging(verbose: bool) -> None:
-    """Configure root logger level + format for the CLI run."""
+    """Configure root logger level + format for the CLI run.
+
+    Uses ``force=True`` so repeated calls (e.g. in tests that exercise both
+    the verbose and non-verbose paths in the same process) reliably apply
+    the new level; a plain ``basicConfig`` is a no-op once the root logger
+    already has handlers.
+    """
     logging.basicConfig(
         level=logging.DEBUG if verbose else logging.WARNING,
         format="%(levelname)s: %(message)s",
+        force=True,
     )
 
 
