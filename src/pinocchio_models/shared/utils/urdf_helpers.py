@@ -357,57 +357,16 @@ def _apply_initial_positions(
             q[joint.idx_q] = value
 
 
-def get_initial_configuration(model: Any, xml_str: str) -> Any:
-    """Build a Pinocchio configuration vector from ``initial_position`` metadata.
-
-    Reads the ``initial_position`` attributes written by
-    :func:`set_joint_default` and maps them onto the corresponding DOF
-    indices in *model*.  Joints without an ``initial_position`` attribute
-    receive the value from ``pin.neutral(model)``.
-
-    This is the **correct way** to apply an initial pose with Pinocchio —
-    read the metadata from the URDF string, then pass the resulting array
-    to ``pin.forwardKinematics``.
-
-    Parameters
-    ----------
-    model:
-        A ``pinocchio.Model`` built from the same URDF string, typically via::
-
-            model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-
-    xml_str:
-        The URDF XML string (as returned by ``ExerciseModelBuilder.build()``).
-
-    Returns
-    -------
-    numpy.ndarray
-        Configuration vector of shape ``(model.nq,)`` with FreeFlyer DOFs
-        at neutral and actuated joints set to their ``initial_position``
-        values.
-
-    Raises
-    ------
-    ImportError
-        If ``pinocchio`` or ``numpy`` are not installed.
-
-    Example
-    -------
-    ::
-
-        import pinocchio as pin
-        from pinocchio_models.exercises.squat.squat_model import build_squat_model
-        from pinocchio_models.shared.utils.urdf_helpers import get_initial_configuration
-
-        urdf_str = build_squat_model()
-        model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-        data = model.createData()
-
-        q0 = get_initial_configuration(model, urdf_str)
-        pin.forwardKinematics(model, data, q0)
-    """
-    pin = _import_pinocchio()
+def _build_initial_configuration(
+    pin: Any, model: Any, initial_positions: list[tuple[str, float]]
+) -> Any:
+    """Create a neutral configuration and overlay any scalar defaults."""
     q = pin.neutral(model)
-    initial_positions = _parse_initial_positions(xml_str)
     _apply_initial_positions(model, q, initial_positions)
     return q
+
+
+def get_initial_configuration(model: Any, xml_str: str) -> Any:
+    """Return a Pinocchio configuration seeded from URDF metadata."""
+    pin = _import_pinocchio()
+    return _build_initial_configuration(pin, model, _parse_initial_positions(xml_str))
