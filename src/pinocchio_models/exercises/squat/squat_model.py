@@ -54,7 +54,7 @@ class SquatModelBuilder(ExerciseModelBuilder):
         barbell_links: dict[str, ET.Element],
     ) -> None:
         """Weld barbell shaft to torso at upper trap position (Z-up)."""
-        torso_len = self.config.body_spec.height * 0.288
+        torso_len = self.body_spec.height * 0.288
         trap_height = torso_len - _TRAP_BAR_OFFSET_M
 
         add_fixed_joint(
