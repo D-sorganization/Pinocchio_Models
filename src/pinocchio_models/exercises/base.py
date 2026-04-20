@@ -63,6 +63,16 @@ class ExerciseModelBuilder(ABC):
         self.config = config or ExerciseConfig()
 
     @property
+    def body_spec(self) -> BodyModelSpec:
+        """Law of Demeter: Proxy property for body configuration."""
+        return self.config.body_spec
+
+    @property
+    def barbell_spec(self) -> BarbellSpec:
+        """Law of Demeter: Proxy property for barbell configuration."""
+        return self.config.barbell_spec
+
+    @property
     @abstractmethod
     def exercise_name(self) -> str:
         """Human-readable exercise name used in the URDF model."""
@@ -139,7 +149,7 @@ class ExerciseModelBuilder(ABC):
         snatch, and clean-and-jerk. The squat overrides this entirely
         because the barbell sits on the torso, not in the hands.
         """
-        grip_offset = self.config.barbell_spec.shaft_length * self.grip_offset_fraction
+        grip_offset = self.barbell_spec.shaft_length * self.grip_offset_fraction
         self._attach_shaft_to_left_hand(robot, grip_offset)
         self._attach_virtual_grip_right(robot, grip_offset)
 
@@ -162,12 +172,12 @@ class ExerciseModelBuilder(ABC):
         robot = ET.Element("robot", name=self.exercise_name)
 
         # Build body (pelvis is root link)
-        body_links = create_full_body(robot, self.config.body_spec)
+        body_links = create_full_body(robot, self.body_spec)
 
         # Build barbell only when the exercise requires one
         barbell_links: dict[str, ET.Element] = {}
         if self.uses_barbell:
-            barbell_links = create_barbell_links(robot, self.config.barbell_spec)
+            barbell_links = create_barbell_links(robot, self.barbell_spec)
 
         # Exercise-specific attachment (or alternative fixture)
         self.attach_barbell(robot, body_links, barbell_links)
