@@ -242,7 +242,7 @@ class TestTrajectoryConfig:
     )
     def test_negative_weight_raises(self, field: str, value: float) -> None:
         with pytest.raises(ValueError, match=field):
-            TrajectoryConfig(**{field: value})
+            TrajectoryConfig(**{field: value})  # type: ignore[arg-type]
 
     # Zero weights are allowed (disabling a cost term is valid)
     @pytest.mark.parametrize(
@@ -250,7 +250,7 @@ class TestTrajectoryConfig:
         ["control_weight", "state_weight", "terminal_weight", "balance_weight"],
     )
     def test_zero_weight_accepted(self, field: str) -> None:
-        cfg = TrajectoryConfig(**{field: 0.0})
+        cfg = TrajectoryConfig(**{field: 0.0})  # type: ignore[arg-type]
         assert getattr(cfg, field) == 0.0
 
     # Minimum valid values for strictly-positive fields
