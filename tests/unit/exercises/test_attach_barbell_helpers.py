@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
+import pytest
+
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
 
 
@@ -18,6 +20,26 @@ class _MinimalBuilder(ExerciseModelBuilder):
 
     def set_initial_pose(self, robot: ET.Element) -> None:
         return None
+
+
+class _MalformedXmlBuilder(_MinimalBuilder):
+    @property
+    def exercise_name(self) -> str:
+        return "malformed_xml"
+
+    @property
+    def uses_barbell(self) -> bool:
+        return False
+
+    def attach_barbell(
+        self,
+        robot: ET.Element,
+        body_links: dict[str, ET.Element],
+        barbell_links: dict[str, ET.Element],
+    ) -> None:
+        # ElementTree will serialize this invalid element name, but the
+        # post-serialization URDF validation must reject it before returning.
+        ET.SubElement(robot, "bad tag")
 
 
 def test_attach_shaft_to_left_hand_creates_single_fixed_joint() -> None:
@@ -91,3 +113,11 @@ def test_grip_offset_scales_linearly_with_fraction() -> None:
         return float(origin.get("xyz", "").split()[1])
 
     assert abs(_left_y(robot_w)) > abs(_left_y(robot_n))
+
+
+def test_build_rejects_malformed_serialized_xml() -> None:
+    """Build must validate the serialized XML string before returning it."""
+    builder = _MalformedXmlBuilder(ExerciseConfig())
+
+    with pytest.raises(ValueError, match="not well-formed XML"):
+        builder.build()
