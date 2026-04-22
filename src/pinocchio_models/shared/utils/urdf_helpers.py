@@ -39,9 +39,14 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def float_str(x: float) -> str:
+    """Format a float for URDF, returning '0' for exact zeros to save time/space."""
+    return "0" if x == 0.0 else f"{x:.6f}"
+
+
 def vec3_str(x: float, y: float, z: float) -> str:
     """Format three floats as a space-separated string for URDF XML."""
-    return f"{x:.6f} {y:.6f} {z:.6f}"
+    return f"{float_str(x)} {float_str(y)} {float_str(z)}"
 
 
 def _add_inertial(
@@ -65,16 +70,16 @@ def _add_inertial(
         xyz=vec3_str(*origin_xyz),
         rpy=vec3_str(*origin_rpy),
     )
-    ET.SubElement(inertial, "mass", value=f"{mass:.6f}")
+    ET.SubElement(inertial, "mass", value=float_str(mass))
     ET.SubElement(
         inertial,
         "inertia",
-        ixx=f"{ixx:.6f}",
-        iyy=f"{iyy:.6f}",
-        izz=f"{izz:.6f}",
-        ixy=f"{ixy:.6f}",
-        ixz=f"{ixz:.6f}",
-        iyz=f"{iyz:.6f}",
+        ixx=float_str(ixx),
+        iyy=float_str(iyy),
+        izz=float_str(izz),
+        ixy=float_str(ixy),
+        ixz=float_str(ixz),
+        iyz=float_str(iyz),
     )
     return inertial
 
@@ -211,13 +216,18 @@ def add_revolute_joint(
     ET.SubElement(joint, "parent", link=parent)
     ET.SubElement(joint, "child", link=child)
     ET.SubElement(joint, "axis", xyz=vec3_str(*axis))
+    # Note: Using :.1f for effort/velocity as in original implementation
+    # to maintain compatibility with existing tests/expectations for these fields,
+    # unless they are exactly 0.
+    e_str = "0" if effort == 0.0 else f"{effort:.1f}"
+    v_str = "0" if velocity == 0.0 else f"{velocity:.1f}"
     ET.SubElement(
         joint,
         "limit",
-        lower=f"{lower:.6f}",
-        upper=f"{upper:.6f}",
-        effort=f"{effort:.1f}",
-        velocity=f"{velocity:.1f}",
+        lower=float_str(lower),
+        upper=float_str(upper),
+        effort=e_str,
+        velocity=v_str,
     )
     return joint
 
@@ -247,7 +257,7 @@ def add_fixed_joint(
 def make_cylinder_geometry(radius: float, length: float) -> ET.Element:
     """Create a <geometry><cylinder> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "cylinder", radius=f"{radius:.6f}", length=f"{length:.6f}")
+    ET.SubElement(geom, "cylinder", radius=float_str(radius), length=float_str(length))
     return geom
 
 
@@ -261,7 +271,7 @@ def make_box_geometry(x: float, y: float, z: float) -> ET.Element:
 def make_sphere_geometry(radius: float) -> ET.Element:
     """Create a <geometry><sphere> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "sphere", radius=f"{radius:.6f}")
+    ET.SubElement(geom, "sphere", radius=float_str(radius))
     return geom
 
 
@@ -312,7 +322,7 @@ def set_joint_default(
         if name == prefix or name.startswith(f"{prefix}_"):
             if exact_suffix is not None and not name.endswith(exact_suffix):
                 continue
-            joint.set("initial_position", f"{value:.6f}")
+            joint.set("initial_position", float_str(value))
 
 
 def _import_pinocchio() -> Any:
