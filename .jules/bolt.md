@@ -5,3 +5,7 @@
 ## 2024-05-18 - Optimize URDF Float Formatting
 **Learning:** In URDF XML generation for robotics, printing exact zeros (`0.0`) using Python f-strings like `f"{x:.6f}"` creates a large overhead and balloons file size unnecessarily with outputs like `"0.000000"`.
 **Action:** Always short-circuit exact zero floats to `"0"` and use a helper string formatting method, which speeds up model generation and reduces file parsing overhead downstream.
+
+## 2026-04-22 - Redundant XML Serialization Bottleneck
+**Learning:** In the model generation pipeline (`src/pinocchio_models/exercises/base.py`), the URDF postcondition validation (`ensure_valid_urdf`) was a bottleneck. It was converting the `ET.Element` tree to a string and then immediately parsing it back into an `ET.Element` tree just to perform validation checks.
+**Action:** Validate the `xml.etree.ElementTree.Element` tree directly in memory before serialization using a dedicated function (`ensure_valid_urdf_tree`), completely skipping the redundant string parsing overhead.

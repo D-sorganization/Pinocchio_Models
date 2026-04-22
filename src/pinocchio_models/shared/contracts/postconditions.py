@@ -73,6 +73,27 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
             child_parent_map[child_link] = joint_name
 
 
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
+    """Validate a URDF ElementTree and return the root element.
+
+    Validates:
+    1. Root tag is ``<robot>``.
+    2. Every joint's ``child`` link name exists in the declared link set.
+    3. No link appears as ``child`` of more than one joint (single-parent rule).
+
+    Parent link names are checked with a warning only, because the body model
+    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
+    structurally intentional and do not need to match a declared link name.
+
+    Raises ValueError if any check fails.
+    """
+    if root.tag != "robot":
+        raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
+    link_names = _collect_link_names(root)
+    _validate_joint_links(root, link_names)
+    return root
+
+
 def ensure_valid_urdf(xml_string: str) -> ET.Element:
     """Parse *xml_string* and return the root element.
 
@@ -88,9 +109,7 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
     Raises ValueError if any check fails.
     """
     root = _parse_robot_root(xml_string)
-    link_names = _collect_link_names(root)
-    _validate_joint_links(root, link_names)
-    return root
+    return ensure_valid_urdf_tree(root)
 
 
 def ensure_positive_mass(mass: float, body_name: str) -> None:
