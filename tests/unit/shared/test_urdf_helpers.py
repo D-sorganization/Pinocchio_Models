@@ -53,7 +53,7 @@ class TestVec3Str:
         assert vec3_str(1.0, 2.5, -3.0) == "1.000000 2.500000 -3.000000"
 
     def test_zero(self) -> None:
-        assert vec3_str(0, 0, 0) == "0.000000 0.000000 0.000000"
+        assert vec3_str(0, 0, 0) == "0 0 0"
 
 
 class TestAddLink:
@@ -85,7 +85,7 @@ class TestAddLink:
             make_cylinder_geometry(0.05, 1.0),
             visual_origin_rpy=(1.0, 0.0, 0.0),
         )
-        assert visual.find("origin").get("rpy") == "1.000000 0.000000 0.000000"  # type: ignore[union-attr]
+        assert visual.find("origin").get("rpy") == "1.000000 0 0"  # type: ignore[union-attr]
         assert visual.find("geometry/cylinder") is not None
 
     def test_add_collision_helper_uses_neutral_origin(self) -> None:
