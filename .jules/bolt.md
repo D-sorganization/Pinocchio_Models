@@ -1,3 +1,7 @@
 ## 2024-05-19 - Precondition Performance Bottleneck
 **Learning:** The `require_finite` precondition function in `src/pinocchio_models/shared/contracts/preconditions.py` was a significant performance bottleneck during URDF generation. It converted all inputs (even simple Python scalars) to numpy arrays using `np.asarray` and used `np.all(np.isfinite())`. For tight loops dealing mostly with scalars, this creates massive overhead.
 **Action:** When implementing preconditions or validation logic that handles both scalars and arrays, always add a fast path for built-in scalars (e.g., `isinstance(arr, (int, float))`) using Python's built-in `math.isfinite`. Only fall back to numpy for actual array inputs.
+
+## 2026-04-22 - Redundant XML Serialization Bottleneck
+**Learning:** In the model generation pipeline (`src/pinocchio_models/exercises/base.py`), the URDF postcondition validation (`ensure_valid_urdf`) was a bottleneck. It was converting the `ET.Element` tree to a string and then immediately parsing it back into an `ET.Element` tree just to perform validation checks.
+**Action:** Validate the `xml.etree.ElementTree.Element` tree directly in memory before serialization using a dedicated function (`ensure_valid_urdf_tree`), completely skipping the redundant string parsing overhead.
