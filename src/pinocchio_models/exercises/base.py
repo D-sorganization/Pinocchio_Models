@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 
 from pinocchio_models.shared.barbell import BarbellSpec, create_barbell_links
 from pinocchio_models.shared.body import BodyModelSpec, create_full_body
-from pinocchio_models.shared.contracts.postconditions import ensure_valid_urdf_tree
+from pinocchio_models.shared.contracts.postconditions import ensure_valid_urdf
 from pinocchio_models.shared.utils.urdf_helpers import (
     add_fixed_joint,
     add_link,
@@ -185,10 +185,10 @@ class ExerciseModelBuilder(ABC):
         # Exercise-specific initial pose
         self.set_initial_pose(robot)
 
-        # Postcondition: well-formed URDF
-        ensure_valid_urdf_tree(robot)
-
         xml_str = serialize_model(robot)
+
+        # Postcondition: well-formed URDF
+        ensure_valid_urdf(xml_str)
 
         logger.info("Built %s model successfully", self.exercise_name)
         return xml_str
