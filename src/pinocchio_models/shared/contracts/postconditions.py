@@ -10,6 +10,7 @@ be disabled with ``python -O``.
 from __future__ import annotations
 
 import logging
+import re
 import xml.etree.ElementTree as ET
 
 logger = logging.getLogger(__name__)
@@ -80,6 +81,7 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     1. Root tag is ``<robot>``.
     2. Every joint's ``child`` link name exists in the declared link set.
     3. No link appears as ``child`` of more than one joint (single-parent rule).
+    4. All tags must be valid XML identifiers.
 
     Parent link names are checked with a warning only, because the body model
     uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
@@ -89,6 +91,18 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     """
     if root.tag != "robot":
         raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
+
+    # Validate all tags are valid XML to replicate the parsing check
+    valid_tag_pattern = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_\-\.]*$")
+    for el in root.iter():
+        if not isinstance(el.tag, str):
+            # ElementTree stores comments and processing instructions as
+            # callables in the .tag field, so we skip them.
+            continue
+        if not valid_tag_pattern.match(el.tag):
+            raise ValueError(
+                f"Generated URDF is not well-formed XML: invalid tag '{el.tag}'"
+            )
     link_names = _collect_link_names(root)
     _validate_joint_links(root, link_names)
     return root
