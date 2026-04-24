@@ -74,6 +74,10 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
             child_parent_map[child_link] = joint_name
 
 
+_VALID_TAG_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_\-\.]*$")
+_VALID_TAG_MATCH = _VALID_TAG_PATTERN.match
+
+
 def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     """Validate a URDF ElementTree and return the root element.
 
@@ -93,16 +97,17 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
         raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
 
     # Validate all tags are valid XML to replicate the parsing check
-    valid_tag_pattern = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_\-\.]*$")
     for el in root.iter():
-        if not isinstance(el.tag, str):
+        tag = el.tag
+        if type(tag) is str:
+            if not _VALID_TAG_MATCH(tag):
+                raise ValueError(
+                    f"Generated URDF is not well-formed XML: invalid tag '{tag}'"
+                )
+        else:
             # ElementTree stores comments and processing instructions as
             # callables in the .tag field, so we skip them.
             continue
-        if not valid_tag_pattern.match(el.tag):
-            raise ValueError(
-                f"Generated URDF is not well-formed XML: invalid tag '{el.tag}'"
-            )
     link_names = _collect_link_names(root)
     _validate_joint_links(root, link_names)
     return root

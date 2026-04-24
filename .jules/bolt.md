@@ -9,3 +9,7 @@
 ## 2026-04-22 - Redundant XML Serialization Bottleneck
 **Learning:** In the model generation pipeline (`src/pinocchio_models/exercises/base.py`), the URDF postcondition validation (`ensure_valid_urdf`) was a bottleneck. It was converting the `ET.Element` tree to a string and then immediately parsing it back into an `ET.Element` tree just to perform validation checks.
 **Action:** Validate the `xml.etree.ElementTree.Element` tree directly in memory before serialization using a dedicated function (`ensure_valid_urdf_tree`), completely skipping the redundant string parsing overhead.
+
+## 2026-04-24 - Tight Loop XML Tag Validation Optimization
+**Learning:** During in-memory URDF validation (`ensure_valid_urdf_tree`), the regex pattern `r"^[a-zA-Z_][a-zA-Z0-9_\-\.]*$"` was being repeatedly compiled and `isinstance(el.tag, str)` evaluated for thousands of XML tags. Profiling revealed `isinstance` and method lookups accounted for significant overhead.
+**Action:** For tight loops, hoist `re.compile()` to the module level, pre-resolve method references like `_VALID_TAG_MATCH = _VALID_TAG_PATTERN.match`, and swap `isinstance(tag, str)` with a faster `type(tag) is str` check.
