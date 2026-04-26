@@ -1,0 +1,273 @@
+{
+  "metadata": {
+    "repository": "D-sorganization/Pinocchio_Models",
+    "branch": "main",
+    "head": "aef37c32797ce96d3bc5c745dddb4fa7144bf16a",
+    "date": "2026-04-26",
+    "assessor": "Cline (automated subagent)"
+  },
+  "scores": {
+    "A": {
+      "criterion": "Project Organization",
+      "weight": 0.05,
+      "score": 8.0,
+      "weighted": 0.4
+    },
+    "B": {
+      "criterion": "Documentation",
+      "weight": 0.08,
+      "score": 7.0,
+      "weighted": 0.56
+    },
+    "C": {
+      "criterion": "Type Coverage",
+      "weight": 0.12,
+      "score": 10.0,
+      "weighted": 1.2
+    },
+    "D": {
+      "criterion": "Testing",
+      "weight": 0.1,
+      "score": 7.0,
+      "weighted": 0.7
+    },
+    "E": {
+      "criterion": "CI/CD",
+      "weight": 0.07,
+      "score": 7.0,
+      "weighted": 0.49
+    },
+    "F": {
+      "criterion": "Code Quality",
+      "weight": 0.1,
+      "score": 9.0,
+      "weighted": 0.9
+    },
+    "G": {
+      "criterion": "Dependencies",
+      "weight": 0.08,
+      "score": 8.0,
+      "weighted": 0.64
+    },
+    "H": {
+      "criterion": "Security",
+      "weight": 0.1,
+      "score": 6.0,
+      "weighted": 0.6
+    },
+    "I": {
+      "criterion": "Changelog & Versioning",
+      "weight": 0.06,
+      "score": 8.0,
+      "weighted": 0.48
+    },
+    "J": {
+      "criterion": "Error Handling",
+      "weight": 0.07,
+      "score": 8.0,
+      "weighted": 0.56
+    },
+    "K": {
+      "criterion": "Performance",
+      "weight": 0.07,
+      "score": 7.0,
+      "weighted": 0.49
+    },
+    "L": {
+      "criterion": "Maintainability",
+      "weight": 0.08,
+      "score": 8.0,
+      "weighted": 0.64
+    },
+    "M": {
+      "criterion": "Dependency Health",
+      "weight": 0.05,
+      "score": 7.0,
+      "weighted": 0.35
+    },
+    "N": {
+      "criterion": "Accessibility",
+      "weight": 0.04,
+      "score": 5.0,
+      "weighted": 0.2
+    },
+    "O": {
+      "criterion": "Agentic Usability",
+      "weight": 0.03,
+      "score": 9.0,
+      "weighted": 0.27
+    }
+  },
+  "overall": 7.48,
+  "findings": {
+    "P0": [
+      {
+        "id": "D-P0-001",
+        "criterion": "D",
+        "title": "test_geometry_hypothesis.py fails collection due to hypothesis import error",
+        "file": "tests/unit/shared/test_geometry_hypothesis.py",
+        "line": 6,
+        "detail": "ImportError: cannot import name 'given' from 'hypothesis'. Test suite collection blocked in environments without hypothesis installed."
+      }
+    ],
+    "P1": [
+      {
+        "id": "E-P1-001",
+        "criterion": "E",
+        "title": "6 CVEs ignored in CI without tracked remediation issues",
+        "file": ".github/workflows/ci-standard.yml",
+        "lines": "82-87",
+        "detail": "CVE-2026-4539, CVE-2026-32274, CVE-2026-21883, CVE-2026-27205, CVE-2024-47081, CVE-2026-25645 are all permanently ignored with --ignore-vuln flags. No GitHub issues track remediation timelines."
+      },
+      {
+        "id": "B-P1-001",
+        "criterion": "B",
+        "title": "Missing API reference documentation",
+        "file": "src/",
+        "detail": "No Sphinx or mkdocs integration. Developers must read source code to discover API surface."
+      },
+      {
+        "id": "K-P1-001",
+        "criterion": "K",
+        "title": "Benchmark tests disabled in CI by pytest-xdist",
+        "file": "tests/benchmarks/test_model_generation_benchmark.py",
+        "detail": "pytest-benchmark warns: 'Benchmarks are automatically disabled because xdist plugin is active.' Performance regressions go undetected in CI."
+      },
+      {
+        "id": "G-P1-001",
+        "criterion": "G",
+        "title": "No dependency lockfile",
+        "file": "pyproject.toml",
+        "detail": "No poetry.lock, requirements.txt, or uv.lock for reproducible dependency resolution."
+      },
+      {
+        "id": "E-P1-002",
+        "criterion": "E",
+        "title": "No release automation workflow",
+        "file": ".github/workflows/",
+        "detail": "No publish.yml or semantic-release bot. Releases are manual."
+      },
+      {
+        "id": "L-P1-001",
+        "criterion": "L",
+        "title": "No cyclomatic complexity enforcement in CI",
+        "file": ".github/workflows/ci-standard.yml",
+        "detail": "No radon or xenon integration to enforce complexity limits."
+      },
+      {
+        "id": "I-P1-001",
+        "criterion": "I",
+        "title": "Release tag practice unverified",
+        "file": "CHANGELOG.md",
+        "detail": "Cannot verify git tag practice from file analysis. Pre-1.0 API instability expected but release cadence unclear."
+      },
+      {
+        "id": "J-P1-001",
+        "criterion": "J",
+        "title": "Exception messages lack structured error codes",
+        "file": "src/pinocchio_models/shared/contracts/preconditions.py",
+        "detail": "ValueError raised without machine-readable identifiers, making programmatic error handling harder."
+      }
+    ],
+    "P2": [
+      {
+        "id": "A-P2-001",
+        "criterion": "A",
+        "title": "No Makefile or task runner",
+        "file": "CONTRIBUTING.md",
+        "lines": "15-19"
+      },
+      {
+        "id": "A-P2-002",
+        "criterion": "A",
+        "title": "docs/ underpopulated",
+        "file": "docs/joint_axis_convention.md"
+      },
+      {
+        "id": "A-P2-003",
+        "criterion": "A",
+        "title": "examples/ sparse",
+        "file": "examples/"
+      },
+      {
+        "id": "B-P2-001",
+        "criterion": "B",
+        "title": "No architecture diagrams",
+        "file": "docs/"
+      },
+      {
+        "id": "B-P2-002",
+        "criterion": "B",
+        "title": "Missing troubleshooting guide",
+        "file": "docs/"
+      },
+      {
+        "id": "G-P2-001",
+        "criterion": "G",
+        "title": "NumPy upper bound <3.0.0 may block future security fixes",
+        "file": "pyproject.toml",
+        "line": 17
+      },
+      {
+        "id": "H-P2-001",
+        "criterion": "H",
+        "title": "No SBOM generation in CI",
+        "file": ".github/workflows/ci-standard.yml"
+      },
+      {
+        "id": "H-P2-002",
+        "criterion": "H",
+        "title": "No dependency review action on PRs",
+        "file": ".github/workflows/ci-standard.yml"
+      },
+      {
+        "id": "I-P2-001",
+        "criterion": "I",
+        "title": "Changelog unreleased gap",
+        "file": "CHANGELOG.md",
+        "line": 12,
+        "detail": "[Unreleased] dated 2026-03-31 but HEAD is 2026-04-26 (26-day gap)."
+      },
+      {
+        "id": "J-P2-001",
+        "criterion": "J",
+        "title": "No custom exception hierarchy",
+        "file": "src/",
+        "detail": "All errors use built-in types; no PinocchioModelsError, GeometryError, URDFError."
+      },
+      {
+        "id": "K-P2-001",
+        "criterion": "K",
+        "title": "No profiling integration in CI",
+        "file": ".github/workflows/ci-standard.yml"
+      },
+      {
+        "id": "K-P2-002",
+        "criterion": "K",
+        "title": "No performance budget or SLO",
+        "file": "tests/benchmarks/"
+      },
+      {
+        "id": "L-P2-001",
+        "criterion": "L",
+        "title": "__pycache__ directories in repo",
+        "file": "src/pinocchio_models/__pycache__/",
+        "detail": "Should be gitignored and removed."
+      },
+      {
+        "id": "N-P2-001",
+        "criterion": "N",
+        "title": "CLI lacks structured output format",
+        "file": "src/pinocchio_models/__main__.py",
+        "detail": "No --json or --output-format flag."
+      },
+      {
+        "id": "O-P2-001",
+        "criterion": "O",
+        "title": "No .cursorrules or .clinerules",
+        "file": "project root"
+      }
+    ]
+  },
+  "overall_score": 84.8
+}
