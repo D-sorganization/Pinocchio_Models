@@ -112,7 +112,9 @@ Pinocchio_Models/
 The stable public surface is the importable builder API and the CLI:
 
 - `pinocchio-models <exercise>`
+- `pinocchio-models <exercise> --json`
 - `python3 -m pinocchio_models <exercise>`
+- `python3 -m pinocchio_models <exercise> --json`
 - `build_*_model(...)` helpers for each supported exercise
 - `ExerciseModelBuilder`, `ExerciseConfig`, `BodyModelSpec`, and `BarbellSpec`
 - `create_full_body(...)` and `create_barbell_links(...)`
@@ -258,4 +260,5 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-06 | 1.0.0 | Initial repository specification for Pinocchio_Models. |
 | 2026-04-11 | 1.0.1 | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved. |
 | 2026-04-11 | 1.0.2 | Split top-2 monolithic addon scripts (#129): ``optimal_control.py`` and ``ik_solver.py`` now delegate to focused builder/task/config submodules. Public API and module attributes preserved. |
+| 2026-04-27 | 1.0.6 | Added `--json` CLI flag for structured JSON output. |
 | 2026-04-27 | 1.0.3 | Optimization: Cached formatting of floats to URDF strings. |

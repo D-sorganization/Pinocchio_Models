@@ -189,14 +189,22 @@ def main(argv: list[str] | None = None) -> int:
             height=args.height,
             plate_mass_per_side=args.plates,
         )
-        out_path = _emit_urdf(exercise_name, urdf_str, args.output_dir)
+
+        if not args.json:
+            out_path = _emit_urdf(exercise_name, urdf_str, args.output_dir)
+        else:
+            out_path = None
 
         if args.json:
             results.append(
                 {
                     "exercise": exercise_name,
-                    "urdf": urdf_str if out_path is None else None,
-                    "path": out_path,
+                    "urdf": urdf_str,
+                    "path": (
+                        str(args.output_dir / f"{exercise_name}.urdf")
+                        if args.output_dir is not None
+                        else None
+                    ),
                     "parameters": {
                         "mass": args.mass,
                         "height": args.height,
