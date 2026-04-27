@@ -1,0 +1,122 @@
+[
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/207",
+    "title": "[P0] [D] test_geometry_hypothesis.py fails collection due to hypothesis import error",
+    "priority": "P0"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/208",
+    "title": "[P1] [E] 6 CVEs ignored in CI without tracked remediation issues",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/209",
+    "title": "[P1] [B] Missing API reference documentation",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/210",
+    "title": "[P1] [K] Benchmark tests disabled in CI by pytest-xdist",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/211",
+    "title": "[P1] [G] No dependency lockfile",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/212",
+    "title": "[P1] [E] No release automation workflow",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/213",
+    "title": "[P1] [L] No cyclomatic complexity enforcement in CI",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/214",
+    "title": "[P1] [I] Release tag practice unverified",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/215",
+    "title": "[P1] [J] Exception messages lack structured error codes",
+    "priority": "P1"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/216",
+    "title": "[P2] [A] No Makefile or task runner",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/217",
+    "title": "[P2] [A] docs/ underpopulated",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/218",
+    "title": "[P2] [A] examples/ sparse",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/219",
+    "title": "[P2] [B] No architecture diagrams",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/220",
+    "title": "[P2] [B] Missing troubleshooting guide",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/221",
+    "title": "[P2] [G] NumPy upper bound <3.0.0 may block future security fixes",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/222",
+    "title": "[P2] [H] No SBOM generation in CI",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/223",
+    "title": "[P2] [H] No dependency review action on PRs",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/224",
+    "title": "[P2] [I] Changelog unreleased gap",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/225",
+    "title": "[P2] [J] No custom exception hierarchy",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/226",
+    "title": "[P2] [K] No profiling integration in CI",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/227",
+    "title": "[P2] [K] No performance budget or SLO",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/228",
+    "title": "[P2] [L] __pycache__ directories in repo",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/229",
+    "title": "[P2] [N] CLI lacks structured output format",
+    "priority": "P2"
+  },
+  {
+    "url": "https://github.com/D-sorganization/Pinocchio_Models/issues/230",
+    "title": "[P2] [O] No .cursorrules or .clinerules",
+    "priority": "P2"
+  }
+]
