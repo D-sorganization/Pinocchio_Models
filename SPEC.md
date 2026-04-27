@@ -258,4 +258,5 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-06 | 1.0.0 | Initial repository specification for Pinocchio_Models. |
 | 2026-04-11 | 1.0.1 | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved. |
 | 2026-04-11 | 1.0.2 | Split top-2 monolithic addon scripts (#129): ``optimal_control.py`` and ``ik_solver.py`` now delegate to focused builder/task/config submodules. Public API and module attributes preserved. |
+| 2026-04-27 | 1.0.4 | Removed the `numpy<3.0.0` upper bound in `pyproject.toml` dependencies. |
 | 2026-04-27 | 1.0.3 | Optimization: Cached formatting of floats to URDF strings. |
