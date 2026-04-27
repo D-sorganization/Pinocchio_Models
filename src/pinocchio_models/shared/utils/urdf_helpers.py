@@ -34,13 +34,20 @@ from __future__ import annotations
 import logging
 import math
 import xml.etree.ElementTree as ET
+from functools import lru_cache
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
+@lru_cache(maxsize=1024)
 def float_str(x: float) -> str:
-    """Format a float for URDF, returning '0' for exact zeros to save time/space."""
+    """Format a float for URDF, returning '0' for exact zeros to save time/space.
+
+    ⚡ Bolt Optimization: Using lru_cache prevents redundant f-string formatting
+    for common values (like 0.0 or shared joint offsets) during model generation,
+    significantly reducing tree building time.
+    """
     return "0" if x == 0.0 else f"{x:.6f}"
 
 

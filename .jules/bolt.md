@@ -13,3 +13,6 @@
 ## 2026-04-24 - Tight Loop XML Tag Validation Optimization
 **Learning:** During in-memory URDF validation (`ensure_valid_urdf_tree`), the regex pattern `r"^[a-zA-Z_][a-zA-Z0-9_\-\.]*$"` was being repeatedly compiled and `isinstance(el.tag, str)` evaluated for thousands of XML tags. Profiling revealed `isinstance` and method lookups accounted for significant overhead.
 **Action:** For tight loops, hoist `re.compile()` to the module level, pre-resolve method references like `_VALID_TAG_MATCH = _VALID_TAG_PATTERN.match`, and swap `isinstance(tag, str)` with a faster `type(tag) is str` check.
+## 2024-05-18 - Optimize Float string caching URDF formatting
+**Learning:** Formatting float numbers with `f"{x:.6f}"` creates significant repeated overhead during tree generation for frequently accessed values like 0.0 or duplicate coordinates.
+**Action:** The string result of `float_str` should be cached via `@lru_cache(maxsize=1024)` in `urdf_helpers.py` so identical numbers don't require recomputing their exact string representation.
