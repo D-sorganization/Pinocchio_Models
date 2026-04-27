@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from pinocchio_models.optimization.exercise_objectives import ExerciseObjective
 from pinocchio_models.exceptions import GeometryError
+from pinocchio_models.optimization.exercise_objectives import ExerciseObjective
 
 
 def _validate_non_negative_weight(name: str, value: float) -> None:

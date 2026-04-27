@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import re
 import xml.etree.ElementTree as ET
+
 from pinocchio_models.exceptions import URDFError
 
 logger = logging.getLogger(__name__)

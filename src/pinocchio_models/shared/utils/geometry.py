@@ -13,11 +13,11 @@ import math
 
 import numpy as np
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.shared.contracts.postconditions import (
     ensure_positive_definite_inertia,
 )
 from pinocchio_models.shared.contracts.preconditions import (
-from pinocchio_models.exceptions import GeometryError
     require_positive,
     require_shape,
 )

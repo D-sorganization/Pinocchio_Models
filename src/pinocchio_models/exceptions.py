@@ -13,16 +13,10 @@ problems separately from generic Python built-in exceptions.
 class PinocchioModelsError(Exception):
     """Base exception for all Pinocchio model domain errors."""
 
-    pass
-
 
 class GeometryError(PinocchioModelsError, ValueError):
     """Raised when geometric constraints or computations are violated."""
 
-    pass
-
 
 class URDFError(PinocchioModelsError, ValueError):
     """Raised when URDF parsing or validation fails."""
-
-    pass

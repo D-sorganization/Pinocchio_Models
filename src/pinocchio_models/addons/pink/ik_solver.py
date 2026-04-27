@@ -31,6 +31,7 @@ try:
 except ImportError:
     _HAS_PINK = False
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.shared.constants import HIP_FLEXION_MAX
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
@@ -42,7 +43,6 @@ from pinocchio_models.shared.contracts.preconditions import (
 # this module (they are looked up by bare name in ``solve_pose``).
 from .ik_solver_phases import _EXERCISE_PHASES
 from .ik_solver_tasks import (
-from pinocchio_models.exceptions import GeometryError
     _build_ground_tasks,
     _build_target_tasks,
     _check_convergence,
