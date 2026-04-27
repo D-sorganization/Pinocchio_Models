@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
+from pinocchio_models.exceptions import GeometryError
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ def _barbell_contacts_for(exercise_name: str) -> list[ContactPoint] | None:
 def _validate_exercise_name(exercise_name: str) -> None:
     """Validate contact lookup input before building a contact spec."""
     if exercise_name not in VALID_EXERCISE_NAMES:
-        raise ValueError(
+        raise GeometryError(
             f"Unknown exercise '{exercise_name}'. "
             f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
         )

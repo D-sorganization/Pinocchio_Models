@@ -39,6 +39,7 @@ from .optimal_control_builders import (
     _OCPComponents,
 )
 from .optimal_control_config import (
+from pinocchio_models.exceptions import GeometryError
     CONTACT_BAUMGARTE_GAINS,
     EFFORT_COST_WEIGHT,
     FRICTION_CONE_FACETS,
@@ -182,7 +183,7 @@ def solve_trajectory(
 
     if initial_state is not None:
         if not np.all(np.isfinite(initial_state)):
-            raise ValueError(
+            raise GeometryError(
                 "initial_state contains non-finite values (NaN or Inf). "
                 "Provide a valid finite state vector."
             )

@@ -1,5 +1,6 @@
 """Pinocchio multibody models for classical barbell exercises."""
 
+from pinocchio_models.exceptions import GeometryError, PinocchioModelsError, URDFError
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
 from pinocchio_models.exercises.bench_press.bench_press_model import (
     BenchPressModelBuilder,
@@ -35,6 +36,9 @@ from pinocchio_models.shared.body import BodyModelSpec
 __all__ = [
     "BarbellSpec",
     "BenchPressModelBuilder",
+    "GeometryError",
+    "PinocchioModelsError",
+    "URDFError",
     "BodyModelSpec",
     "CleanAndJerkModelBuilder",
     "DeadliftModelBuilder",

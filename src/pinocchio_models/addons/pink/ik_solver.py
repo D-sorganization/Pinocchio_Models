@@ -42,6 +42,7 @@ from pinocchio_models.shared.contracts.preconditions import (
 # this module (they are looked up by bare name in ``solve_pose``).
 from .ik_solver_phases import _EXERCISE_PHASES
 from .ik_solver_tasks import (
+from pinocchio_models.exceptions import GeometryError
     _build_ground_tasks,
     _build_target_tasks,
     _check_convergence,
@@ -139,12 +140,12 @@ def solve_pose(
     for frame_name, pose in targets.items():
         pose_arr = np.asarray(pose)
         if pose_arr.shape != (4, 4):
-            raise ValueError(
+            raise GeometryError(
                 f"SE(3) pose for frame '{frame_name}' must be a (4, 4) matrix, "
                 f"got shape {pose_arr.shape}"
             )
         if not np.all(np.isfinite(pose_arr)):
-            raise ValueError(
+            raise GeometryError(
                 f"SE(3) pose for frame '{frame_name}' contains non-finite values"
             )
 
@@ -241,7 +242,7 @@ def compute_exercise_keyframes(
             freeflyer_nq = 7  # Fallback for standard FreeFlyer
         nq_actuated = model.nq - freeflyer_nq
         if nq_actuated <= 0:
-            raise ValueError(
+            raise GeometryError(
                 f"Model has no actuated joints (nq={model.nq}, freeflyer_nq={freeflyer_nq})"
             )
         # Scale hip-like joints by the angle fraction

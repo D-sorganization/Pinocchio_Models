@@ -16,6 +16,7 @@ from pinocchio_models.optimization.objectives.sit_to_stand import (
 )
 from pinocchio_models.optimization.objectives.snatch import SNATCH_OBJECTIVE
 from pinocchio_models.optimization.objectives.squat import SQUAT_OBJECTIVE
+from pinocchio_models.exceptions import GeometryError
 
 EXERCISE_OBJECTIVES: dict[str, ExerciseObjective] = {
     "back_squat": SQUAT_OBJECTIVE,
@@ -29,9 +30,9 @@ EXERCISE_OBJECTIVES: dict[str, ExerciseObjective] = {
 
 
 def get_exercise_objective(name: str) -> ExerciseObjective:
-    """Return the named exercise objective or raise ValueError."""
+    """Return the named exercise objective or raise GeometryError."""
     if name not in EXERCISE_OBJECTIVES:
-        raise ValueError(
+        raise GeometryError(
             f"Unknown exercise: {name}. Available: {list(EXERCISE_OBJECTIVES)}"
         )
     return EXERCISE_OBJECTIVES[name]

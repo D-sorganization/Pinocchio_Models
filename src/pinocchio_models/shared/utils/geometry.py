@@ -17,6 +17,7 @@ from pinocchio_models.shared.contracts.postconditions import (
     ensure_positive_definite_inertia,
 )
 from pinocchio_models.shared.contracts.preconditions import (
+from pinocchio_models.exceptions import GeometryError
     require_positive,
     require_shape,
 )
@@ -65,7 +66,7 @@ def hollow_cylinder_inertia(
     require_positive(outer_radius, "outer_radius")
     require_positive(length, "length")
     if inner_radius >= outer_radius:
-        raise ValueError(
+        raise GeometryError(
             f"inner_radius ({inner_radius:.4f}) must be less than "
             f"outer_radius ({outer_radius:.4f})"
         )

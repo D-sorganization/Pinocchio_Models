@@ -28,6 +28,7 @@ from pinocchio_models.shared.utils.geometry import (
     hollow_cylinder_inertia,
 )
 from pinocchio_models.shared.utils.urdf_helpers import (
+from pinocchio_models.exceptions import GeometryError
     add_fixed_joint,
     add_link,
     make_cylinder_geometry,
@@ -67,7 +68,7 @@ class BarbellSpec:
         require_positive(self.bar_mass, "bar_mass")
         require_non_negative(self.plate_mass_per_side, "plate_mass_per_side")
         if self.shaft_length >= self.total_length:
-            raise ValueError(
+            raise GeometryError(
                 f"shaft_length ({self.shaft_length}) must be < "
                 f"total_length ({self.total_length})"
             )
