@@ -1,0 +1,51 @@
+# Cline IDE Agent Rules — Pinocchio_Models
+
+## Role
+Senior software engineer working on a Pinocchio-based multibody dynamics simulation package for classical barbell exercises (squat, deadlift, bench press, snatch, clean & jerk) plus gait and sit-to-stand.
+
+## Key Context
+- `src/pinocchio_models/` — importable package (source of truth)
+- `src/pinocchio_models/exercises/` — one sub-package per exercise
+- `src/pinocchio_models/exercises/base.py` — `ExerciseModelBuilder` base class
+- `src/pinocchio_models/shared/` — barbell, body model, contracts, constants, contact, geometry, URDF helpers
+- `src/pinocchio_models/addons/` — optional integrations (gepetto, pink, crocoddyl)
+- `rust_core/` — optional Rust accelerator (PyO3)
+- `.github/workflows/ci-standard.yml` — CI pipeline
+
+## Standards
+- Python >=3.10 (`from __future__ import annotations`)
+- Use `python3`, never `python`
+- Format: `ruff format` (line-length 88)
+- Lint: `ruff check`
+- Type checker: mypy (strict on src/)
+- Type hints on all public function signatures
+- Docstrings on all public functions and classes
+- No bare except, no wildcard imports
+
+## Architecture
+- **URDF format** for all models (standard for Pinocchio)
+- **Z-up convention**: vertical is Z, forward is X
+- **Pinocchio loads URDF** and adds floating base via `pin.JointModelFreeFlyer()`
+- **Gravity is NOT in URDF** — set programmatically via `model.gravity`
+- Pinocchio API: NO `computeTotalEnergy`; use `computeKineticEnergy` + `computePotentialEnergy` separately
+
+## Design Principles
+- **Design by Contract (DbC):** Preconditions (`require_*` guards), Postconditions (`ensure_*` guards)
+- **Test-Driven Development (TDD):** Write tests before implementation. Every public function has at least one test.
+- **DRY:** Inertia in `geometry.py`, URDF in `urdf_helpers.py`, body proportions in `_SEGMENT_TABLE`, shared `ExerciseModelBuilder` base class.
+- **Law of Demeter:** Exercise modules call `create_full_body()` / `create_barbell_links()`. Never manipulate internal segment tables or inertia details.
+
+## CI Requirements (all must pass)
+1. `ruff check` — zero violations
+2. `ruff format --check` — zero diffs
+3. `mypy` — no errors on src/
+4. No TODO/FIXME without tracked GitHub issue
+5. `bandit` security scan — no high-severity findings
+6. `pip-audit` — no known vulnerabilities
+7. pytest with **80% coverage minimum**
+8. Multi-version matrix: Python 3.10, 3.11, 3.12
+
+## Safety
+- Never bypass CI checks or use `--admin` flag on `gh pr merge`
+- All PRs must pass CI before merging — no exceptions
+- Never force-push to `main`
