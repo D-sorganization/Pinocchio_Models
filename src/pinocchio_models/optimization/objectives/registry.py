@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.optimization.objectives.bench_press import (
     BENCH_PRESS_OBJECTIVE,
 )
@@ -16,7 +17,6 @@ from pinocchio_models.optimization.objectives.sit_to_stand import (
 )
 from pinocchio_models.optimization.objectives.snatch import SNATCH_OBJECTIVE
 from pinocchio_models.optimization.objectives.squat import SQUAT_OBJECTIVE
-from pinocchio_models.exceptions import GeometryError
 
 EXERCISE_OBJECTIVES: dict[str, ExerciseObjective] = {
     "back_squat": SQUAT_OBJECTIVE,

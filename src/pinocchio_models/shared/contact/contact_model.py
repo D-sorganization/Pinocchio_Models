@@ -15,8 +15,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
 from pinocchio_models.exceptions import GeometryError
+from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
 
 logger = logging.getLogger(__name__)
 

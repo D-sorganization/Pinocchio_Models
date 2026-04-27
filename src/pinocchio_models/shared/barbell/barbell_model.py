@@ -19,6 +19,7 @@ import math
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.shared.contracts.preconditions import (
     require_non_negative,
     require_positive,
@@ -28,7 +29,6 @@ from pinocchio_models.shared.utils.geometry import (
     hollow_cylinder_inertia,
 )
 from pinocchio_models.shared.utils.urdf_helpers import (
-from pinocchio_models.exceptions import GeometryError
     add_fixed_joint,
     add_link,
     make_cylinder_geometry,

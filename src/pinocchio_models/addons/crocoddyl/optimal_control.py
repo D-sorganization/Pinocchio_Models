@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from pinocchio_models.exceptions import GeometryError
+
 try:
     import crocoddyl
     import pinocchio as pin  # noqa: F401  (re-exported for test mocks)
@@ -39,7 +41,6 @@ from .optimal_control_builders import (
     _OCPComponents,
 )
 from .optimal_control_config import (
-from pinocchio_models.exceptions import GeometryError
     CONTACT_BAUMGARTE_GAINS,
     EFFORT_COST_WEIGHT,
     FRICTION_CONE_FACETS,

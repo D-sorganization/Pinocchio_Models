@@ -75,7 +75,6 @@ def _add_anthropometry_arguments(parser: argparse.ArgumentParser) -> None:
     )
 
 
-
 def _add_output_arguments(parser: argparse.ArgumentParser) -> None:
     """Add output / verbosity arguments (``--output-dir``, ``--json``, ``-v``)."""
     parser.add_argument(
@@ -121,9 +120,9 @@ def _validate_cli_args(
         parser.error(f"--plates must be non-negative, got {args.plates}")
 
 
-
-
-def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> str | None:
+def _emit_urdf(
+    exercise_name: str, urdf_str: str, output_dir: Path | None
+) -> str | None:
     """Write *urdf_str* either to ``<output_dir>/<exercise>.urdf`` or stdout.
 
     Returns the file path when written to disk, or ``None`` for stdout.
@@ -134,11 +133,10 @@ def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> st
         out_path.write_text(urdf_str, encoding="utf-8")
         logger.info("Wrote %s", out_path)
         return str(out_path)
-    else:
-        stdout = sys.stdout
-        stdout.write(urdf_str)
-        stdout.write("\n")
-        return None
+    stdout = sys.stdout
+    stdout.write(urdf_str)
+    stdout.write("\n")
+    return None
 
 
 def _selected_exercises(exercise: str) -> list[str]:
@@ -146,8 +144,6 @@ def _selected_exercises(exercise: str) -> list[str]:
     if exercise == "all":
         return sorted(VALID_EXERCISE_NAMES)
     return [exercise]
-
-
 
 
 def _build_urdf_for(
