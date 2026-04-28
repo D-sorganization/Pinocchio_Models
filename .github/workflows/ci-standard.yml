@@ -75,6 +75,22 @@ jobs:
 
       - run: mypy src --config-file pyproject.toml
 
+      - name: Check Cyclomatic Complexity
+        run: |
+          pip install radon
+          echo "=== Files with complexity > B (8) ==="
+          radon cc -nc --min=B src/ || true
+          echo ""
+          echo "=== Files with complexity > C (10) ==="
+          radon cc -nc --min=C src/ || true
+          # Fail if any file exceeds complexity C (10)
+          COMPLEX_FILES=$(radon cc -nc --min=C src/ | grep -c "^src" || true)
+          if [ "$COMPLEX_FILES" -gt 0 ]; then
+            echo "::error::Found $COMPLEX_FILES file(s) with cyclomatic complexity > C (10). Refactor or add explicit override."
+            exit 1
+          fi
+          echo "All source files are within complexity limits."
+
       - name: Verify No Placeholders
         run: |
           violations=$(
