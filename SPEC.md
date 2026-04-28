@@ -172,6 +172,7 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 | Integration | `tests/integration/` | Verify end-to-end model construction |
 | Parity | `tests/parity/` | Keep model-generation behavior aligned across implementation paths |
 | Benchmarks | `tests/benchmarks/` | Track performance regressions in generation workflows |
+| Profiling | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
 
 ### Coverage Requirements
 
@@ -206,6 +207,7 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 ### CI/CD Pipeline
 
 - CI must run the repo-standard lint and test jobs before merge.
+- CI may generate line_profiler artifacts on scheduled and manually triggered runs without adding profiling cost to pull request runs.
 - Optional addon tests should mock external dependencies where appropriate.
 - Public behavior changes should be reflected in this spec.
 
@@ -267,3 +269,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-27 | 1.0.5 | Added `PinocchioModelsError`, `GeometryError`, and `URDFError` exception hierarchy with exports from `__init__.py`. |
 | 2026-04-27 | 1.0.6 | Added `--json` CLI flag for structured JSON output. |
 | 2026-04-28 | 1.0.7 | Documented the structured domain exception error-code contract. |
+| 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |

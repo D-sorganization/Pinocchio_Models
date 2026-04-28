@@ -37,7 +37,7 @@ def test_ci_workflow_is_valid_yaml() -> None:
 
 
 def test_ci_workflow_has_required_jobs() -> None:
-    """CI workflow must define quality-gate and tests jobs."""
+    """CI workflow must define required CI jobs."""
     import yaml  # noqa: PLC0415
 
     text = _CI_WORKFLOW.read_text(encoding="utf-8")
@@ -45,3 +45,40 @@ def test_ci_workflow_has_required_jobs() -> None:
     jobs = result.get("jobs", {})
     assert "quality-gate" in jobs, "CI workflow is missing 'quality-gate' job"
     assert "tests" in jobs, "CI workflow is missing 'tests' job"
+    assert "profiling" in jobs, "CI workflow is missing 'profiling' job"
+
+
+def test_ci_workflow_profiles_on_schedule_or_manual_only() -> None:
+    """Regression for #201: profiling is available without slowing PR CI."""
+    import yaml  # noqa: PLC0415
+
+    text = _CI_WORKFLOW.read_text(encoding="utf-8")
+    result = yaml.safe_load(text)
+    triggers = result.get("on", result.get(True, {}))
+    profiling = result["jobs"]["profiling"]
+
+    assert "schedule" in triggers, "CI workflow is missing a scheduled trigger"
+    assert "workflow_dispatch" in triggers, "CI workflow is missing manual trigger"
+    assert (
+        profiling["if"]
+        == "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'"
+    )
+
+
+def test_ci_workflow_uploads_line_profiler_report() -> None:
+    """Profiling job must produce and upload line_profiler report artifacts."""
+    import yaml  # noqa: PLC0415
+
+    text = _CI_WORKFLOW.read_text(encoding="utf-8")
+    result = yaml.safe_load(text)
+    steps = result["jobs"]["profiling"]["steps"]
+    run_blocks = "\n".join(step.get("run", "") for step in steps)
+    artifact_steps = [
+        step for step in steps if step.get("uses") == "actions/upload-artifact@v4"
+    ]
+
+    assert "python3 -m kernprof" in run_blocks
+    assert "python3 -m line_profiler" in run_blocks
+    assert "profiling/model-generation.lprof" in run_blocks
+    assert "profiling/model-generation-line-profiler.txt" in run_blocks
+    assert artifact_steps, "profiling job must upload the line_profiler reports"
