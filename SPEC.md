@@ -18,7 +18,7 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.9 |
+| **Spec Version** | 1.0.10 |
 | **Last Spec Update** | 2026-04-28 |
 
 ## 2. Purpose & Mission
@@ -174,6 +174,17 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 | Benchmarks | `tests/benchmarks/` | Track performance regressions in generation workflows |
 | Profiling | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
 | Examples | `examples/` | Provide runnable core and optional-addon usage scripts for Gepetto, Pink, and Crocoddyl |
+
+### Performance Budget
+
+The model-generation performance budget is defined in
+`docs/performance_budget.yml` and explained in `docs/performance_budget.md`.
+The budget covers the same representative builders used by
+`tests/benchmarks/test_model_generation_benchmark.py` and
+`scripts/profile_model_generation.py`. Pull request CI validates that the SLO
+artifact remains parseable, complete, and aligned with those benchmark targets;
+scheduled or manual profiling runs provide the timing evidence for warning and
+breach investigations.
 
 ### Coverage Requirements
 
