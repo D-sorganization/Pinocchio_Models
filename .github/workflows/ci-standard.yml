@@ -18,8 +18,20 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
   pick-runner:
     runs-on: d-sorg-fleet
     timeout-minutes: 2
