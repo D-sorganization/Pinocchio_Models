@@ -103,6 +103,11 @@ jobs:
         run: |
           bandit -r src/ -ll -ii --format txt 2>&1
 
+      - name: Cyclomatic Complexity Check
+        run: |
+          pip install radon
+          radon cc src/ --min C --show-complexity
+
       - name: Generate SBOM
         run: |
           pip install cyclonedx-bom

@@ -49,6 +49,7 @@ dev = [
     "mypy>=1.15.0",
     "hypothesis>=6.151.13",
     "pytest-benchmark>=4.0.0",
+    "radon>=6.0.0",
     "pyyaml>=6.0.0",
 ]
 
