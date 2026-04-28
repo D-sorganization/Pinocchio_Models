@@ -116,6 +116,23 @@ pin.updateFramePlacements(model, data)
 Without `get_initial_configuration`, `pin.neutral(model)` returns an
 all-zeros (identity) pose, which ignores the documented starting angles.
 
+## Examples
+
+The `examples/` directory contains runnable scripts for core model generation
+and each optional addon:
+
+```bash
+python examples/generate_all_models.py
+python examples/basic_usage.py
+python examples/gepetto_visualization.py
+python examples/pink_inverse_kinematics.py
+python examples/crocoddyl_optimal_control.py
+```
+
+Install the matching optional extra before running an addon example, such as
+`pip install -e ".[pink]"` for Pink or `pip install -e ".[crocoddyl]"` for
+Crocoddyl.
+
 ## Testing
 
 ```bash
