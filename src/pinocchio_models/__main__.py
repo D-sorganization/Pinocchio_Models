@@ -10,6 +10,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from collections.abc import Callable
@@ -75,12 +76,17 @@ def _add_anthropometry_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def _add_output_arguments(parser: argparse.ArgumentParser) -> None:
-    """Add output / verbosity arguments (``--output-dir``, ``-v``)."""
+    """Add output / verbosity arguments (``--output-dir``, ``--json``, ``-v``)."""
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=None,
         help="Directory to write URDF files (default: stdout).",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit structured JSON output to stdout.",
     )
     parser.add_argument(
         "-v",
@@ -114,17 +120,23 @@ def _validate_cli_args(
         parser.error(f"--plates must be non-negative, got {args.plates}")
 
 
-def _emit_urdf(exercise_name: str, urdf_str: str, output_dir: Path | None) -> None:
-    """Write *urdf_str* either to ``<output_dir>/<exercise>.urdf`` or stdout."""
+def _emit_urdf(
+    exercise_name: str, urdf_str: str, output_dir: Path | None
+) -> str | None:
+    """Write *urdf_str* either to ``<output_dir>/<exercise>.urdf`` or stdout.
+
+    Returns the file path when written to disk, or ``None`` for stdout.
+    """
     if output_dir is not None:
         output_dir.mkdir(parents=True, exist_ok=True)
         out_path = output_dir / f"{exercise_name}.urdf"
         out_path.write_text(urdf_str, encoding="utf-8")
         logger.info("Wrote %s", out_path)
-    else:
-        stdout = sys.stdout
-        stdout.write(urdf_str)
-        stdout.write("\n")
+        return str(out_path)
+    stdout = sys.stdout
+    stdout.write(urdf_str)
+    stdout.write("\n")
+    return None
 
 
 def _selected_exercises(exercise: str) -> list[str]:
@@ -169,6 +181,7 @@ def main(argv: list[str] | None = None) -> int:
         format="%(levelname)s: %(message)s",
     )
 
+    results: list[dict[str, object]] = []
     for exercise_name in _selected_exercises(args.exercise):
         urdf_str = _build_urdf_for(
             exercise_name,
@@ -176,7 +189,34 @@ def main(argv: list[str] | None = None) -> int:
             height=args.height,
             plate_mass_per_side=args.plates,
         )
-        _emit_urdf(exercise_name, urdf_str, args.output_dir)
+
+        if not args.json:
+            _emit_urdf(exercise_name, urdf_str, args.output_dir)
+        else:
+            _ = None
+
+        if args.json:
+            results.append(
+                {
+                    "exercise": exercise_name,
+                    "urdf": urdf_str,
+                    "path": (
+                        str(args.output_dir / f"{exercise_name}.urdf")
+                        if args.output_dir is not None
+                        else None
+                    ),
+                    "parameters": {
+                        "mass": args.mass,
+                        "height": args.height,
+                        "plates": args.plates,
+                    },
+                    "success": True,
+                }
+            )
+
+    if args.json:
+        json.dump(results, sys.stdout, indent=2)
+        sys.stdout.write("\n")
 
     return 0
 

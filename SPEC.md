@@ -112,7 +112,9 @@ Pinocchio_Models/
 The stable public surface is the importable builder API and the CLI:
 
 - `pinocchio-models <exercise>`
+- `pinocchio-models <exercise> --json`
 - `python3 -m pinocchio_models <exercise>`
+- `python3 -m pinocchio_models <exercise> --json`
 - `build_*_model(...)` helpers for each supported exercise
 - `ExerciseModelBuilder`, `ExerciseConfig`, `BodyModelSpec`, and `BarbellSpec`
 - `create_full_body(...)` and `create_barbell_links(...)`
@@ -261,3 +263,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-27 | 1.0.3 | Optimization: Cached formatting of floats to URDF strings. |
 | 2026-04-27 | 1.0.4 | Removed the `numpy<3.0.0` upper bound in `pyproject.toml` dependencies. |
 | 2026-04-27 | 1.0.5 | Added `PinocchioModelsError`, `GeometryError`, and `URDFError` exception hierarchy with exports from `__init__.py`. |
+| 2026-04-27 | 1.0.6 | Added `--json` CLI flag for structured JSON output. |
