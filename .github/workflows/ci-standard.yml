@@ -51,6 +51,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Dependency Review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        continue-on-error: true
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: always
       - name: Set up Python venv
         run: |
           for PYTHON in python3.11 python3.12 python3.10 python3; do
@@ -87,6 +94,22 @@ jobs:
           echo "Working tree is clean."
 
       - run: mypy src --config-file pyproject.toml
+
+      - name: Check Cyclomatic Complexity
+        run: |
+          pip install radon
+          echo "=== Files with complexity > B (8) ==="
+          radon cc -nc --min=B src/ || true
+          echo ""
+          echo "=== Files with complexity > C (10) ==="
+          radon cc -nc --min=C src/ || true
+          # Fail if any file exceeds complexity C (10)
+          COMPLEX_FILES=$(radon cc -nc --min=C src/ | grep -c "^src" || true)
+          if [ "$COMPLEX_FILES" -gt 0 ]; then
+            echo "::error::Found $COMPLEX_FILES file(s) with cyclomatic complexity > C (10). Refactor or add explicit override."
+            exit 1
+          fi
+          echo "All source files are within complexity limits."
 
       - name: Verify No Placeholders
         run: |

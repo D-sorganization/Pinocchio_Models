@@ -3,6 +3,28 @@
 This guide explains how the repository is organized and how to make focused
 changes without breaking the URDF generation contract.
 
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- [Pinocchio](https://stack-of-tasks.github.io/pinocchio/) 3.0+
+- NumPy 1.24+
+
+### Installation
+
+```bash
+git clone https://github.com/D-sorganization/Pinocchio_Models.git
+cd Pinocchio_Models
+pip install -e ".[dev]"
+```
+
+### Generate Models
+
+```bash
+python examples/generate_all_models.py --output-dir ./models
+```
+
 ## Repository Map
 
 | Path | Responsibility |

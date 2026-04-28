@@ -12,6 +12,7 @@ repository assessments for `pinocchio-models`.
 | [Architecture diagrams](architecture/model_generation_flow.md) | Component and sequence diagrams for the URDF generation path.             |
 | [Joint axis convention](joint_axis_convention.md)              | Coordinate-frame and joint-axis mapping for Pinocchio, Drake, and MuJoCo. |
 | [Pinocchio ADR](adr/001-use-pinocchio-for-dynamics.md)         | Decision record for using Pinocchio as the downstream dynamics library.   |
+| [Developer Guide](developer_guide.md)                          | Installation, project structure, and contribution workflow.               |
 
 ## Architecture Summary
 
