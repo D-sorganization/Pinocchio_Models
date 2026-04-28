@@ -2,7 +2,7 @@
 
 <!--
   TEMPLATE VERSION: 1.0.0
-  LAST UPDATED: 2026-04-06
+  LAST UPDATED: 2026-04-28
 
   This document is the canonical repository specification for Pinocchio_Models.
   Keep it aligned with the current codebase, entrypoints, and validation rules.
@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.0 |
-| **Last Spec Update** | 2026-04-06 |
+| **Spec Version** | 1.0.7 |
+| **Last Spec Update** | 2026-04-28 |
 
 ## 2. Purpose & Mission
 
@@ -118,6 +118,8 @@ The stable public surface is the importable builder API and the CLI:
 - `build_*_model(...)` helpers for each supported exercise
 - `ExerciseModelBuilder`, `ExerciseConfig`, `BodyModelSpec`, and `BarbellSpec`
 - `create_full_body(...)` and `create_barbell_links(...)`
+- Domain exceptions inherit from `PinocchioModelsError` and expose stable
+  machine-readable error codes in the `PM000`-style namespace.
 
 Pinocchio-specific runtime behavior is intentionally externalized:
 
@@ -266,4 +268,5 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-27 | 1.0.4 | Removed the `numpy<3.0.0` upper bound in `pyproject.toml` dependencies. |
 | 2026-04-27 | 1.0.5 | Added `PinocchioModelsError`, `GeometryError`, and `URDFError` exception hierarchy with exports from `__init__.py`. |
 | 2026-04-27 | 1.0.6 | Added `--json` CLI flag for structured JSON output. |
-| 2026-04-28 | 1.0.7 | Added scheduled/manual CI profiling reports for representative model generation. |
+| 2026-04-28 | 1.0.7 | Documented the structured domain exception error-code contract. |
+| 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |
