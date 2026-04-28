@@ -191,9 +191,9 @@ def main(argv: list[str] | None = None) -> int:
         )
 
         if not args.json:
-            out_path = _emit_urdf(exercise_name, urdf_str, args.output_dir)
+            _emit_urdf(exercise_name, urdf_str, args.output_dir)
         else:
-            out_path = None
+            _ = None
 
         if args.json:
             results.append(
