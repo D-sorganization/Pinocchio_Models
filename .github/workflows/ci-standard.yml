@@ -206,6 +206,40 @@ jobs:
             --tb=short \
             -v
 
+  benchmarks:
+    needs:
+      - pick-runner
+      - quality-gate
+    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python venv
+        run: |
+          for PYTHON in python3.11 python3.12 python3.10 python3; do
+            if command -v "$PYTHON" &>/dev/null; then
+              echo "Using $PYTHON ($($PYTHON --version))"
+              "$PYTHON" -m venv "$RUNNER_TEMP/ci-venv"
+              "$RUNNER_TEMP/ci-venv/bin/pip" install --upgrade pip setuptools wheel --quiet
+              echo "$RUNNER_TEMP/ci-venv/bin" >> $GITHUB_PATH
+              exit 0
+            fi
+          done
+          echo "No Python3 found on PATH" && exit 1
+
+      - name: Install Dependencies
+        env:
+          PYTHONDONTWRITEBYTECODE: 1
+        run: pip install -e ".[dev]"
+
+      - name: Run Benchmark Tests Without xdist
+        run: |
+          python3 -m pytest tests/benchmarks \
+            -o addopts="-ra -q --strict-markers --strict-config --durations=20" \
+            --benchmark-only \
+            --tb=short \
+            -v
+
   profiling:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs:
