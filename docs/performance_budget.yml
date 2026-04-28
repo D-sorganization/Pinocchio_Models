@@ -1,0 +1,28 @@
+version: 1
+owner: Pinocchio_Models maintainers
+last_reviewed: 2026-04-28
+applies_to:
+  - core model generation builders
+  - CLI model generation workflows
+measurement:
+  command: python3 -m pytest tests/benchmarks/ -v --benchmark-only
+  profiler_command: python3 -m kernprof -l scripts/profile_model_generation.py
+  ci_surface: scheduled and manual profiling workflow
+budgets:
+  model_generation:
+    description: Single representative exercise model generation call.
+    percentile: p95
+    threshold_ms: 50
+    warn_at_ms: 35
+    sample_size_min: 20
+    targets:
+      - squat
+      - bench_press
+      - deadlift
+      - snatch
+      - clean_and_jerk
+    response:
+      warn: Compare against the last successful scheduled profiling artifact.
+      breach: >
+        Treat as a release blocker until the regression is explained or the
+        budget is intentionally revised.
