@@ -7,6 +7,8 @@ repository assessments for `pinocchio-models`.
 
 | Document                                                       | Purpose                                                                   |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [API reference](api_reference.md)                              | Public builders, configuration objects, CLI, and runtime usage.           |
+| [Developer guide](developer_guide.md)                          | Repository map, architectural contracts, extension workflow, validation.  |
 | [Architecture diagrams](architecture/model_generation_flow.md) | Component and sequence diagrams for the URDF generation path.             |
 | [Joint axis convention](joint_axis_convention.md)              | Coordinate-frame and joint-axis mapping for Pinocchio, Drake, and MuJoCo. |
 | [Pinocchio ADR](adr/001-use-pinocchio-for-dynamics.md)         | Decision record for using Pinocchio as the downstream dynamics library.   |
@@ -29,3 +31,13 @@ URDF:
 
 See [architecture/model_generation_flow.md](architecture/model_generation_flow.md)
 for the diagrams behind this flow.
+
+## Validation
+
+Documentation links can be checked locally with:
+
+```bash
+python3 scripts/check_docs_links.py
+```
+
+The same check is available through `make docs-check`.
