@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.optimization.objectives.bench_press import (
     BENCH_PRESS_OBJECTIVE,
 )
@@ -29,9 +30,9 @@ EXERCISE_OBJECTIVES: dict[str, ExerciseObjective] = {
 
 
 def get_exercise_objective(name: str) -> ExerciseObjective:
-    """Return the named exercise objective or raise ValueError."""
+    """Return the named exercise objective or raise GeometryError."""
     if name not in EXERCISE_OBJECTIVES:
-        raise ValueError(
+        raise GeometryError(
             f"Unknown exercise: {name}. Available: {list(EXERCISE_OBJECTIVES)}"
         )
     return EXERCISE_OBJECTIVES[name]

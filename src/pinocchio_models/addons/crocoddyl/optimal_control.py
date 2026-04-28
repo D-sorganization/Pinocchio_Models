@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from pinocchio_models.exceptions import GeometryError
+
 try:
     import crocoddyl
     import pinocchio as pin  # noqa: F401  (re-exported for test mocks)
@@ -182,7 +184,7 @@ def solve_trajectory(
 
     if initial_state is not None:
         if not np.all(np.isfinite(initial_state)):
-            raise ValueError(
+            raise GeometryError(
                 "initial_state contains non-finite values (NaN or Inf). "
                 "Provide a valid finite state vector."
             )

@@ -31,6 +31,7 @@ try:
 except ImportError:
     _HAS_PINK = False
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.shared.constants import HIP_FLEXION_MAX
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
@@ -139,12 +140,12 @@ def solve_pose(
     for frame_name, pose in targets.items():
         pose_arr = np.asarray(pose)
         if pose_arr.shape != (4, 4):
-            raise ValueError(
+            raise GeometryError(
                 f"SE(3) pose for frame '{frame_name}' must be a (4, 4) matrix, "
                 f"got shape {pose_arr.shape}"
             )
         if not np.all(np.isfinite(pose_arr)):
-            raise ValueError(
+            raise GeometryError(
                 f"SE(3) pose for frame '{frame_name}' contains non-finite values"
             )
 
@@ -241,7 +242,7 @@ def compute_exercise_keyframes(
             freeflyer_nq = 7  # Fallback for standard FreeFlyer
         nq_actuated = model.nq - freeflyer_nq
         if nq_actuated <= 0:
-            raise ValueError(
+            raise GeometryError(
                 f"Model has no actuated joints (nq={model.nq}, freeflyer_nq={freeflyer_nq})"
             )
         # Scale hip-like joints by the angle fraction

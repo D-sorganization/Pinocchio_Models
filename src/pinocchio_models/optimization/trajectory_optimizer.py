@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.optimization.exercise_objectives import ExerciseObjective
 
 
@@ -13,7 +14,7 @@ def _validate_non_negative_weight(name: str, value: float) -> None:
     """Validate that a weight is non-negative."""
     if value < 0.0:
         msg = f"{name} must be non-negative, got {value}"
-        raise ValueError(msg)
+        raise GeometryError(msg)
 
 
 @dataclass(frozen=True)
@@ -44,16 +45,16 @@ class TrajectoryConfig:
         """Validate configuration values are physically plausible."""
         if self.n_timesteps < 1:
             msg = f"n_timesteps must be >= 1, got {self.n_timesteps}"
-            raise ValueError(msg)
+            raise GeometryError(msg)
         if self.dt <= 0.0:
             msg = f"dt must be positive, got {self.dt}"
-            raise ValueError(msg)
+            raise GeometryError(msg)
         if self.max_iterations < 1:
             msg = f"max_iterations must be >= 1, got {self.max_iterations}"
-            raise ValueError(msg)
+            raise GeometryError(msg)
         if self.convergence_tol <= 0.0:
             msg = f"convergence_tol must be positive, got {self.convergence_tol}"
-            raise ValueError(msg)
+            raise GeometryError(msg)
         _validate_non_negative_weight("control_weight", self.control_weight)
         _validate_non_negative_weight("state_weight", self.state_weight)
         _validate_non_negative_weight("terminal_weight", self.terminal_weight)
@@ -121,9 +122,9 @@ def _interpolate_keyframes(
 def _validate_interpolation_inputs(objective: ExerciseObjective, n_frames: int) -> None:
     """Reject interpolation requests that cannot produce a valid timeline."""
     if n_frames < 2:
-        raise ValueError(f"n_frames must be >= 2, got {n_frames}")
+        raise GeometryError(f"n_frames must be >= 2, got {n_frames}")
     if not objective.phases:
-        raise ValueError("objective must have at least one phase")
+        raise GeometryError("objective must have at least one phase")
 
 
 def interpolate_phases(objective: ExerciseObjective, n_frames: int = 50) -> np.ndarray:

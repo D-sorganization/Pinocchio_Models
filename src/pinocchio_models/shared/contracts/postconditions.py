@@ -3,7 +3,7 @@
 Used to validate outputs after computation -- catches bugs in model
 generation before they propagate to downstream URDF or simulation.
 
-All violations raise ValueError (not AssertionError) so they cannot
+All violations raise GeometryError (not AssertionError) so they cannot
 be disabled with ``python -O``.
 """
 
@@ -13,6 +13,8 @@ import logging
 import re
 import xml.etree.ElementTree as ET
 
+from pinocchio_models.exceptions import URDFError
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,9 +23,9 @@ def _parse_robot_root(xml_string: str) -> ET.Element:
     try:
         root = ET.fromstring(xml_string)  # nosec B314 — parsing self-generated XML
     except ET.ParseError as exc:
-        raise ValueError(f"Generated URDF is not well-formed XML: {exc}") from exc
+        raise URDFError(f"Generated URDF is not well-formed XML: {exc}") from exc
     if root.tag != "robot":
-        raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
+        raise URDFError(f"URDF root must be <robot>, got <{root.tag}>")
     return root
 
 
@@ -58,14 +60,14 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
 
         # (b) Verify child link name exists in the declared link set.
         if child_link and child_link not in link_names:
-            raise ValueError(
+            raise URDFError(
                 f"Joint '{joint_name}' references unknown child link '{child_link}'"
             )
 
         # (c) Assert no link appears as child of more than one joint
         # (URDF single-parent-per-link constraint).
         if child_link in child_parent_map:
-            raise ValueError(
+            raise URDFError(
                 f"Link '{child_link}' is declared as child of both "
                 f"'{child_parent_map[child_link]}' and '{joint_name}' — "
                 "URDF requires each link to have exactly one parent joint"
@@ -94,14 +96,14 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     Raises ValueError if any check fails.
     """
     if root.tag != "robot":
-        raise ValueError(f"URDF root must be <robot>, got <{root.tag}>")
+        raise URDFError(f"URDF root must be <robot>, got <{root.tag}>")
 
     # Validate all tags are valid XML to replicate the parsing check
     for el in root.iter():
         tag = el.tag
         if type(tag) is str:
             if not _VALID_TAG_MATCH(tag):
-                raise ValueError(
+                raise URDFError(
                     f"Generated URDF is not well-formed XML: invalid tag '{tag}'"
                 )
         else:
@@ -134,7 +136,7 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
 def ensure_positive_mass(mass: float, body_name: str) -> None:
     """Validate that a body's mass is positive after computation."""
     if mass <= 0:
-        raise ValueError(
+        raise URDFError(
             f"Postcondition violated: {body_name} mass={mass} is not positive"
         )
 
@@ -145,12 +147,12 @@ def ensure_positive_definite_inertia(
     """Validate that principal inertias are positive (necessary for PD)."""
     for label, val in [("Ixx", ixx), ("Iyy", iyy), ("Izz", izz)]:
         if val <= 0:
-            raise ValueError(
+            raise URDFError(
                 f"Postcondition violated: {body_name} {label}={val} not positive"
             )
     # Triangle inequality for principal inertias
     if ixx + iyy < izz or ixx + izz < iyy or iyy + izz < ixx:
-        raise ValueError(
+        raise URDFError(
             f"Postcondition violated: {body_name} inertias "
             f"({ixx}, {iyy}, {izz}) violate triangle inequality"
         )

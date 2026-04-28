@@ -19,6 +19,7 @@ import math
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.shared.contracts.preconditions import (
     require_non_negative,
     require_positive,
@@ -67,7 +68,7 @@ class BarbellSpec:
         require_positive(self.bar_mass, "bar_mass")
         require_non_negative(self.plate_mass_per_side, "plate_mass_per_side")
         if self.shaft_length >= self.total_length:
-            raise ValueError(
+            raise GeometryError(
                 f"shaft_length ({self.shaft_length}) must be < "
                 f"total_length ({self.total_length})"
             )
