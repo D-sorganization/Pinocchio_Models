@@ -18,7 +18,7 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.7 |
+| **Spec Version** | 1.0.9 |
 | **Last Spec Update** | 2026-04-28 |
 
 ## 2. Purpose & Mission
@@ -173,6 +173,7 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 | Parity | `tests/parity/` | Keep model-generation behavior aligned across implementation paths |
 | Benchmarks | `tests/benchmarks/` | Track performance regressions in generation workflows |
 | Profiling | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
+| Examples | `examples/` | Provide runnable core and optional-addon usage scripts for Gepetto, Pink, and Crocoddyl |
 
 ### Coverage Requirements
 
@@ -185,6 +186,7 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 - Shared body and barbell builders emit valid URDF trees.
 - Exercise builders build all supported exercise models successfully.
 - Optional addon modules fail gracefully when their dependency is missing.
+- Example scripts remain present and syntactically valid for each optional addon.
 - CLI invocation writes URDF files or stdout as documented.
 - Contract helpers reject invalid geometry and mass parameters.
 
@@ -270,3 +272,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-27 | 1.0.6 | Added `--json` CLI flag for structured JSON output. |
 | 2026-04-28 | 1.0.7 | Documented the structured domain exception error-code contract. |
 | 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |
+| 2026-04-28 | 1.0.9 | Documented optional-addon example coverage and syntax validation. |
