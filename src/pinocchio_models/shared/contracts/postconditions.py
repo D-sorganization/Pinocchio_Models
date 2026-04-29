@@ -23,9 +23,15 @@ def _parse_robot_root(xml_string: str) -> ET.Element:
     try:
         root = ET.fromstring(xml_string)  # nosec B314 — parsing self-generated XML
     except ET.ParseError as exc:
-        raise URDFError(f"Generated URDF is not well-formed XML: {exc}") from exc
+        raise URDFError(
+            f"Generated URDF is not well-formed XML: {exc}",
+            error_code="PM204",
+        ) from exc
     if root.tag != "robot":
-        raise URDFError(f"URDF root must be <robot>, got <{root.tag}>")
+        raise URDFError(
+            f"URDF root must be <robot>, got <{root.tag}>",
+            error_code="PM203",
+        )
     return root
 
 
