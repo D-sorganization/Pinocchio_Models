@@ -1,46 +1,53 @@
-# NOTE: The six core require_* functions in this module (require_positive,
-# require_non_negative, require_unit_vector, require_finite, require_in_range,
-# require_shape) are duplicated verbatim across Pinocchio_Models, MuJoCo_Models,
-# and OpenSim_Models.  The duplication is intentional: each repo is an
-# independent deployable and a cross-repo shared package adds coordination
-# overhead that is not yet warranted.  If that changes, see
-# D-sorganization/Pinocchio_Models#104 for context and migration options.
+"""Design-by-Contract precondition checks — Pinocchio_Models wrapper.
 
-"""Design-by-Contract precondition checks.
+Re-exports the generic :mod:`robotics_contracts.preconditions` guards,
+wrapping them with domain-specific :class:`URDFError` exceptions for
+backward compatibility.
 
-All public functions in this project validate inputs via these guards.
-Violations raise URDFError with descriptive messages — never silently
-accept invalid geometry or physics parameters.
+Migration note:
+    Direct callers can switch to ``from robotics_contracts.preconditions import ...``
+    and use ``ValueError`` directly, dropping the URDFError wrapper.
 """
 
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import ArrayLike
 
 from pinocchio_models.exceptions import URDFError
 
+if TYPE_CHECKING:
+    from robotics_contracts.preconditions import (  # noqa: F401
+        require_finite,
+        require_in_range,
+        require_non_negative,
+        require_positive,
+        require_shape,
+        require_unit_vector,
+    )
+
 
 def require_positive(value: float, name: str) -> None:
     """Require *value* to be strictly positive."""
-    require_finite(value, name)
-    if value <= 0:
-        raise URDFError(
-            f"{name} must be positive, got {value}",
-            error_code="PM101",
-        )
+    try:
+        import robotics_contracts.preconditions as _rc
+
+        _rc.require_positive(value, name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM101") from exc
 
 
 def require_non_negative(value: float, name: str) -> None:
     """Require *value* >= 0."""
-    require_finite(value, name)
-    if value < 0:
-        raise URDFError(
-            f"{name} must be non-negative, got {value}",
-            error_code="PM102",
-        )
+    try:
+        import robotics_contracts.preconditions as _rc
+
+        _rc.require_non_negative(value, name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM102") from exc
 
 
 def require_unit_vector(vec: ArrayLike, name: str, tol: float = 1e-6) -> None:
@@ -61,38 +68,32 @@ def require_unit_vector(vec: ArrayLike, name: str, tol: float = 1e-6) -> None:
 
 def require_finite(arr: ArrayLike, name: str) -> None:
     """Require all elements of *arr* to be finite (no NaN/Inf)."""
-    if isinstance(arr, (int, float)):
-        if not math.isfinite(arr):
-            raise URDFError(
-                f"{name} contains non-finite values",
-                error_code="PM105",
-            )
-        return
-    a = np.asarray(arr, dtype=float)
-    if not np.all(np.isfinite(a)):
-        raise URDFError(
-            f"{name} contains non-finite values",
-            error_code="PM105",
-        )
+    try:
+        import robotics_contracts.preconditions as _rc
+
+        _rc.require_finite(arr, name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM105") from exc
 
 
 def require_in_range(value: float, low: float, high: float, name: str) -> None:
     """Require *low* <= *value* <= *high*."""
-    if not (low <= value <= high):
-        raise URDFError(
-            f"{name} must be in [{low}, {high}], got {value}",
-            error_code="PM106",
-        )
+    try:
+        import robotics_contracts.preconditions as _rc
+
+        _rc.require_in_range(value, low, high, name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM106") from exc
 
 
 def require_shape(arr: ArrayLike, expected: tuple[int, ...], name: str) -> None:
     """Require *arr* to have the given shape."""
-    a = np.asarray(arr)
-    if a.shape != expected:
-        raise URDFError(
-            f"{name} must have shape {expected}, got {a.shape}",
-            error_code="PM107",
-        )
+    try:
+        import robotics_contracts.preconditions as _rc
+
+        _rc.require_shape(arr, expected, name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM107") from exc
 
 
 def require_valid_urdf_string(urdf_str: str) -> None:

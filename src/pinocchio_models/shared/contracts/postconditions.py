@@ -1,10 +1,12 @@
-"""Design-by-Contract postcondition checks.
+"""Design-by-Contract postcondition checks — Pinocchio_Models wrapper.
 
-Used to validate outputs after computation -- catches bugs in model
-generation before they propagate to downstream URDF or simulation.
+Re-exports the generic :mod:`robotics_contracts.postconditions` guards,
+wrapping them with domain-specific :class:`URDFError` exceptions for
+backward compatibility.
 
-All violations raise GeometryError (not AssertionError) so they cannot
-be disabled with ``python -O``.
+Migration note:
+    Direct callers can switch to ``from robotics_contracts.postconditions import ...``
+    and use ``ValueError`` directly, dropping the URDFError wrapper.
 """
 
 from __future__ import annotations
@@ -147,27 +149,21 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
 
 def ensure_positive_mass(mass: float, body_name: str) -> None:
     """Validate that a body's mass is positive after computation."""
-    if mass <= 0:
-        raise URDFError(
-            f"Postcondition violated: {body_name} mass={mass} is not positive",
-            error_code="PM205",
-        )
+    try:
+        import robotics_contracts.postconditions as _rc
+
+        _rc.ensure_positive_mass(mass, body_name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM205") from exc
 
 
 def ensure_positive_definite_inertia(
     ixx: float, iyy: float, izz: float, body_name: str
 ) -> None:
     """Validate that principal inertias are positive (necessary for PD)."""
-    for label, val in [("Ixx", ixx), ("Iyy", iyy), ("Izz", izz)]:
-        if val <= 0:
-            raise URDFError(
-                f"Postcondition violated: {body_name} {label}={val} not positive",
-                error_code="PM206",
-            )
-    # Triangle inequality for principal inertias
-    if ixx + iyy < izz or ixx + izz < iyy or iyy + izz < ixx:
-        raise URDFError(
-            f"Postcondition violated: {body_name} inertias "
-            f"({ixx}, {iyy}, {izz}) violate triangle inequality",
-            error_code="PM207",
-        )
+    try:
+        import robotics_contracts.postconditions as _rc
+
+        _rc.ensure_positive_definite_inertia(ixx, iyy, izz, body_name)
+    except ValueError as exc:
+        raise URDFError(str(exc), error_code="PM206") from exc
