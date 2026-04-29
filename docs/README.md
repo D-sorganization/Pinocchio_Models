@@ -15,6 +15,12 @@ repository assessments for `pinocchio-models`.
 | [Pinocchio ADR](adr/001-use-pinocchio-for-dynamics.md)         | Decision record for using Pinocchio as the downstream dynamics library.   |
 | [Developer Guide](developer_guide.md)                          | Installation, project structure, and contribution workflow.               |
 
+The generated Sphinx API reference starts at `index.rst` and can be built with:
+
+```bash
+python3 -m sphinx -W -b html docs docs/_build/html
+```
+
 ## Architecture Summary
 
 The package generates deterministic URDF XML and leaves Pinocchio runtime setup
