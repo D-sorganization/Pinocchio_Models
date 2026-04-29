@@ -6,8 +6,6 @@ Used to validate outputs after computation.  Violations raise
 
 from __future__ import annotations
 
-import math
-
 
 def ensure_positive_mass(mass: float, body_name: str) -> None:
     """Validate that a body's mass is positive after computation."""
