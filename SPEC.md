@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.11 |
-| **Last Spec Update** | 2026-04-28 |
+| **Spec Version** | 1.0.13 |
+| **Last Spec Update** | 2026-04-29 |
 
 ## 2. Purpose & Mission
 
@@ -120,6 +120,8 @@ The stable public surface is the importable builder API and the CLI:
 - `create_full_body(...)` and `create_barbell_links(...)`
 - Domain exceptions inherit from `PinocchioModelsError` and expose stable
   machine-readable error codes in the `PM000`-style namespace.
+- Shared contract validation uses stable structured codes for precondition
+  failures (`PM101`-`PM111`) and postcondition failures (`PM201`-`PM207`).
 
 Pinocchio-specific runtime behavior is intentionally externalized:
 
@@ -292,3 +294,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-28 | 1.0.10 | Documented the model-generation performance budget and profiling targets. |
 | 2026-04-28 | 1.0.11 | Added a minimal Sphinx autodoc foundation for API reference documentation. |
 | 2026-04-28 | 1.0.12 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
+| 2026-04-29 | 1.0.13 | Documented stable structured error codes for shared contract validation. |
