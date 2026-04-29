@@ -16,6 +16,7 @@ from numpy.typing import ArrayLike
 
 from pinocchio_models.exceptions import URDFError
 
+
 def require_positive(value: float, name: str) -> None:
     """Require *value* to be strictly positive."""
     try:
