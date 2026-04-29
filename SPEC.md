@@ -174,6 +174,7 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 | Benchmarks | `tests/benchmarks/` | Track performance regressions in generation workflows |
 | Profiling | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
 | Examples | `examples/` | Provide runnable core and optional-addon usage scripts for Gepetto, Pink, and Crocoddyl |
+| API docs | `docs/index.rst` | Build Sphinx autodoc reference pages for the stable Python API |
 
 ### Performance Budget
 
@@ -224,6 +225,7 @@ breach investigations.
 - Any `pip-audit --ignore-vuln` entry in CI must have matching root-cause,
   dependency, timeline, and removal-criteria metadata in
   `docs/security/pip_audit_ignores.yml`.
+- API reference docs must build locally with `python3 -m sphinx -W -b html docs docs/_build/html`.
 - Optional addon tests should mock external dependencies where appropriate.
 - Public behavior changes should be reflected in this spec.
 
@@ -288,4 +290,5 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |
 | 2026-04-28 | 1.0.9 | Documented optional-addon example coverage and syntax validation. |
 | 2026-04-28 | 1.0.10 | Documented the model-generation performance budget and profiling targets. |
-| 2026-04-28 | 1.0.11 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
+| 2026-04-28 | 1.0.11 | Added a minimal Sphinx autodoc foundation for API reference documentation. |
+| 2026-04-28 | 1.0.12 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
