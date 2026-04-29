@@ -11,23 +11,10 @@ Migration note:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 from numpy.typing import ArrayLike
 
 from pinocchio_models.exceptions import URDFError
-
-if TYPE_CHECKING:
-    from robotics_contracts.preconditions import (  # noqa: F401
-        require_finite,
-        require_in_range,
-        require_non_negative,
-        require_positive,
-        require_shape,
-        require_unit_vector,
-    )
-
 
 def require_positive(value: float, name: str) -> None:
     """Require *value* to be strictly positive."""
