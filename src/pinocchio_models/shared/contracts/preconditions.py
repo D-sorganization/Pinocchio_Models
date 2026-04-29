@@ -27,48 +27,72 @@ def require_positive(value: float, name: str) -> None:
     """Require *value* to be strictly positive."""
     require_finite(value, name)
     if value <= 0:
-        raise URDFError(f"{name} must be positive, got {value}")
+        raise URDFError(
+            f"{name} must be positive, got {value}",
+            error_code="PM101",
+        )
 
 
 def require_non_negative(value: float, name: str) -> None:
     """Require *value* >= 0."""
     require_finite(value, name)
     if value < 0:
-        raise URDFError(f"{name} must be non-negative, got {value}")
+        raise URDFError(
+            f"{name} must be non-negative, got {value}",
+            error_code="PM102",
+        )
 
 
 def require_unit_vector(vec: ArrayLike, name: str, tol: float = 1e-6) -> None:
     """Require *vec* to have unit norm within *tol*."""
     arr = np.asarray(vec, dtype=float)
     if arr.shape != (3,):
-        raise URDFError(f"{name} must be a 3-vector, got shape {arr.shape}")
+        raise URDFError(
+            f"{name} must be a 3-vector, got shape {arr.shape}",
+            error_code="PM103",
+        )
     norm = float(np.linalg.norm(arr))
     if abs(norm - 1.0) > tol:
-        raise URDFError(f"{name} must be unit-length (norm={norm:.6f})")
+        raise URDFError(
+            f"{name} must be unit-length (norm={norm:.6f})",
+            error_code="PM104",
+        )
 
 
 def require_finite(arr: ArrayLike, name: str) -> None:
     """Require all elements of *arr* to be finite (no NaN/Inf)."""
     if isinstance(arr, (int, float)):
         if not math.isfinite(arr):
-            raise URDFError(f"{name} contains non-finite values")
+            raise URDFError(
+                f"{name} contains non-finite values",
+                error_code="PM105",
+            )
         return
     a = np.asarray(arr, dtype=float)
     if not np.all(np.isfinite(a)):
-        raise URDFError(f"{name} contains non-finite values")
+        raise URDFError(
+            f"{name} contains non-finite values",
+            error_code="PM105",
+        )
 
 
 def require_in_range(value: float, low: float, high: float, name: str) -> None:
     """Require *low* <= *value* <= *high*."""
     if not (low <= value <= high):
-        raise URDFError(f"{name} must be in [{low}, {high}], got {value}")
+        raise URDFError(
+            f"{name} must be in [{low}, {high}], got {value}",
+            error_code="PM106",
+        )
 
 
 def require_shape(arr: ArrayLike, expected: tuple[int, ...], name: str) -> None:
     """Require *arr* to have the given shape."""
     a = np.asarray(arr)
     if a.shape != expected:
-        raise URDFError(f"{name} must have shape {expected}, got {a.shape}")
+        raise URDFError(
+            f"{name} must have shape {expected}, got {a.shape}",
+            error_code="PM107",
+        )
 
 
 def require_valid_urdf_string(urdf_str: str) -> None:
@@ -85,17 +109,26 @@ def require_valid_urdf_string(urdf_str: str) -> None:
     Raises :class:`ValueError` with a descriptive message on failure.
     """
     if not urdf_str or not urdf_str.strip():
-        raise URDFError("URDF string must not be empty")
+        raise URDFError(
+            "URDF string must not be empty",
+            error_code="PM108",
+        )
 
     import xml.etree.ElementTree as ET
 
     try:
         root = ET.fromstring(urdf_str)  # nosec B314 -- validating input
     except ET.ParseError as exc:
-        raise URDFError(f"URDF string is not valid XML: {exc}") from exc
+        raise URDFError(
+            f"URDF string is not valid XML: {exc}",
+            error_code="PM109",
+        ) from exc
 
     if root.tag != "robot":
-        raise URDFError(f"URDF root element must be <robot>, got <{root.tag}>")
+        raise URDFError(
+            f"URDF root element must be <robot>, got <{root.tag}>",
+            error_code="PM110",
+        )
 
 
 def require_valid_exercise_name(exercise_name: str) -> None:
@@ -109,5 +142,6 @@ def require_valid_exercise_name(exercise_name: str) -> None:
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise URDFError(
             f"Unknown exercise '{exercise_name}'. "
-            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}"
+            f"Valid names: {sorted(VALID_EXERCISE_NAMES)}",
+            error_code="PM111",
         )

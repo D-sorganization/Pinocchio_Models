@@ -61,7 +61,8 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
         # (b) Verify child link name exists in the declared link set.
         if child_link and child_link not in link_names:
             raise URDFError(
-                f"Joint '{joint_name}' references unknown child link '{child_link}'"
+                f"Joint '{joint_name}' references unknown child link '{child_link}'",
+                error_code="PM201",
             )
 
         # (c) Assert no link appears as child of more than one joint
@@ -70,7 +71,8 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
             raise URDFError(
                 f"Link '{child_link}' is declared as child of both "
                 f"'{child_parent_map[child_link]}' and '{joint_name}' — "
-                "URDF requires each link to have exactly one parent joint"
+                "URDF requires each link to have exactly one parent joint",
+                error_code="PM202",
             )
         if child_link:
             child_parent_map[child_link] = joint_name
@@ -96,7 +98,10 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     Raises ValueError if any check fails.
     """
     if root.tag != "robot":
-        raise URDFError(f"URDF root must be <robot>, got <{root.tag}>")
+        raise URDFError(
+            f"URDF root must be <robot>, got <{root.tag}>",
+            error_code="PM203",
+        )
 
     # Validate all tags are valid XML to replicate the parsing check
     for el in root.iter():
@@ -104,7 +109,8 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
         if type(tag) is str:
             if not _VALID_TAG_MATCH(tag):
                 raise URDFError(
-                    f"Generated URDF is not well-formed XML: invalid tag '{tag}'"
+                    f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
+                    error_code="PM204",
                 )
         else:
             # ElementTree stores comments and processing instructions as
@@ -137,7 +143,8 @@ def ensure_positive_mass(mass: float, body_name: str) -> None:
     """Validate that a body's mass is positive after computation."""
     if mass <= 0:
         raise URDFError(
-            f"Postcondition violated: {body_name} mass={mass} is not positive"
+            f"Postcondition violated: {body_name} mass={mass} is not positive",
+            error_code="PM205",
         )
 
 
@@ -148,11 +155,13 @@ def ensure_positive_definite_inertia(
     for label, val in [("Ixx", ixx), ("Iyy", iyy), ("Izz", izz)]:
         if val <= 0:
             raise URDFError(
-                f"Postcondition violated: {body_name} {label}={val} not positive"
+                f"Postcondition violated: {body_name} {label}={val} not positive",
+                error_code="PM206",
             )
     # Triangle inequality for principal inertias
     if ixx + iyy < izz or ixx + izz < iyy or iyy + izz < ixx:
         raise URDFError(
             f"Postcondition violated: {body_name} inertias "
-            f"({ixx}, {iyy}, {izz}) violate triangle inequality"
+            f"({ixx}, {iyy}, {izz}) violate triangle inequality",
+            error_code="PM207",
         )
