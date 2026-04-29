@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
+from pinocchio_models.exceptions import URDFError
 from pinocchio_models.shared.contracts.postconditions import (
     _collect_link_names,
     _parse_robot_root,
@@ -20,12 +21,14 @@ class TestEnsureValidUrdf:
         assert root.tag == "robot"
 
     def test_rejects_malformed_xml(self) -> None:
-        with pytest.raises(ValueError, match="not well-formed"):
+        with pytest.raises(URDFError, match="not well-formed") as exc_info:
             ensure_valid_urdf("<robot><unclosed>")
+        assert exc_info.value.error_code == "PM204"
 
     def test_rejects_non_robot_root(self) -> None:
-        with pytest.raises(ValueError, match="root must be <robot>"):
+        with pytest.raises(URDFError, match="root must be <robot>") as exc_info:
             ensure_valid_urdf("<model/>")
+        assert exc_info.value.error_code == "PM203"
 
 
 class TestParseRobotRoot:
@@ -34,8 +37,9 @@ class TestParseRobotRoot:
         assert root.tag == "robot"
 
     def test_rejects_non_robot_tag(self) -> None:
-        with pytest.raises(ValueError, match="root must be <robot>"):
+        with pytest.raises(URDFError, match="root must be <robot>") as exc_info:
             _parse_robot_root("<thing/>")
+        assert exc_info.value.error_code == "PM203"
 
 
 class TestCollectLinkNames:
