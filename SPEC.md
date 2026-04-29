@@ -18,7 +18,7 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.10 |
+| **Spec Version** | 1.0.11 |
 | **Last Spec Update** | 2026-04-28 |
 
 ## 2. Purpose & Mission
@@ -221,6 +221,9 @@ breach investigations.
 
 - CI must run the repo-standard lint and test jobs before merge.
 - CI may generate line_profiler artifacts on scheduled and manually triggered runs without adding profiling cost to pull request runs.
+- Any `pip-audit --ignore-vuln` entry in CI must have matching root-cause,
+  dependency, timeline, and removal-criteria metadata in
+  `docs/security/pip_audit_ignores.yml`.
 - Optional addon tests should mock external dependencies where appropriate.
 - Public behavior changes should be reflected in this spec.
 
@@ -284,3 +287,5 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-28 | 1.0.7 | Documented the structured domain exception error-code contract. |
 | 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |
 | 2026-04-28 | 1.0.9 | Documented optional-addon example coverage and syntax validation. |
+| 2026-04-28 | 1.0.10 | Documented the model-generation performance budget and profiling targets. |
+| 2026-04-28 | 1.0.11 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
