@@ -18,7 +18,7 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.13 |
+| **Spec Version** | 1.0.14 |
 | **Last Spec Update** | 2026-04-29 |
 
 ## 2. Purpose & Mission
@@ -70,6 +70,7 @@ Pinocchio_Models/
 │       │   └── squat/
 │       ├── optimization/            # Exercise objective and trajectory tooling
 │       └── shared/                  # Shared body, barbell, contracts, utils, constants
+│   └── robotics_contracts/          # Generic contract validators shared across robotics packages
 ├── tests/
 │   ├── unit/
 │   ├── integration/
@@ -91,6 +92,7 @@ Pinocchio_Models/
 | Shared body model | `src/pinocchio_models/shared/body/body_model.py` | Anthropometric model assembly for the full body |
 | Shared barbell model | `src/pinocchio_models/shared/barbell/barbell_model.py` | Olympic barbell construction and plate handling |
 | Contracts | `src/pinocchio_models/shared/contracts/` | Input preconditions and output postconditions |
+| Shared robotics contracts | `src/robotics_contracts/` | Generic preconditions and postconditions wrapped by Pinocchio-specific errors |
 | Geometry and URDF helpers | `src/pinocchio_models/shared/utils/` | Inertia, geometry, XML, and configuration helpers |
 | Addons | `src/pinocchio_models/addons/` | Optional Gepetto, Pink, and Crocoddyl integrations |
 
@@ -122,6 +124,9 @@ The stable public surface is the importable builder API and the CLI:
   machine-readable error codes in the `PM000`-style namespace.
 - Shared contract validation uses stable structured codes for precondition
   failures (`PM101`-`PM111`) and postcondition failures (`PM201`-`PM207`).
+- Generic robotics contract helpers live in `src/robotics_contracts/` and
+  raise `ValueError`; the Pinocchio wrappers preserve the stable `URDFError`
+  contract and error-code mapping for repository callers.
 
 Pinocchio-specific runtime behavior is intentionally externalized:
 
@@ -295,3 +300,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-28 | 1.0.11 | Added a minimal Sphinx autodoc foundation for API reference documentation. |
 | 2026-04-28 | 1.0.12 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
 | 2026-04-29 | 1.0.13 | Documented stable structured error codes for shared contract validation. |
+| 2026-04-29 | 1.0.14 | Documented the extracted `robotics_contracts` shared package and the preserved Pinocchio error-wrapper contract. |

@@ -303,6 +303,9 @@ class TestGetInitialConfiguration:
         pytest.importorskip("pinocchio")
         import pinocchio as pin
 
+        if not hasattr(pin, "buildModelFromXML"):
+            pytest.skip("pinocchio module is installed but missing buildModelFromXML")
+
         from pinocchio_models.exercises.squat.squat_model import build_squat_model
         from pinocchio_models.shared.utils.urdf_helpers import (
             get_initial_configuration,
