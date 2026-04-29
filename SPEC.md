@@ -174,6 +174,7 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 | Benchmarks | `tests/benchmarks/` | Track performance regressions in generation workflows |
 | Profiling | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
 | Examples | `examples/` | Provide runnable core and optional-addon usage scripts for Gepetto, Pink, and Crocoddyl |
+| API docs | `docs/index.rst` | Build Sphinx autodoc reference pages for the stable Python API |
 
 ### Performance Budget
 
@@ -221,6 +222,7 @@ breach investigations.
 
 - CI must run the repo-standard lint and test jobs before merge.
 - CI may generate line_profiler artifacts on scheduled and manually triggered runs without adding profiling cost to pull request runs.
+- API reference docs must build locally with `python3 -m sphinx -W -b html docs docs/_build/html`.
 - Optional addon tests should mock external dependencies where appropriate.
 - Public behavior changes should be reflected in this spec.
 
@@ -284,3 +286,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-28 | 1.0.7 | Documented the structured domain exception error-code contract. |
 | 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |
 | 2026-04-28 | 1.0.9 | Documented optional-addon example coverage and syntax validation. |
+| 2026-04-28 | 1.0.10 | Added a minimal Sphinx autodoc foundation for API reference documentation. |

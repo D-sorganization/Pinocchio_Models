@@ -3,7 +3,7 @@
 
 PYTHON ?= python3
 
-.PHONY: help lint format docs-check test typecheck coverage clean install-dev
+.PHONY: help lint format docs-build docs-check test typecheck coverage clean install-dev
 
 help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -20,8 +20,12 @@ format: ## Run ruff formatter (check only)
 format-fix: ## Run ruff formatter (apply changes)
 	ruff format src tests scripts
 
-docs-check: ## Validate local Markdown links in documentation
+docs-build: ## Build Sphinx API documentation
+	$(PYTHON) -m sphinx -W -b html docs docs/_build/html
+
+docs-check: ## Validate documentation links and build API docs
 	$(PYTHON) scripts/check_docs_links.py
+	$(PYTHON) -m sphinx -W -b html docs docs/_build/html
 
 test: ## Run pytest test suite
 	$(PYTHON) -m pytest -n auto --timeout=60 --tb=short -q
