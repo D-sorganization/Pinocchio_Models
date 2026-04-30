@@ -51,8 +51,14 @@ def float_str(x: float) -> str:
     return "0" if x == 0.0 else f"{x:.6f}"
 
 
+@lru_cache(maxsize=1024)
 def vec3_str(x: float, y: float, z: float) -> str:
-    """Format three floats as a space-separated string for URDF XML."""
+    """Format three floats as a space-separated string for URDF XML.
+
+    ⚡ Bolt Optimization: Uses lru_cache to prevent redundant f-string
+    formatting/concatenation for shared coordinates (like 0 0 0), which
+    measurably speeds up generation.
+    """
     return f"{float_str(x)} {float_str(y)} {float_str(z)}"
 
 
