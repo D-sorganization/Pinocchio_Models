@@ -1,5 +1,9 @@
 # CLAUDE.md -- Pinocchio_Models
 
+## Branch Policy
+
+All work on `main` branch. PRs target `main`.
+
 ## What This Is
 
 Pinocchio-based multibody dynamics simulation for classical barbell exercises
