@@ -16,3 +16,7 @@
 ## 2024-05-18 - Optimize Float string caching URDF formatting
 **Learning:** Formatting float numbers with `f"{x:.6f}"` creates significant repeated overhead during tree generation for frequently accessed values like 0.0 or duplicate coordinates.
 **Action:** The string result of `float_str` should be cached via `@lru_cache(maxsize=1024)` in `urdf_helpers.py` so identical numbers don't require recomputing their exact string representation.
+
+## 2026-04-30 - Optimize URDF Vector3 Formatting
+**Learning:** Formatting float numbers to Vector3 strings (e.g. `0 0 0`) dynamically creates significant repeated overhead during tree generation for frequently accessed coordinates. Even though individual floats might be cached, string interpolation (`f"{float_str(x)} {float_str(y)} {float_str(z)}"`) scales poorly.
+**Action:** The string result of `vec3_str` should be cached via `@lru_cache(maxsize=1024)` in `urdf_helpers.py` so shared coordinates across joints don't require recomputing their exact string representation.
