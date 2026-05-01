@@ -20,3 +20,7 @@
 ## 2026-04-30 - Optimize URDF Vector3 Formatting
 **Learning:** Formatting float numbers to Vector3 strings (e.g. `0 0 0`) dynamically creates significant repeated overhead during tree generation for frequently accessed coordinates. Even though individual floats might be cached, string interpolation (`f"{float_str(x)} {float_str(y)} {float_str(z)}"`) scales poorly.
 **Action:** The string result of `vec3_str` should be cached via `@lru_cache(maxsize=1024)` in `urdf_helpers.py` so shared coordinates across joints don't require recomputing their exact string representation.
+
+## 2026-05-01 - Optimize Precondition Validation Type Checking
+**Learning:** In tight loops like `require_finite` inside `src/robotics_contracts/preconditions.py`, checking for primitive and numpy scalar types using `isinstance` adds notable overhead. Specifically, falling back to `np.asarray()` for numpy scalar types (e.g. `np.float64`) because `isinstance(arr, (int, float))` fails for them takes significantly longer than using the built-in `math.isfinite()`.
+**Action:** Use exact type checking (e.g., `type(arr) is float` or `type(arr) is np.float64`) over `isinstance()` for primitive types and numpy scalars in hot paths to bypass the slow `np.asarray()` conversion. This dramatically improves performance while maintaining safety.

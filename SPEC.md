@@ -301,3 +301,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-28 | 1.0.12 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
 | 2026-04-29 | 1.0.13 | Documented stable structured error codes for shared contract validation. |
 | 2026-04-29 | 1.0.14 | Documented the extracted `robotics_contracts` shared package and the preserved Pinocchio error-wrapper contract. |
+| 2026-05-01 | 1.0.15 | Optimization: Used exact type checking for primitive and numpy scalar types in tight loop precondition validation. |
