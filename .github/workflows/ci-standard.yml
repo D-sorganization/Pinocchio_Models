@@ -161,7 +161,7 @@ jobs:
           cyclonedx-py environment -o sbom.json --output-format JSON
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.json
@@ -295,7 +295,7 @@ jobs:
             > profiling/model-generation-line-profiler.txt
 
       - name: Upload profiling reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: line-profiler-model-generation
           path: |
