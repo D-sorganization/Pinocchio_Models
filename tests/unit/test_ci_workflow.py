@@ -74,7 +74,9 @@ def test_ci_workflow_uploads_line_profiler_report() -> None:
     steps = result["jobs"]["profiling"]["steps"]
     run_blocks = "\n".join(step.get("run", "") for step in steps)
     artifact_steps = [
-        step for step in steps if step.get("uses") == "actions/upload-artifact@v4"
+        step
+        for step in steps
+        if step.get("uses", "").startswith("actions/upload-artifact@")
     ]
 
     assert "python3 -m kernprof" in run_blocks
