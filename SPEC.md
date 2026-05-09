@@ -2,7 +2,7 @@
 
 <!--
   TEMPLATE VERSION: 1.0.0
-  LAST UPDATED: 2026-05-05
+  LAST UPDATED: 2026-05-09
 
   This document is the canonical repository specification for Pinocchio_Models.
   Keep it aligned with the current codebase, entrypoints, and validation rules.
@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.16 |
-| **Last Spec Update** | 2026-05-05 |
+| **Spec Version** | 1.0.17 |
+| **Last Spec Update** | 2026-05-09 |
 
 ## 2. Purpose & Mission
 
