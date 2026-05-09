@@ -289,8 +289,7 @@ def make_sphere_geometry(radius: float) -> ET.Element:
 
 
 def serialize_model(root: ET.Element) -> str:
-    """Serialize a URDF robot ElementTree to a formatted XML string."""
-    ET.indent(root, space="  ")
+    """Serialize a URDF robot ElementTree to an XML string."""
     return ET.tostring(root, encoding="unicode", xml_declaration=True)
 
 

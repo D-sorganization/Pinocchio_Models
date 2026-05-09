@@ -24,3 +24,7 @@
 ## 2026-05-01 - Optimize Precondition Validation Type Checking
 **Learning:** In tight loops like `require_finite` inside `src/robotics_contracts/preconditions.py`, checking for primitive and numpy scalar types using `isinstance` adds notable overhead. Specifically, falling back to `np.asarray()` for numpy scalar types (e.g. `np.float64`) because `isinstance(arr, (int, float))` fails for them takes significantly longer than using the built-in `math.isfinite()`.
 **Action:** Use exact type checking (e.g., `type(arr) is float` or `type(arr) is np.float64`) over `isinstance()` for primitive types and numpy scalars in hot paths to bypass the slow `np.asarray()` conversion. This dramatically improves performance while maintaining safety.
+
+## 2026-05-19 - Optimization to Avoid ET.indent on URDF Generation
+**Learning:** During profiling of the URDF tree generation via benchmarks, it was found that `ET.indent(root)` took a substantial part of the time due to the `_indent_children` routine inserting new string nodes in the `xml.etree.ElementTree.Element` tree. For non-human facing machine outputs (or URDF parsers that don't care about pretty indentation), this indentation overhead scales poorly.
+**Action:** Remove `ET.indent()` calls from `serialize_model` function in URDF output strings generation pipelines if the end system (Pinocchio, RViz, etc.) does not require them for correct parsing.
