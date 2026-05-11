@@ -249,9 +249,7 @@ def _emit_list_exercises() -> int:
     return 0
 
 
-def _output_path_for(
-    exercise_name: str, args: argparse.Namespace
-) -> str | None:
+def _output_path_for(exercise_name: str, args: argparse.Namespace) -> str | None:
     """Return the on-disk path the URDF was (or would be) written to, or ``None``."""
     if args.export is not None:
         return str(args.export)
@@ -260,9 +258,7 @@ def _output_path_for(
     return None
 
 
-def _emit_exercise(
-    exercise_name: str, urdf_str: str, args: argparse.Namespace
-) -> None:
+def _emit_exercise(exercise_name: str, urdf_str: str, args: argparse.Namespace) -> None:
     """Write *urdf_str* to disk or stdout based on CLI flags."""
     if args.export is not None:
         _write_export(args.export, urdf_str)
