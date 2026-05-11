@@ -249,6 +249,57 @@ def _emit_list_exercises() -> int:
     return 0
 
 
+def _output_path_for(
+    exercise_name: str, args: argparse.Namespace
+) -> str | None:
+    """Return the on-disk path the URDF was (or would be) written to, or ``None``."""
+    if args.export is not None:
+        return str(args.export)
+    if args.output_dir is not None:
+        return str(args.output_dir / f"{exercise_name}.urdf")
+    return None
+
+
+def _emit_exercise(
+    exercise_name: str, urdf_str: str, args: argparse.Namespace
+) -> None:
+    """Write *urdf_str* to disk or stdout based on CLI flags."""
+    if args.export is not None:
+        _write_export(args.export, urdf_str)
+    elif not args.json:
+        _emit_urdf(exercise_name, urdf_str, args.output_dir)
+
+
+def _build_and_collect(
+    canonical: str, args: argparse.Namespace
+) -> list[dict[str, object]]:
+    """Build URDFs for the selection and return JSON-result rows."""
+    results: list[dict[str, object]] = []
+    for exercise_name in _selected_exercises(canonical):
+        urdf_str = _build_urdf_for(
+            exercise_name,
+            body_mass=args.mass,
+            height=args.height,
+            plate_mass_per_side=args.plates,
+        )
+        _emit_exercise(exercise_name, urdf_str, args)
+        if args.json:
+            results.append(
+                {
+                    "exercise": exercise_name,
+                    "urdf": urdf_str,
+                    "path": _output_path_for(exercise_name, args),
+                    "parameters": {
+                        "mass": args.mass,
+                        "height": args.height,
+                        "plates": args.plates,
+                    },
+                    "success": True,
+                }
+            )
+    return results
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point for Pinocchio model generation.
 
@@ -280,42 +331,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.export is not None and canonical == "all":
         parser.error("--export requires a single exercise (got 'all')")
 
-    results: list[dict[str, object]] = []
-    for exercise_name in _selected_exercises(canonical):
-        urdf_str = _build_urdf_for(
-            exercise_name,
-            body_mass=args.mass,
-            height=args.height,
-            plate_mass_per_side=args.plates,
-        )
-
-        if args.export is not None:
-            _write_export(args.export, urdf_str)
-        elif not args.json:
-            _emit_urdf(exercise_name, urdf_str, args.output_dir)
-
-        if args.json:
-            results.append(
-                {
-                    "exercise": exercise_name,
-                    "urdf": urdf_str,
-                    "path": (
-                        str(args.export)
-                        if args.export is not None
-                        else (
-                            str(args.output_dir / f"{exercise_name}.urdf")
-                            if args.output_dir is not None
-                            else None
-                        )
-                    ),
-                    "parameters": {
-                        "mass": args.mass,
-                        "height": args.height,
-                        "plates": args.plates,
-                    },
-                    "success": True,
-                }
-            )
+    results = _build_and_collect(canonical, args)
 
     if args.json:
         json.dump(results, sys.stdout, indent=2)
