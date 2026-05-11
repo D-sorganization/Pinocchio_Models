@@ -28,3 +28,7 @@
 ## 2026-05-19 - Optimization to Avoid ET.indent on URDF Generation
 **Learning:** During profiling of the URDF tree generation via benchmarks, it was found that `ET.indent(root)` took a substantial part of the time due to the `_indent_children` routine inserting new string nodes in the `xml.etree.ElementTree.Element` tree. For non-human facing machine outputs (or URDF parsers that don't care about pretty indentation), this indentation overhead scales poorly.
 **Action:** Remove `ET.indent()` calls from `serialize_model` function in URDF output strings generation pipelines if the end system (Pinocchio, RViz, etc.) does not require them for correct parsing.
+
+## 2026-06-15 - Optimize Postcondition Validation Logging
+**Learning:** During profiling of the URDF tree generation via benchmarks, it was found that emitting warnings inside `_validate_joint_links` (specifically, checking for bilateral parent aliases) caused massive overhead (~10-15% of generation time). Since these aliases are structurally intentional for the body model, logging `logger.warning()` on every valid generation creates tight-loop overhead through string formatting and handler dispatch without providing actionable value.
+**Action:** Remove or conditionally suppress standard warning log emissions in internal URDF tree validation functions that execute in the hot path of model generation, especially when the conditions being flagged are normal, intentional architectural patterns.
