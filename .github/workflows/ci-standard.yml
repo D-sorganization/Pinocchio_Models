@@ -206,6 +206,10 @@ jobs:
           fi
           echo "Working tree is clean."
 
+      - name: Verify model_pack entry-point surface (issue #282)
+        run: |
+          python3 -c "from pinocchio_models.model_pack import resolve, manifest, list_exercises; resolve(); manifest(); list_exercises()"
+
       - name: Run Test Suite
         run: |
           python3 -m pytest \

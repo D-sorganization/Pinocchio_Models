@@ -1,0 +1,27 @@
+schema: model_pack/v1
+repo: Pinocchio_Models
+package: pinocchio_models
+engine: pinocchio
+engine_version: ">=2.7"
+anthropometrics: winter_2009
+format: urdf
+addons:
+  gepetto: optional
+  pink: optional
+  crocoddyl: optional
+models_root: src/pinocchio_models/exercises
+exercises:
+  - id: squat
+    path: src/pinocchio_models/exercises/squat
+  - id: deadlift
+    path: src/pinocchio_models/exercises/deadlift
+  - id: bench_press
+    path: src/pinocchio_models/exercises/bench_press
+  - id: snatch
+    path: src/pinocchio_models/exercises/snatch
+  - id: clean_and_jerk
+    path: src/pinocchio_models/exercises/clean_and_jerk
+  - id: gait
+    path: src/pinocchio_models/exercises/gait
+  - id: sit_to_stand
+    path: src/pinocchio_models/exercises/sit_to_stand

@@ -1,10 +1,15 @@
 """CLI entry point for Pinocchio model generation.
 
-Usage::
+Usage (legacy positional form, retained for backward compatibility)::
 
     python3 -m pinocchio_models squat
     python3 -m pinocchio_models bench_press --mass 90 --height 1.80 --plates 60
     python3 -m pinocchio_models all --output-dir ./models
+
+Usage (UpstreamDrift launcher contract, see issue #282)::
+
+    python3 -m pinocchio_models --list-exercises
+    python3 -m pinocchio_models --exercise gait --export /tmp/gait.urdf
 """
 
 from __future__ import annotations
@@ -43,13 +48,56 @@ _BUILDERS: dict[str, Callable[..., str]] = {
     "sit_to_stand": build_sit_to_stand_model,
 }
 
+# Aliases from manifest-declared IDs to builder keys. The model_pack
+# manifest uses the short name ``squat``; the legacy CLI keeps
+# ``back_squat`` for backward compatibility.
+_MANIFEST_ID_ALIASES: dict[str, str] = {
+    "squat": "back_squat",
+}
+
+
+def _manifest_choices() -> list[str]:
+    """Return the union of builder keys and manifest aliases."""
+    return sorted({*VALID_EXERCISE_NAMES, *_MANIFEST_ID_ALIASES.keys()})
+
 
 def _add_exercise_argument(parser: argparse.ArgumentParser) -> None:
-    """Add the positional ``exercise`` argument (choices + ``all``)."""
+    """Add the positional ``exercise`` argument plus ``--exercise`` flag.
+
+    Accepts the legacy positional form as well as the
+    ``--exercise <name>`` flag required by the UpstreamDrift launcher
+    contract (issue #282).
+    """
     parser.add_argument(
         "exercise",
-        choices=[*sorted(VALID_EXERCISE_NAMES), "all"],
+        nargs="?",
+        default=None,
+        choices=[*_manifest_choices(), "all"],
         help="Exercise to generate (or 'all' for all exercises).",
+    )
+    parser.add_argument(
+        "--exercise",
+        dest="exercise_flag",
+        choices=_manifest_choices(),
+        default=None,
+        help=(
+            "Exercise to generate (UpstreamDrift launcher form). "
+            "Mutually exclusive with the positional 'exercise' argument."
+        ),
+    )
+    parser.add_argument(
+        "--list-exercises",
+        action="store_true",
+        help="List the manifest-declared exercise IDs and exit.",
+    )
+    parser.add_argument(
+        "--export",
+        type=Path,
+        default=None,
+        help=(
+            "Write the generated URDF to this file path "
+            "(launcher contract: implies a single exercise selection)."
+        ),
     )
 
 
@@ -118,6 +166,28 @@ def _validate_cli_args(
         parser.error(f"--height must be positive, got {args.height}")
     if args.plates < 0:
         parser.error(f"--plates must be non-negative, got {args.plates}")
+    if args.exercise is not None and args.exercise_flag is not None:
+        parser.error(
+            "specify the exercise either positionally or via --exercise, not both"
+        )
+
+
+def _resolve_exercise_selection(
+    parser: argparse.ArgumentParser, args: argparse.Namespace
+) -> str | None:
+    """Return the canonical builder key for the requested exercise.
+
+    Honors both the legacy positional argument and the ``--exercise``
+    flag, applying manifest aliases (e.g. ``squat`` -> ``back_squat``).
+    Returns ``None`` only when no selection was made (e.g. for
+    ``--list-exercises``).
+    """
+    raw = args.exercise_flag if args.exercise_flag is not None else args.exercise
+    if raw is None:
+        return None
+    if raw == "all":
+        return "all"
+    return _MANIFEST_ID_ALIASES.get(raw, raw)
 
 
 def _emit_urdf(
@@ -163,6 +233,69 @@ def _build_urdf_for(
     )
 
 
+def _write_export(export_path: Path, urdf_str: str) -> None:
+    """Write *urdf_str* directly to *export_path* (launcher contract)."""
+    export_path.parent.mkdir(parents=True, exist_ok=True)
+    export_path.write_text(urdf_str, encoding="utf-8")
+    logger.info("Wrote %s", export_path)
+
+
+def _emit_list_exercises() -> int:
+    """Print manifest-declared exercise IDs, one per line, and return 0."""
+    from pinocchio_models.model_pack import list_exercises
+
+    sys.stdout.write("\n".join(list_exercises()))
+    sys.stdout.write("\n")
+    return 0
+
+
+def _output_path_for(exercise_name: str, args: argparse.Namespace) -> str | None:
+    """Return the on-disk path the URDF was (or would be) written to, or ``None``."""
+    if args.export is not None:
+        return str(args.export)
+    if args.output_dir is not None:
+        return str(args.output_dir / f"{exercise_name}.urdf")
+    return None
+
+
+def _emit_exercise(exercise_name: str, urdf_str: str, args: argparse.Namespace) -> None:
+    """Write *urdf_str* to disk or stdout based on CLI flags."""
+    if args.export is not None:
+        _write_export(args.export, urdf_str)
+    elif not args.json:
+        _emit_urdf(exercise_name, urdf_str, args.output_dir)
+
+
+def _build_and_collect(
+    canonical: str, args: argparse.Namespace
+) -> list[dict[str, object]]:
+    """Build URDFs for the selection and return JSON-result rows."""
+    results: list[dict[str, object]] = []
+    for exercise_name in _selected_exercises(canonical):
+        urdf_str = _build_urdf_for(
+            exercise_name,
+            body_mass=args.mass,
+            height=args.height,
+            plate_mass_per_side=args.plates,
+        )
+        _emit_exercise(exercise_name, urdf_str, args)
+        if args.json:
+            results.append(
+                {
+                    "exercise": exercise_name,
+                    "urdf": urdf_str,
+                    "path": _output_path_for(exercise_name, args),
+                    "parameters": {
+                        "mass": args.mass,
+                        "height": args.height,
+                        "plates": args.plates,
+                    },
+                    "success": True,
+                }
+            )
+    return results
+
+
 def main(argv: list[str] | None = None) -> int:
     """CLI entry point for Pinocchio model generation.
 
@@ -181,38 +314,20 @@ def main(argv: list[str] | None = None) -> int:
         format="%(levelname)s: %(message)s",
     )
 
-    results: list[dict[str, object]] = []
-    for exercise_name in _selected_exercises(args.exercise):
-        urdf_str = _build_urdf_for(
-            exercise_name,
-            body_mass=args.mass,
-            height=args.height,
-            plate_mass_per_side=args.plates,
+    if args.list_exercises:
+        return _emit_list_exercises()
+
+    canonical = _resolve_exercise_selection(parser, args)
+    if canonical is None:
+        parser.error(
+            "an exercise must be selected via the positional argument, "
+            "--exercise, or --list-exercises"
         )
 
-        if not args.json:
-            _emit_urdf(exercise_name, urdf_str, args.output_dir)
-        else:
-            _ = None
+    if args.export is not None and canonical == "all":
+        parser.error("--export requires a single exercise (got 'all')")
 
-        if args.json:
-            results.append(
-                {
-                    "exercise": exercise_name,
-                    "urdf": urdf_str,
-                    "path": (
-                        str(args.output_dir / f"{exercise_name}.urdf")
-                        if args.output_dir is not None
-                        else None
-                    ),
-                    "parameters": {
-                        "mass": args.mass,
-                        "height": args.height,
-                        "plates": args.plates,
-                    },
-                    "success": True,
-                }
-            )
+    results = _build_and_collect(canonical, args)
 
     if args.json:
         json.dump(results, sys.stdout, indent=2)
