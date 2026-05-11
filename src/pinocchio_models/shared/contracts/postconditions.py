@@ -53,7 +53,6 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
         if parent_el is None or child_el is None:
             continue
 
-        parent_link = parent_el.get("link", "")
         child_link = child_el.get("link", "")
 
         # (a) We used to warn if parent link name does not exist in the declared link set.
