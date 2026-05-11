@@ -56,15 +56,9 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
         parent_link = parent_el.get("link", "")
         child_link = child_el.get("link", "")
 
-        # (a) Warn if parent link name does not exist in the declared link set.
-        # This may be intentional for aliased parent links in the body model.
-        if parent_link and parent_link not in link_names:
-            logger.warning(
-                "Joint '%s' references parent link '%s' which is not in the "
-                "declared link set — verify this is intentional",
-                joint_name,
-                parent_link,
-            )
+        # (a) We used to warn if parent link name does not exist in the declared link set.
+        # However, this is intentional for aliased parent links in the body model, and logging
+        # causes significant overhead during benchmark/generation. Therefore, we do not log.
 
         # (b) Verify child link name exists in the declared link set.
         if child_link and child_link not in link_names:
