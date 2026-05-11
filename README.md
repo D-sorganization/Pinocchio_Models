@@ -2,6 +2,27 @@
 
 Pinocchio-based multibody dynamics simulation for five classical barbell exercises, with optional integration for Gepetto-viewer visualization, Pink inverse kinematics, and Crocoddyl optimal control.
 
+## Used by UpstreamDrift
+
+This repository publishes a `model_pack/v1` manifest (`model_pack.yaml` at
+the repo root) and a `biomech.model_pack` entry point
+(`pinocchio_models.model_pack`) so the UpstreamDrift launcher can discover
+and host this repo's exercise content. See the umbrella tracking issue
+[D-sorganization/UpstreamDrift#5179](https://github.com/D-sorganization/UpstreamDrift/issues/5179).
+
+```python
+from pinocchio_models.model_pack import resolve, manifest, list_exercises
+
+resolve()         # absolute path to the installed exercises directory
+manifest()        # parsed model_pack.yaml as a dict
+list_exercises()  # ['squat', 'deadlift', ...]
+```
+
+```bash
+python -m pinocchio_models --list-exercises
+python -m pinocchio_models --exercise gait --export /tmp/gait.urdf
+```
+
 ## Exercises
 
 | Exercise       | Description                                            |
