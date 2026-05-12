@@ -288,40 +288,9 @@ def make_sphere_geometry(radius: float) -> ET.Element:
     return geom
 
 
-def _fast_serialize(el: ET.Element, out: list[str]) -> None:
-    """Fast recursive serialization for URDF ElementTree nodes."""
-    out.append(f"<{el.tag}")
-    if el.attrib:
-        for k, v in el.items():
-            # Minimal escaping required for URDF attributes
-            v_esc = v.replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;")
-            out.append(f' {k}="{v_esc}"')
-
-    if len(el) == 0 and not el.text:
-        out.append(" />")
-    else:
-        out.append(">")
-        if el.text:
-            out.append(el.text.replace("&", "&amp;").replace("<", "&lt;"))
-        for child in el:
-            _fast_serialize(child, out)
-        out.append(f"</{el.tag}>")
-
-    # Handle tail text if it exists
-    if el.tail:
-        out.append(el.tail.replace("&", "&amp;").replace("<", "&lt;"))
-
-
 def serialize_model(root: ET.Element) -> str:
-    """Serialize a URDF robot ElementTree to an XML string.
-
-    ⚡ Bolt Optimization: Uses a fast custom list-append serialization loop
-    instead of ET.tostring() to avoid massive isinstance overhead and
-    method lookups during tight tree generation loops.
-    """
-    out = ["<?xml version='1.0' encoding='utf-8'?>\n"]
-    _fast_serialize(root, out)
-    return "".join(out)
+    """Serialize a URDF robot ElementTree to an XML string."""
+    return ET.tostring(root, encoding="unicode", xml_declaration=True)
 
 
 def set_joint_default(

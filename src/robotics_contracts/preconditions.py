@@ -41,9 +41,6 @@ def require_unit_vector(vec: ArrayLike, name: str, tol: float = 1e-6) -> None:
 def require_finite(arr: ArrayLike, name: str) -> None:
     """Require all elements of *arr* to be finite (no NaN/Inf)."""
     # ⚡ Bolt Optimization: Use exact type checks over isinstance for primitives.
-    # Profiling shows this tight loop validation is called millions of times
-    # during tree generation, and type() is significantly faster than isinstance().
-    # Note: Also checking numpy scalar types to avoid falling back to slow np.asarray.
     arr_type = type(arr)
     if (
         arr_type is float
@@ -53,6 +50,10 @@ def require_finite(arr: ArrayLike, name: str) -> None:
     ):
         if not math.isfinite(arr):  # type: ignore[arg-type]
             raise ValueError(f"{name} contains non-finite values")
+        return
+    a = np.asarray(arr, dtype=float)
+    if not np.all(np.isfinite(a)):
+        raise ValueError(f"{name} contains non-finite values")
         return
     a = np.asarray(arr, dtype=float)
     if not np.all(np.isfinite(a)):
