@@ -32,3 +32,7 @@
 ## 2026-06-15 - Optimize Postcondition Validation Logging
 **Learning:** During profiling of the URDF tree generation via benchmarks, it was found that emitting warnings inside `_validate_joint_links` (specifically, checking for bilateral parent aliases) caused massive overhead (~10-15% of generation time). Since these aliases are structurally intentional for the body model, logging `logger.warning()` on every valid generation creates tight-loop overhead through string formatting and handler dispatch without providing actionable value.
 **Action:** Remove or conditionally suppress standard warning log emissions in internal URDF tree validation functions that execute in the hot path of model generation, especially when the conditions being flagged are normal, intentional architectural patterns.
+
+## 2026-05-20 - Fast XML Serialization for URDF Generation
+**Learning:** `xml.etree.ElementTree.tostring` with `encoding="unicode"` is surprisingly slow for generating the final URDF strings because it creates heavy recursion overhead, checks `isinstance` on every node, and uses inefficient string concatenation internally.
+**Action:** When a generated ElementTree only consists of basic tags, attributes, and simple child nesting (no complex namespaces or raw text nodes needing escaping), it is much faster to use a custom recursive `list.append` string builder. This reduces generation time significantly.
