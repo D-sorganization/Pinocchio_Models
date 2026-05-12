@@ -78,11 +78,29 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
             child_parent_map[child_link] = joint_name
 
 
-_VALID_TAGS = frozenset([
-    "robot", "link", "joint", "origin", "inertial", "mass", "inertia",
-    "visual", "geometry", "cylinder", "box", "sphere", "collision",
-    "parent", "child", "axis", "limit", "color", "material"
-])
+_VALID_TAGS = frozenset(
+    [
+        "robot",
+        "link",
+        "joint",
+        "origin",
+        "inertial",
+        "mass",
+        "inertia",
+        "visual",
+        "geometry",
+        "cylinder",
+        "box",
+        "sphere",
+        "collision",
+        "parent",
+        "child",
+        "axis",
+        "limit",
+        "color",
+        "material",
+    ]
+)
 
 
 def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
