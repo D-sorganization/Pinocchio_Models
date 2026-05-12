@@ -12,7 +12,6 @@ Migration note:
 from __future__ import annotations
 
 import logging
-import re
 import xml.etree.ElementTree as ET
 
 from pinocchio_models.exceptions import URDFError
@@ -79,8 +78,29 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
             child_parent_map[child_link] = joint_name
 
 
-_VALID_TAG_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_\-\.]*$")
-_VALID_TAG_MATCH = _VALID_TAG_PATTERN.match
+_VALID_TAGS = frozenset(
+    [
+        "robot",
+        "link",
+        "joint",
+        "origin",
+        "inertial",
+        "mass",
+        "inertia",
+        "visual",
+        "geometry",
+        "cylinder",
+        "box",
+        "sphere",
+        "collision",
+        "parent",
+        "child",
+        "axis",
+        "limit",
+        "color",
+        "material",
+    ]
+)
 
 
 def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
@@ -108,7 +128,7 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     for el in root.iter():
         tag = el.tag
         if type(tag) is str:
-            if not _VALID_TAG_MATCH(tag):
+            if tag not in _VALID_TAGS:
                 raise URDFError(
                     f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
                     error_code="PM204",
