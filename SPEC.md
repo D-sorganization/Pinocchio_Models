@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.17 |
-| **Last Spec Update** | 2026-05-09 |
+| **Spec Version** | 1.0.18 |
+| **Last Spec Update** | 2026-05-12 |
 
 ## 2. Purpose & Mission
 
