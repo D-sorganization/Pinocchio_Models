@@ -36,3 +36,7 @@
 ## 2026-05-20 - Fast Tag Validation via Set Lookup
 **Learning:** In `ensure_valid_urdf_tree` inside `postconditions.py`, checking XML tag validity repeatedly with `re.match` caused measurable profiling overhead. XML generation is heavily dominated by a very small, finite set of known standard URDF tags.
 **Action:** Pre-allocate a `frozenset` of known standard URDF tags and perform an `in` lookup before falling back to the regex pattern matching. This significantly speeds up validation by shifting 99% of tag evaluations to O(1) set lookups.
+
+## 2026-06-25 - Duplicate Array Evaluation Bottleneck in require_finite
+**Learning:** During array validation in `require_finite` inside `src/robotics_contracts/preconditions.py`, a harmless-looking copy-pasted duplicate block checking `np.all(np.isfinite(np.asarray(arr)))` was effectively halving performance. Because the first block raised an exception on failure but did not return on success (the happy path), valid arrays fell through and the O(N) evaluation was performed twice unnecessarily.
+**Action:** Always verify that duplicate validation blocks or condition checks are either properly gated with early returns or removed entirely. In happy paths for high-frequency functions, avoiding redundant logic provides a linear 2x speedup on array operations.
