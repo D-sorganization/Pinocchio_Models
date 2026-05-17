@@ -300,9 +300,22 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     append = chunks.append
 
     def escape_attrib(s: str) -> str:
-        if "&" in s or "<" in s or ">" in s or '"' in s or "\n" in s or "\r" in s or "\t" in s:
+        if (
+            "&" in s
+            or "<" in s
+            or ">" in s
+            or '"' in s
+            or "\n" in s
+            or "\r" in s
+            or "\t" in s
+        ):
             s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            s = s.replace('"', "&quot;").replace("\n", "&#10;").replace("\r", "&#13;").replace("\t", "&#9;")
+            s = (
+                s.replace('"', "&quot;")
+                .replace("\n", "&#10;")
+                .replace("\r", "&#13;")
+                .replace("\t", "&#9;")
+            )
         return f'"{s}"'
 
     def escape_text(s: str) -> str:
