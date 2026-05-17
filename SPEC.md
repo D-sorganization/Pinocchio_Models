@@ -305,3 +305,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-04-29 | 1.0.14 | Documented the extracted `robotics_contracts` shared package and the preserved Pinocchio error-wrapper contract. |
 | 2026-05-01 | 1.0.15 | Optimization: Used exact type checking for primitive and numpy scalar types in tight loop precondition validation. |
 | 2026-05-05 | 1.0.16 | Updated CI workflow artifact uploads to `actions/upload-artifact@v7` and documented that workflow contract tests enforce artifact presence rather than a pinned action major. |
+Modified serialize_model to not use ET.tostring

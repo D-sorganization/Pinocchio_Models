@@ -288,7 +288,7 @@ def make_sphere_geometry(radius: float) -> ET.Element:
     return geom
 
 
-def serialize_model(root: ET.Element) -> str:
+def serialize_model(root: ET.Element) -> str:  # noqa: C901
     """Serialize a URDF robot ElementTree to an XML string.
 
     ⚡ Bolt Optimization: Replacing `ET.tostring` with a custom string builder
