@@ -171,10 +171,10 @@ jobs:
   tests:
     needs:
       - pick-runner
-      - quality-gate
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     timeout-minutes: 15
     strategy:
+      fail-fast: false
       max-parallel: 1
       matrix:
         python: ["3.10", "3.11", "3.12"]
@@ -229,7 +229,6 @@ jobs:
   benchmarks:
     needs:
       - pick-runner
-      - quality-gate
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     timeout-minutes: 10
     steps:
@@ -264,7 +263,6 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs:
       - pick-runner
-      - quality-gate
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     timeout-minutes: 10
     steps:
