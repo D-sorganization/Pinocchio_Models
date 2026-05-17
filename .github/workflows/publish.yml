@@ -37,6 +37,7 @@ jobs:
           fi
 
   build:
+    timeout-minutes: 60
     needs: pick-runner
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     steps:
@@ -61,6 +62,7 @@ jobs:
           path: dist/
 
   publish-pypi:
+    timeout-minutes: 30
     needs: [pick-runner, build]
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -79,6 +81,7 @@ jobs:
           skip-existing: true
 
   create-release:
+    timeout-minutes: 30
     needs: [pick-runner, build]
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     steps:
