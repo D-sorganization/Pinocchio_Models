@@ -288,45 +288,6 @@ def make_sphere_geometry(radius: float) -> ET.Element:
     return geom
 
 
-@lru_cache(maxsize=4096)
-def _global_escape_attrib(s: str) -> str:
-    """Escape XML attributes.
-
-    ⚡ Bolt Optimization: Globally caching XML attribute escapes saves massive
-    string processing overhead during URDF generation, as most values are identical
-    or repeated frequently across identical geometries and joints.
-    """
-    if (
-        "&" in s
-        or "<" in s
-        or ">" in s
-        or '"' in s
-        or "\n" in s
-        or "\r" in s
-        or "\t" in s
-    ):
-        s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        s = (
-            s.replace('"', "&quot;")
-            .replace("\n", "&#10;")
-            .replace("\r", "&#13;")
-            .replace("\t", "&#9;")
-        )
-    return f'"{s}"'
-
-
-@lru_cache(maxsize=4096)
-def _global_escape_text(s: str) -> str:
-    """Escape XML text content.
-
-    ⚡ Bolt Optimization: Globally caching XML text escapes prevents repetitive
-    string allocations and comparisons for the same tag tails and body contents.
-    """
-    if "&" in s or "<" in s or ">" in s:
-        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    return s
-
-
 def serialize_model(root: ET.Element) -> str:  # noqa: C901
     """Serialize a URDF robot ElementTree to an XML string.
 
@@ -338,12 +299,36 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
 
+    def escape_attrib(s: str) -> str:
+        if (
+            "&" in s
+            or "<" in s
+            or ">" in s
+            or '"' in s
+            or "\n" in s
+            or "\r" in s
+            or "\t" in s
+        ):
+            s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            s = (
+                s.replace('"', "&quot;")
+                .replace("\n", "&#10;")
+                .replace("\r", "&#13;")
+                .replace("\t", "&#9;")
+            )
+        return f'"{s}"'
+
+    def escape_text(s: str) -> str:
+        if "&" in s or "<" in s or ">" in s:
+            return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        return s
+
     def _serialize(elem: ET.Element) -> None:
         tag = elem.tag
         if type(tag) is not str:
             append(f"<!--{elem.text}-->")
             if elem.tail:
-                append(_global_escape_text(elem.tail))
+                append(escape_text(elem.tail))
             return
 
         append("<")
@@ -354,14 +339,14 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(" ")
                 append(k)
                 append("=")
-                append(_global_escape_attrib(v))
+                append(escape_attrib(v))
 
         if len(elem) == 0 and not elem.text:
             append(" />")
         else:
             append(">")
             if elem.text:
-                append(_global_escape_text(elem.text))
+                append(escape_text(elem.text))
 
             for child in elem:
                 _serialize(child)
@@ -371,7 +356,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             append(">")
 
         if elem.tail:
-            append(_global_escape_text(elem.tail))
+            append(escape_text(elem.tail))
 
     _serialize(root)
     return "".join(chunks)

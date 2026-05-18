@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+ |
 | **License** | MIT |
 | **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.18 |
-| **Last Spec Update** | 2026-05-13 |
+| **Spec Version** | 1.0.19 |
+| **Last Spec Update** | 2026-06-25 |
 
 ## 2. Purpose & Mission
 
@@ -306,3 +306,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-05-01 | 1.0.15 | Optimization: Used exact type checking for primitive and numpy scalar types in tight loop precondition validation. |
 | 2026-05-05 | 1.0.16 | Updated CI workflow artifact uploads to `actions/upload-artifact@v7` and documented that workflow contract tests enforce artifact presence rather than a pinned action major. |
 Optimized URDF serialization bypassing xml.etree.ElementTree.tostring internal overhead.
+| 2026-06-25 | 1.0.19 | Optimization: Extracted and cached URDF XML string escaping to improve model generation performance. |
