@@ -314,8 +314,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(tail)
             return
 
-        append("<")
-        append(tag)
+        append(f"<{tag}")
 
         attrib = elem.attrib
         if attrib:
@@ -338,11 +337,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                         .replace("\r", "&#13;")
                         .replace("\t", "&#9;")
                     )
-                append(" ")
-                append(k)
-                append('="')
-                append(v)
-                append('"')
+                append(f' {k}="{v}"')
 
         if len(elem) == 0 and not elem.text:
             append(" />")
@@ -361,9 +356,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             for child in elem:
                 _serialize(child)
 
-            append("</")
-            append(tag)
-            append(">")
+            append(f"</{tag}>")
 
         tail = elem.tail
         if tail:
