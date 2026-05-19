@@ -299,64 +299,71 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
 
-    def escape_attrib(s: str) -> str:
-        if (
-            "&" in s
-            or "<" in s
-            or ">" in s
-            or '"' in s
-            or "\n" in s
-            or "\r" in s
-            or "\t" in s
-        ):
-            s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            s = (
-                s.replace('"', "&quot;")
-                .replace("\n", "&#10;")
-                .replace("\r", "&#13;")
-                .replace("\t", "&#9;")
-            )
-        return f'"{s}"'
-
-    def escape_text(s: str) -> str:
-        if "&" in s or "<" in s or ">" in s:
-            return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        return s
-
-    def _serialize(elem: ET.Element) -> None:
+    def _serialize(elem: ET.Element) -> None:  # noqa: C901
         tag = elem.tag
         if type(tag) is not str:
             append(f"<!--{elem.text}-->")
             if elem.tail:
-                append(escape_text(elem.tail))
+                s = elem.tail
+                if "&" in s or "<" in s or ">" in s:
+                    s = (
+                        s.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                    )
+                append(s)
             return
 
-        append("<")
-        append(tag)
+        append(f"<{tag}")
 
         if elem.attrib:
             for k, v in elem.attrib.items():
-                append(" ")
-                append(k)
-                append("=")
-                append(escape_attrib(v))
+                if (
+                    "&" in v
+                    or "<" in v
+                    or ">" in v
+                    or '"' in v
+                    or "\n" in v
+                    or "\r" in v
+                    or "\t" in v
+                ):
+                    v = (
+                        v.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                    )
+                    v = (
+                        v.replace('"', "&quot;")
+                        .replace("\n", "&#10;")
+                        .replace("\r", "&#13;")
+                        .replace("\t", "&#9;")
+                    )
+                append(f' {k}="{v}"')
 
         if len(elem) == 0 and not elem.text:
             append(" />")
         else:
             append(">")
             if elem.text:
-                append(escape_text(elem.text))
+                s = elem.text
+                if "&" in s or "<" in s or ">" in s:
+                    s = (
+                        s.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                    )
+                append(s)
 
             for child in elem:
                 _serialize(child)
 
-            append("</")
-            append(tag)
-            append(">")
+            append(f"</{tag}>")
 
         if elem.tail:
-            append(escape_text(elem.tail))
+            s = elem.tail
+            if "&" in s or "<" in s or ">" in s:
+                s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            append(s)
 
     _serialize(root)
     return "".join(chunks)
