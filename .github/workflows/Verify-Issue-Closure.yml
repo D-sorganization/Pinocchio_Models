@@ -15,6 +15,10 @@ on:
   issues:
     types: [closed]
 
+concurrency:
+  group: verify-closure-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 permissions:
   issues: write
   pull-requests: read
@@ -31,7 +35,7 @@ jobs:
     runs-on: d-sorg-fleet
     steps:
       - name: Check for closure evidence
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
