@@ -84,7 +84,6 @@ jobs:
           done
           echo "No Python3 found on PATH" && exit 1
       - run: pip install ruff==0.14.10 mypy==1.13.0 bandit==1.7.7
-
       - name: Lint
         run: ruff check src scripts tests examples
 
@@ -307,13 +306,21 @@ jobs:
 
   ci-complete:
     name: CI Complete
-    needs: [benchmarks, dependency-review, pick-runner, profiling, quality-gate, tests]
-    runs-on: ubuntu-latest
+    needs:
+      [
+        benchmarks,
+        dependency-review,
+        pick-runner,
+        profiling,
+        quality-gate,
+        tests,
+      ]
+    runs-on: d-sorg-fleet
     if: always()
     steps:
       - name: Verify all jobs succeeded
         run: |
-          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+          if [ "${{ contains(needs.*.result, 'failure') ||                     contains(needs.*.result, 'cancelled') }}" = "true" ]; then
             echo "One or more required jobs failed or were cancelled."
             exit 1
           fi
