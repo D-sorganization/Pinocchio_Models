@@ -179,13 +179,12 @@ jobs:
         python: ["3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
       - name: Set up Python venv
         run: |
-          PYTHON="python${{ matrix.python }}"
-          if ! command -v "$PYTHON" &>/dev/null; then
-            echo "WARNING: $PYTHON not found, falling back to python"
-            PYTHON=python
-          fi
+          PYTHON=python
           echo "Using $PYTHON ($($PYTHON --version))"
           "$PYTHON" -m venv "$RUNNER_TEMP/ci-venv"
           "$RUNNER_TEMP/ci-venv/bin/pip" install --upgrade pip setuptools wheel --quiet
