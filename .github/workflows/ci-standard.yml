@@ -289,11 +289,11 @@ jobs:
       - name: Generate line_profiler report
         run: |
           mkdir -p profiling
-          python -m kernprof \
+          python3 -m kernprof \
             -l \
             -o profiling/model-generation.lprof \
             scripts/profile_model_generation.py
-          python -m line_profiler profiling/model-generation.lprof \
+          python3 -m line_profiler profiling/model-generation.lprof \
             > profiling/model-generation-line-profiler.txt
 
       - name: Upload profiling reports
