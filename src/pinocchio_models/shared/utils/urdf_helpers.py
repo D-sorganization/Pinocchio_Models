@@ -406,12 +406,14 @@ def set_joint_default(
         E.g. ``exact_suffix="_flex"`` with ``prefix="hip"`` matches
         ``hip_l_flex`` and ``hip_r_flex`` but not ``hip_l_adduct``.
     """
+    val_str = float_str(value)
+    prefix_underscore = f"{prefix}_"
     for joint in robot.findall("joint"):
         name = joint.get("name", "")
-        if name == prefix or name.startswith(f"{prefix}_"):
+        if name == prefix or name.startswith(prefix_underscore):
             if exact_suffix is not None and not name.endswith(exact_suffix):
                 continue
-            joint.set("initial_position", float_str(value))
+            joint.set("initial_position", val_str)
 
 
 def _import_pinocchio() -> Any:

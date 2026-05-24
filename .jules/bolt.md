@@ -52,3 +52,7 @@
 ## 2026-05-19 - URDF Serialization Overhead (f-string collapsing)
 **Learning:** In recursive `xml.etree.ElementTree` string builders, avoiding nested helper function calls for escaping text/attributes and utilizing `f-strings` to collapse multiple list `.append()` calls results in ~40% faster serialization speeds. Since URDF structures often contain basic numerical strings rather than complex text requiring heavy escaping, the inline string check short-circuits faster than a function call.
 **Action:** When creating text generators traversing large recursive tree structures on a hot path, inline simple guard logic and minimize operations modifying the accumulator (e.g. `append`).
+
+## 2026-05-24 - Precompute invariate values in hot loops
+**Learning:** During optimization of `set_joint_default`, it was noticed that inside a hot loop traversing `findall('joint')`, both `float_str(value)` and `f"{prefix}_"` were evaluated repeatedly for every joint.
+**Action:** When a loop contains values that don't change per iteration, pre-compute them outside the loop. In the case of `set_joint_default`, precomputing `val_str = float_str(value)` and `prefix_underscore = f"{prefix}_"` outside the loop decreased the total evaluation time measurably on big URDF tree models.

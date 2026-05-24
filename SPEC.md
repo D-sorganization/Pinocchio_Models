@@ -307,3 +307,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-05-05 | 1.0.16 | Updated CI workflow artifact uploads to `actions/upload-artifact@v7` and documented that workflow contract tests enforce artifact presence rather than a pinned action major. |
 | 2026-05-19 | 1.0.17 | Optimized URDF serialization bypassing xml.etree.ElementTree.tostring internal overhead. |
 | 2026-06-25 | 1.0.18 | Optimized XML text escaping by inlining logic in `serialize_model` recursive inner loop. |
+| 2026-05-24 | 1.0.19 | Optimized `set_joint_default` by precomputing invariant strings before iteration. |
