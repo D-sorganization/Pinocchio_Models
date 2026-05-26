@@ -56,3 +56,7 @@
 ## 2026-05-24 - Precompute invariate values in hot loops
 **Learning:** During optimization of `set_joint_default`, it was noticed that inside a hot loop traversing `findall('joint')`, both `float_str(value)` and `f"{prefix}_"` were evaluated repeatedly for every joint.
 **Action:** When a loop contains values that don't change per iteration, pre-compute them outside the loop. In the case of `set_joint_default`, precomputing `val_str = float_str(value)` and `prefix_underscore = f"{prefix}_"` outside the loop decreased the total evaluation time measurably on big URDF tree models.
+
+## 2026-05-26 - Caching ET property access during serialization
+**Learning:** In the recursive tight loop `_serialize` inside `serialize_model`, `len(elem)` and `elem.text` were evaluated repeatedly for branching logic (e.g. `if text:` following `if len(elem) == 0 and not elem.text:`), causing measurable overhead over millions of node visits due to Python property and built-in function invocation overhead.
+**Action:** Cache the results of `len(elem)` and `elem.text` in local variables at the start of the `_serialize` logic to prevent redundant evaluations. This simple assignment speeds up serialization significantly for complex models while preserving the original branching structure and readability.
