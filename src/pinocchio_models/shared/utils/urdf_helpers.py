@@ -339,11 +339,13 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     )
                 append(f' {k}="{v}"')
 
-        if len(elem) == 0 and not elem.text:
+        elem_len = len(elem)
+        text = elem.text
+
+        if elem_len == 0 and not text:
             append(" />")
         else:
             append(">")
-            text = elem.text
             if text:
                 if "&" in text or "<" in text or ">" in text:
                     text = (
@@ -353,8 +355,9 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     )
                 append(text)
 
-            for child in elem:
-                _serialize(child)
+            if elem_len > 0:
+                for child in elem:
+                    _serialize(child)
 
             append(f"</{tag}>")
 
