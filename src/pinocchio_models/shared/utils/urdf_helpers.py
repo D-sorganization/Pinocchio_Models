@@ -314,10 +314,14 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(tail)
             return
 
-        append(f"<{tag}")
-
+        elem_len = len(elem)
+        text = elem.text
         attrib = elem.attrib
-        if attrib:
+
+        if not attrib:
+            start_tag = f"<{tag}"
+        else:
+            attr_parts = [f"<{tag}"]
             for k, v in attrib.items():
                 if (
                     "&" in v
@@ -337,29 +341,29 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                         .replace("\r", "&#13;")
                         .replace("\t", "&#9;")
                     )
-                append(f' {k}="{v}"')
-
-        elem_len = len(elem)
-        text = elem.text
+                attr_parts.append(f' {k}="{v}"')
+            start_tag = "".join(attr_parts)
 
         if elem_len == 0 and not text:
-            append(" />")
+            append(start_tag + " />")
+        elif not text:
+            append(start_tag + ">")
+            for child in elem:
+                _serialize(child)
+            append(f"</{tag}>")
         else:
-            append(">")
-            if text:
-                if "&" in text or "<" in text or ">" in text:
-                    text = (
-                        text.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                    )
-                append(text)
+            if "&" in text or "<" in text or ">" in text:
+                text = (
+                    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                )
 
             if elem_len > 0:
+                append(start_tag + ">" + text)
                 for child in elem:
                     _serialize(child)
-
-            append(f"</{tag}>")
+                append(f"</{tag}>")
+            else:
+                append(start_tag + ">" + text + f"</{tag}>")
 
         tail = elem.tail
         if tail:

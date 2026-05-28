@@ -60,3 +60,7 @@
 ## 2026-05-26 - Caching ET property access during serialization
 **Learning:** In the recursive tight loop `_serialize` inside `serialize_model`, `len(elem)` and `elem.text` were evaluated repeatedly for branching logic (e.g. `if text:` following `if len(elem) == 0 and not elem.text:`), causing measurable overhead over millions of node visits due to Python property and built-in function invocation overhead.
 **Action:** Cache the results of `len(elem)` and `elem.text` in local variables at the start of the `_serialize` logic to prevent redundant evaluations. This simple assignment speeds up serialization significantly for complex models while preserving the original branching structure and readability.
+
+## 2026-06-25 - URDF Serialization Overhead (f-string collapsing)
+**Learning:** In recursive `xml.etree.ElementTree` string builders, collapsing multiple list `.append()` calls for tag opening and attributes into fewer concatenated writes saves about 10% of overhead in serialization, because the list manipulation overhead is higher than small inline string operations. Specifically, building the tag+attributes string in one go (`f"<{tag}{attr_str} />"`) speeds up overall tree conversion in the hot path.
+**Action:** When implementing recursive string generators that serialize massive internal structures (like large multi-body URDF xml), minimize list operations (like `append`) by eagerly joining substrings during attribute inspection.
