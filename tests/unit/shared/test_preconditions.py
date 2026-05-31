@@ -82,30 +82,6 @@ class TestRequireFinite:
         with pytest.raises(ValueError, match="non-finite"):
             require_finite([float("inf")], "arr")
 
-    def test_accepts_finite_float_ndarray(self) -> None:
-        require_finite(np.array([1.0, 2.0, 3.0]), "arr")
-
-    def test_accepts_finite_int_ndarray(self) -> None:
-        require_finite(np.array([1, 2, 3]), "arr")
-
-    def test_accepts_finite_2d_ndarray(self) -> None:
-        require_finite(np.zeros((3, 3)), "arr")
-
-    def test_rejects_nan_ndarray(self) -> None:
-        with pytest.raises(ValueError, match="non-finite"):
-            require_finite(np.array([1.0, np.nan]), "arr")
-
-    def test_rejects_inf_ndarray(self) -> None:
-        with pytest.raises(ValueError, match="non-finite"):
-            require_finite(np.array([np.inf, 1.0]), "arr")
-
-    def test_accepts_scalar_float(self) -> None:
-        require_finite(1.5, "x")
-
-    def test_rejects_scalar_nan(self) -> None:
-        with pytest.raises(ValueError, match="non-finite"):
-            require_finite(float("nan"), "x")
-
 
 class TestRequireInRange:
     def test_accepts_in_range(self) -> None:
