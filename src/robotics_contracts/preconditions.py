@@ -51,8 +51,15 @@ def require_finite(arr: ArrayLike, name: str) -> None:
         if not math.isfinite(arr):  # type: ignore[arg-type]
             raise ValueError(f"{name} contains non-finite values")
         return
+
+    # ⚡ Bolt Optimization: Fast-path for numpy arrays to avoid asarray overhead
+    if arr_type is np.ndarray:
+        if not np.isfinite(arr).all():
+            raise ValueError(f"{name} contains non-finite values")
+        return
+
     a = np.asarray(arr, dtype=float)
-    if not np.all(np.isfinite(a)):
+    if not np.isfinite(a).all():
         raise ValueError(f"{name} contains non-finite values")
 
 
