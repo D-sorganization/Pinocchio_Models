@@ -310,3 +310,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-05-24 | 1.0.19 | Optimized `set_joint_default` by precomputing invariant strings before iteration. |
 | 2026-06-25 | 1.0.20 | Optimized `serialize_model` by collapsing f-strings into fewer `append` calls during XML attribute and text serialization. |
 | 2026-06-25 | 1.0.21 | Optimized `require_finite` by using `np.isfinite(arr).all()` and adding an `np.ndarray` fast-path for array validation. |
+| 2026-06-25 | 1.0.22 | Optimized URDF string serialization by inlining string builder and reducing concatenation overhead. |
