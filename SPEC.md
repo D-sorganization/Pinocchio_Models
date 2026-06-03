@@ -10,16 +10,16 @@
 
 ## 1. Identity
 
-| Field | Value |
-| --- | --- |
-| **Repository Name** | `Pinocchio_Models` |
-| **GitHub URL** | `https://github.com/D-sorganization/Pinocchio_Models` |
-| **Owner** | D-sorganization |
-| **Primary Language(s)** | Python 3.10+ |
-| **License** | MIT |
-| **Current Version** | 0.1.0 |
-| **Spec Version** | 1.0.18 |
-| **Last Spec Update** | 2026-05-13 |
+| Field                   | Value                                                 |
+| ----------------------- | ----------------------------------------------------- |
+| **Repository Name**     | `Pinocchio_Models`                                    |
+| **GitHub URL**          | `https://github.com/D-sorganization/Pinocchio_Models` |
+| **Owner**               | D-sorganization                                       |
+| **Primary Language(s)** | Python 3.10+                                          |
+| **License**             | MIT                                                   |
+| **Current Version**     | 0.1.0                                                 |
+| **Spec Version**        | 1.0.23                                                |
+| **Last Spec Update**    | 2026-06-03                                            |
 
 ## 2. Purpose & Mission
 
@@ -84,30 +84,30 @@ Pinocchio_Models/
 
 ### Key Components
 
-| Component | Location | Purpose |
-| --- | --- | --- |
-| CLI entrypoint | `src/pinocchio_models/__main__.py` | Parses exercise selection and generates URDF to stdout or files |
-| Public package API | `src/pinocchio_models/__init__.py` | Re-exports the stable builder/spec interfaces |
-| Shared exercise base | `src/pinocchio_models/exercises/base.py` | Common URDF build flow, pose hooks, and barbell attachment behavior |
-| Shared body model | `src/pinocchio_models/shared/body/body_model.py` | Anthropometric model assembly for the full body |
-| Shared barbell model | `src/pinocchio_models/shared/barbell/barbell_model.py` | Olympic barbell construction and plate handling |
-| Contracts | `src/pinocchio_models/shared/contracts/` | Input preconditions and output postconditions |
-| Shared robotics contracts | `src/robotics_contracts/` | Generic preconditions and postconditions wrapped by Pinocchio-specific errors |
-| Geometry and URDF helpers | `src/pinocchio_models/shared/utils/` | Inertia, geometry, XML, and configuration helpers |
-| Addons | `src/pinocchio_models/addons/` | Optional Gepetto, Pink, and Crocoddyl integrations |
+| Component                 | Location                                               | Purpose                                                                       |
+| ------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| CLI entrypoint            | `src/pinocchio_models/__main__.py`                     | Parses exercise selection and generates URDF to stdout or files               |
+| Public package API        | `src/pinocchio_models/__init__.py`                     | Re-exports the stable builder/spec interfaces                                 |
+| Shared exercise base      | `src/pinocchio_models/exercises/base.py`               | Common URDF build flow, pose hooks, and barbell attachment behavior           |
+| Shared body model         | `src/pinocchio_models/shared/body/body_model.py`       | Anthropometric model assembly for the full body                               |
+| Shared barbell model      | `src/pinocchio_models/shared/barbell/barbell_model.py` | Olympic barbell construction and plate handling                               |
+| Contracts                 | `src/pinocchio_models/shared/contracts/`               | Input preconditions and output postconditions                                 |
+| Shared robotics contracts | `src/robotics_contracts/`                              | Generic preconditions and postconditions wrapped by Pinocchio-specific errors |
+| Geometry and URDF helpers | `src/pinocchio_models/shared/utils/`                   | Inertia, geometry, XML, and configuration helpers                             |
+| Addons                    | `src/pinocchio_models/addons/`                         | Optional Gepetto, Pink, and Crocoddyl integrations                            |
 
 ## 5. Desired Functionality
 
 ### Core Features
 
-| # | Feature | Status | Description |
-| --- | --- | --- | --- |
-| F1 | URDF generation | ✅ | Build valid URDF strings for the supported exercise models |
-| F2 | Shared body construction | ✅ | Centralize full-body anthropometrics and link assembly in `shared/body` |
-| F3 | Shared barbell construction | ✅ | Build a configurable Olympic barbell in `shared/barbell` |
-| F4 | Exercise builders | ✅ | Use `ExerciseModelBuilder` subclasses for per-exercise configuration and initial pose logic |
-| F5 | CLI generation | ✅ | Expose `pinocchio-models` and `python3 -m pinocchio_models` for interactive generation |
-| F6 | Optional addons | ✅ | Keep Gepetto, Pink, and Crocoddyl integrations import-safe and optional |
+| #   | Feature                     | Status | Description                                                                                 |
+| --- | --------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| F1  | URDF generation             | ✅     | Build valid URDF strings for the supported exercise models                                  |
+| F2  | Shared body construction    | ✅     | Centralize full-body anthropometrics and link assembly in `shared/body`                     |
+| F3  | Shared barbell construction | ✅     | Build a configurable Olympic barbell in `shared/barbell`                                    |
+| F4  | Exercise builders           | ✅     | Use `ExerciseModelBuilder` subclasses for per-exercise configuration and initial pose logic |
+| F5  | CLI generation              | ✅     | Expose `pinocchio-models` and `python3 -m pinocchio_models` for interactive generation      |
+| F6  | Optional addons             | ✅     | Keep Gepetto, Pink, and Crocoddyl integrations import-safe and optional                     |
 
 ### API / Interface Contract
 
@@ -145,18 +145,18 @@ Pinocchio-specific runtime behavior is intentionally externalized:
 
 ### Input Data
 
-| Input | Format | Source | Notes |
-| --- | --- | --- | --- |
-| Anthropometric specs | Python dataclasses | `BodyModelSpec`, `BarbellSpec` | Validated at construction time |
-| Exercise selections | CLI arguments / Python calls | `__main__.py` and builder functions | Validated before model generation |
-| Optional addon dependencies | Python packages | External environment | Treated as optional imports |
+| Input                       | Format                       | Source                              | Notes                             |
+| --------------------------- | ---------------------------- | ----------------------------------- | --------------------------------- |
+| Anthropometric specs        | Python dataclasses           | `BodyModelSpec`, `BarbellSpec`      | Validated at construction time    |
+| Exercise selections         | CLI arguments / Python calls | `__main__.py` and builder functions | Validated before model generation |
+| Optional addon dependencies | Python packages              | External environment                | Treated as optional imports       |
 
 ### Output Data
 
-| Output | Format | Destination | Notes |
-| --- | --- | --- | --- |
-| Exercise models | URDF XML strings | stdout or files | Primary package output |
-| Visualization/control hooks | Python objects | Optional addon callers | Only when addon dependencies are installed |
+| Output                      | Format           | Destination            | Notes                                      |
+| --------------------------- | ---------------- | ---------------------- | ------------------------------------------ |
+| Exercise models             | URDF XML strings | stdout or files        | Primary package output                     |
+| Visualization/control hooks | Python objects   | Optional addon callers | Only when addon dependencies are installed |
 
 ### Configuration
 
@@ -173,15 +173,15 @@ The repo uses pytest for unit, integration, parity, and benchmark coverage. Test
 
 ### Test Organization
 
-| Category | Location | Purpose |
-| --- | --- | --- |
-| Unit | `tests/unit/` | Validate shared helpers, exercises, addons, and contracts in isolation |
-| Integration | `tests/integration/` | Verify end-to-end model construction |
-| Parity | `tests/parity/` | Keep model-generation behavior aligned across implementation paths |
-| Benchmarks | `tests/benchmarks/` | Track performance regressions in generation workflows |
-| Profiling | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
-| Examples | `examples/` | Provide runnable core and optional-addon usage scripts for Gepetto, Pink, and Crocoddyl |
-| API docs | `docs/index.rst` | Build Sphinx autodoc reference pages for the stable Python API |
+| Category    | Location                              | Purpose                                                                                  |
+| ----------- | ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Unit        | `tests/unit/`                         | Validate shared helpers, exercises, addons, and contracts in isolation                   |
+| Integration | `tests/integration/`                  | Verify end-to-end model construction                                                     |
+| Parity      | `tests/parity/`                       | Keep model-generation behavior aligned across implementation paths                       |
+| Benchmarks  | `tests/benchmarks/`                   | Track performance regressions in generation workflows                                    |
+| Profiling   | `scripts/profile_model_generation.py` | Generate scheduled/manual CI profiling reports for representative model-generation paths |
+| Examples    | `examples/`                           | Provide runnable core and optional-addon usage scripts for Gepetto, Pink, and Crocoddyl  |
+| API docs    | `docs/index.rst`                      | Build Sphinx autodoc reference pages for the stable Python API                           |
 
 ### Performance Budget
 
@@ -196,9 +196,9 @@ breach investigations.
 
 ### Coverage Requirements
 
-| Scope | Minimum | Enforced By |
-| --- | --- | --- |
-| Overall | 80% | CI and pytest-cov |
+| Scope   | Minimum | Enforced By       |
+| ------- | ------- | ----------------- |
+| Overall | 80%     | CI and pytest-cov |
 
 ### Required Test Scenarios
 
@@ -286,28 +286,29 @@ The repository is in active maintenance. Shared model generation is established,
 
 ## 12. Change Log
 
-| Date | Version | Changes |
-| --- | --- | --- |
-| 2026-04-06 | 1.0.0 | Initial repository specification for Pinocchio_Models. |
-| 2026-04-11 | 1.0.1 | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved. |
-| 2026-04-11 | 1.0.2 | Split top-2 monolithic addon scripts (#129): `optimal_control.py` and `ik_solver.py` now delegate to focused builder/task/config submodules. Public API and module attributes preserved. |
-| 2026-04-27 | 1.0.3 | Optimization: Cached formatting of floats to URDF strings. |
-| 2026-04-27 | 1.0.4 | Removed the `numpy<3.0.0` upper bound in `pyproject.toml` dependencies. |
-| 2026-04-27 | 1.0.5 | Added `PinocchioModelsError`, `GeometryError`, and `URDFError` exception hierarchy with exports from `__init__.py`. |
-| 2026-04-27 | 1.0.6 | Added `--json` CLI flag for structured JSON output. |
-| 2026-04-28 | 1.0.7 | Documented the structured domain exception error-code contract. |
-| 2026-04-28 | 1.0.8 | Added scheduled/manual CI profiling reports for representative model generation. |
-| 2026-04-28 | 1.0.9 | Documented optional-addon example coverage and syntax validation. |
-| 2026-04-28 | 1.0.10 | Documented the model-generation performance budget and profiling targets. |
-| 2026-04-28 | 1.0.11 | Added a minimal Sphinx autodoc foundation for API reference documentation. |
-| 2026-04-28 | 1.0.12 | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs. |
-| 2026-04-29 | 1.0.13 | Documented stable structured error codes for shared contract validation. |
-| 2026-04-29 | 1.0.14 | Documented the extracted `robotics_contracts` shared package and the preserved Pinocchio error-wrapper contract. |
-| 2026-05-01 | 1.0.15 | Optimization: Used exact type checking for primitive and numpy scalar types in tight loop precondition validation. |
-| 2026-05-05 | 1.0.16 | Updated CI workflow artifact uploads to `actions/upload-artifact@v7` and documented that workflow contract tests enforce artifact presence rather than a pinned action major. |
-| 2026-05-19 | 1.0.17 | Optimized URDF serialization bypassing xml.etree.ElementTree.tostring internal overhead. |
-| 2026-06-25 | 1.0.18 | Optimized XML text escaping by inlining logic in `serialize_model` recursive inner loop. |
-| 2026-05-24 | 1.0.19 | Optimized `set_joint_default` by precomputing invariant strings before iteration. |
-| 2026-06-25 | 1.0.20 | Optimized `serialize_model` by collapsing f-strings into fewer `append` calls during XML attribute and text serialization. |
-| 2026-06-25 | 1.0.21 | Optimized `require_finite` by using `np.isfinite(arr).all()` and adding an `np.ndarray` fast-path for array validation. |
-| 2026-06-25 | 1.0.22 | Optimized URDF string serialization by inlining string builder and reducing concatenation overhead. |
+| Date       | Version | Changes                                                                                                                                                                                  |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-06 | 1.0.0   | Initial repository specification for Pinocchio_Models.                                                                                                                                   |
+| 2026-04-11 | 1.0.1   | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved.                                                                                     |
+| 2026-04-11 | 1.0.2   | Split top-2 monolithic addon scripts (#129): `optimal_control.py` and `ik_solver.py` now delegate to focused builder/task/config submodules. Public API and module attributes preserved. |
+| 2026-04-27 | 1.0.3   | Optimization: Cached formatting of floats to URDF strings.                                                                                                                               |
+| 2026-04-27 | 1.0.4   | Removed the `numpy<3.0.0` upper bound in `pyproject.toml` dependencies.                                                                                                                  |
+| 2026-04-27 | 1.0.5   | Added `PinocchioModelsError`, `GeometryError`, and `URDFError` exception hierarchy with exports from `__init__.py`.                                                                      |
+| 2026-04-27 | 1.0.6   | Added `--json` CLI flag for structured JSON output.                                                                                                                                      |
+| 2026-04-28 | 1.0.7   | Documented the structured domain exception error-code contract.                                                                                                                          |
+| 2026-04-28 | 1.0.8   | Added scheduled/manual CI profiling reports for representative model generation.                                                                                                         |
+| 2026-04-28 | 1.0.9   | Documented optional-addon example coverage and syntax validation.                                                                                                                        |
+| 2026-04-28 | 1.0.10  | Documented the model-generation performance budget and profiling targets.                                                                                                                |
+| 2026-04-28 | 1.0.11  | Added a minimal Sphinx autodoc foundation for API reference documentation.                                                                                                               |
+| 2026-04-28 | 1.0.12  | Added auditable pip-audit ignore tracking and CI validation for ignored CVEs.                                                                                                            |
+| 2026-04-29 | 1.0.13  | Documented stable structured error codes for shared contract validation.                                                                                                                 |
+| 2026-04-29 | 1.0.14  | Documented the extracted `robotics_contracts` shared package and the preserved Pinocchio error-wrapper contract.                                                                         |
+| 2026-05-01 | 1.0.15  | Optimization: Used exact type checking for primitive and numpy scalar types in tight loop precondition validation.                                                                       |
+| 2026-05-05 | 1.0.16  | Updated CI workflow artifact uploads to `actions/upload-artifact@v7` and documented that workflow contract tests enforce artifact presence rather than a pinned action major.            |
+| 2026-05-19 | 1.0.17  | Optimized URDF serialization bypassing xml.etree.ElementTree.tostring internal overhead.                                                                                                 |
+| 2026-06-25 | 1.0.18  | Optimized XML text escaping by inlining logic in `serialize_model` recursive inner loop.                                                                                                 |
+| 2026-05-24 | 1.0.19  | Optimized `set_joint_default` by precomputing invariant strings before iteration.                                                                                                        |
+| 2026-06-25 | 1.0.20  | Optimized `serialize_model` by collapsing f-strings into fewer `append` calls during XML attribute and text serialization.                                                               |
+| 2026-06-25 | 1.0.21  | Optimized `require_finite` by using `np.isfinite(arr).all()` and adding an `np.ndarray` fast-path for array validation.                                                                  |
+| 2026-06-25 | 1.0.22  | Optimized URDF string serialization by inlining string builder and reducing concatenation overhead.                                                                                      |
+| 2026-06-03 | 1.0.23  | Optimized optional addon finite-array checks with boolean-mask `.all()` and reduced intermediate allocation in URDF attribute serialization.                                             |
