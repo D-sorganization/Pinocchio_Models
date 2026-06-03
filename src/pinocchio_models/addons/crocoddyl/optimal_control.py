@@ -183,7 +183,7 @@ def solve_trajectory(
     _require_crocoddyl()
 
     if initial_state is not None:
-        if not np.all(np.isfinite(initial_state)):
+        if not np.isfinite(initial_state).all():
             raise GeometryError(
                 "initial_state contains non-finite values (NaN or Inf). "
                 "Provide a valid finite state vector."

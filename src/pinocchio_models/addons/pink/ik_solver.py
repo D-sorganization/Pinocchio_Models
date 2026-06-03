@@ -144,7 +144,7 @@ def solve_pose(
                 f"SE(3) pose for frame '{frame_name}' must be a (4, 4) matrix, "
                 f"got shape {pose_arr.shape}"
             )
-        if not np.all(np.isfinite(pose_arr)):
+        if not np.isfinite(pose_arr).all():
             raise GeometryError(
                 f"SE(3) pose for frame '{frame_name}' contains non-finite values"
             )
