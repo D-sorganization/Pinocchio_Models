@@ -6,9 +6,7 @@ import pytest
 
 from pinocchio_models.exceptions import URDFError
 from pinocchio_models.shared.contracts.postconditions import (
-    _collect_link_names,
     _parse_robot_root,
-    _validate_joint_links,
     ensure_positive_definite_inertia,
     ensure_positive_mass,
     ensure_valid_urdf,
@@ -42,33 +40,6 @@ class TestParseRobotRoot:
         assert exc_info.value.error_code == "PM203"
 
 
-class TestCollectLinkNames:
-    def test_collects_named_links(self) -> None:
-        root = ET.fromstring('<robot><link name="a"/><link name="b"/><link/></robot>')
-        assert _collect_link_names(root) == {"a", "b"}
-
-
-class TestValidateJointLinks:
-    def test_rejects_unknown_child_link(self) -> None:
-        root = ET.fromstring(
-            '<robot><link name="a"/>'
-            '<joint name="j"><parent link="a"/><child link="ghost"/></joint>'
-            "</robot>"
-        )
-        with pytest.raises(ValueError, match="unknown child link"):
-            _validate_joint_links(root, {"a"})
-
-    def test_rejects_duplicate_child_link(self) -> None:
-        root = ET.fromstring(
-            '<robot><link name="a"/><link name="b"/>'
-            '<joint name="j1"><parent link="a"/><child link="b"/></joint>'
-            '<joint name="j2"><parent link="a"/><child link="b"/></joint>'
-            "</robot>"
-        )
-        with pytest.raises(ValueError, match="exactly one parent joint"):
-            _validate_joint_links(root, {"a", "b"})
-
-
 class TestEnsurePositiveMass:
     def test_accepts_positive(self) -> None:
         ensure_positive_mass(1.0, "body")
@@ -93,3 +64,40 @@ class TestEnsurePositiveDefiniteInertia:
     def test_rejects_triangle_inequality_violation(self) -> None:
         with pytest.raises(ValueError, match="triangle inequality"):
             ensure_positive_definite_inertia(0.1, 0.1, 10.0, "body")
+
+
+class TestCollectLinkNamesAndValidateJointLinks:
+    def test_collects_named_links_and_validates(self) -> None:
+        from pinocchio_models.shared.contracts.postconditions import (
+            ensure_valid_urdf_tree,
+        )
+
+        root = ET.fromstring('<robot><link name="a"/><link name="b"/><link/></robot>')
+        ensure_valid_urdf_tree(root)
+
+    def test_rejects_unknown_child_link(self) -> None:
+        from pinocchio_models.shared.contracts.postconditions import (
+            ensure_valid_urdf_tree,
+        )
+
+        root = ET.fromstring(
+            '<robot><link name="a"/>'
+            '<joint name="j"><parent link="a"/><child link="ghost"/></joint>'
+            "</robot>"
+        )
+        with pytest.raises(ValueError, match="unknown child link"):
+            ensure_valid_urdf_tree(root)
+
+    def test_rejects_duplicate_child_link(self) -> None:
+        from pinocchio_models.shared.contracts.postconditions import (
+            ensure_valid_urdf_tree,
+        )
+
+        root = ET.fromstring(
+            '<robot><link name="a"/><link name="b"/>'
+            '<joint name="j1"><parent link="a"/><child link="b"/></joint>'
+            '<joint name="j2"><parent link="a"/><child link="b"/></joint>'
+            "</robot>"
+        )
+        with pytest.raises(ValueError, match="exactly one parent joint"):
+            ensure_valid_urdf_tree(root)

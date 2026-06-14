@@ -36,15 +36,79 @@ def _parse_robot_root(xml_string: str) -> ET.Element:
     return root
 
 
-def _collect_link_names(root: ET.Element) -> set[str]:
-    """Return the set of declared ``<link name=...>`` values under *root*."""
-    return {el.get("name", "") for el in root.findall("link") if el.get("name")}
+_VALID_TAGS = frozenset(
+    [
+        "robot",
+        "link",
+        "joint",
+        "origin",
+        "inertial",
+        "mass",
+        "inertia",
+        "visual",
+        "geometry",
+        "cylinder",
+        "box",
+        "sphere",
+        "collision",
+        "parent",
+        "child",
+        "axis",
+        "limit",
+        "color",
+        "material",
+    ]
+)
 
 
-def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
-    """Validate joint parent/child references and the single-parent rule."""
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
+    """Validate a URDF ElementTree and return the root element.
+
+    Validates:
+    1. Root tag is ``<robot>``.
+    2. Every joint's ``child`` link name exists in the declared link set.
+    3. No link appears as ``child`` of more than one joint (single-parent rule).
+    4. All tags must be valid XML identifiers.
+
+    Parent link names are checked with a warning only, because the body model
+    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
+    structurally intentional and do not need to match a declared link name.
+
+    Raises ValueError if any check fails.
+    """
+    if root.tag != "robot":
+        raise URDFError(
+            f"URDF root must be <robot>, got <{root.tag}>",
+            error_code="PM203",
+        )
+
+    # ⚡ Bolt Optimization: Use a single-pass `iter()` traversal to collect both links
+    # and joints, validating tags simultaneously, rather than multiple `findall()` traversals.
+    link_names = set()
+    joints = []
+
+    # Validate all tags are valid XML to replicate the parsing check
+    for el in root.iter():
+        tag = el.tag
+        if type(tag) is str:
+            if tag not in _VALID_TAGS:
+                raise URDFError(
+                    f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
+                    error_code="PM204",
+                )
+            if tag == "link":
+                name = el.get("name")
+                if name:
+                    link_names.add(name)
+            elif tag == "joint":
+                joints.append(el)
+        else:
+            # ElementTree stores comments and processing instructions as
+            # callables in the .tag field, so we skip them.
+            continue
+
     child_parent_map: dict[str, str] = {}
-    for joint in root.findall("joint"):
+    for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
 
         parent_el = joint.find("parent")
@@ -77,68 +141,6 @@ def _validate_joint_links(root: ET.Element, link_names: set[str]) -> None:
         if child_link:
             child_parent_map[child_link] = joint_name
 
-
-_VALID_TAGS = frozenset(
-    [
-        "robot",
-        "link",
-        "joint",
-        "origin",
-        "inertial",
-        "mass",
-        "inertia",
-        "visual",
-        "geometry",
-        "cylinder",
-        "box",
-        "sphere",
-        "collision",
-        "parent",
-        "child",
-        "axis",
-        "limit",
-        "color",
-        "material",
-    ]
-)
-
-
-def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
-    """Validate a URDF ElementTree and return the root element.
-
-    Validates:
-    1. Root tag is ``<robot>``.
-    2. Every joint's ``child`` link name exists in the declared link set.
-    3. No link appears as ``child`` of more than one joint (single-parent rule).
-    4. All tags must be valid XML identifiers.
-
-    Parent link names are checked with a warning only, because the body model
-    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
-    structurally intentional and do not need to match a declared link name.
-
-    Raises ValueError if any check fails.
-    """
-    if root.tag != "robot":
-        raise URDFError(
-            f"URDF root must be <robot>, got <{root.tag}>",
-            error_code="PM203",
-        )
-
-    # Validate all tags are valid XML to replicate the parsing check
-    for el in root.iter():
-        tag = el.tag
-        if type(tag) is str:
-            if tag not in _VALID_TAGS:
-                raise URDFError(
-                    f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
-                    error_code="PM204",
-                )
-        else:
-            # ElementTree stores comments and processing instructions as
-            # callables in the .tag field, so we skip them.
-            continue
-    link_names = _collect_link_names(root)
-    _validate_joint_links(root, link_names)
     return root
 
 

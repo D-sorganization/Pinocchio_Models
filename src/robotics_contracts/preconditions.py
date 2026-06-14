@@ -53,6 +53,8 @@ def require_finite(arr: ArrayLike, name: str) -> None:
         return
 
     # ⚡ Bolt Optimization: Fast-path for numpy arrays to avoid asarray overhead
+    # In high-frequency array validation, using method-chaining like `np.isfinite(arr).all()`
+    # is significantly faster for small numpy arrays than `np.all(np.isfinite(arr))`.
     if arr_type is np.ndarray:
         if not np.isfinite(arr).all():
             raise ValueError(f"{name} contains non-finite values")
