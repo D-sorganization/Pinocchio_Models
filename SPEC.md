@@ -312,3 +312,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-25 | 1.0.21  | Optimized `require_finite` by using `np.isfinite(arr).all()` and adding an `np.ndarray` fast-path for array validation.                                                                  |
 | 2026-06-25 | 1.0.22  | Optimized URDF string serialization by inlining string builder and reducing concatenation overhead.                                                                                      |
 | 2026-06-03 | 1.0.23  | Optimized optional addon finite-array checks with boolean-mask `.all()` and reduced intermediate allocation in URDF attribute serialization.                                             |
+| 2026-06-14 | 1.0.24  | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation. |
