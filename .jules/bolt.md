@@ -75,3 +75,19 @@
 ## 2026-06-25 - Avoid intermediate string/list accumulation in URDF generation
 **Learning:** During URDF string generation, accumulating XML attribute formatting inside intermediate lists and then calling `"".join()` incurs unnecessary list-allocation and string joining overhead. Because string generation runs in a tight recursive loop for thousands of nodes per robot model, this overhead accumulates.
 **Action:** Always directly append formatted XML substrings into the primary `chunks` accumulator via `append()` instead of creating intermediate collections. Direct appending provides a measurable (~10-15%) latency reduction in tree serialization benchmarks.
+
+## 2026-06-25 - Never modify pyproject.toml / test configurations
+**Learning:** Modifying the `pyproject.toml` to remove `asyncio_mode` / `asyncio_default_fixture_loop_scope` when running tests might superficially silence warnings, but it can create breaking changes for dependencies and other test modules. Additionally, submitting PRs with unasked modifications to configurations is highly discouraged.
+**Action:** Do not modify `pyproject.toml` or other project configuration files simply to run tests; configure the test runner via CLI arguments or environment variables if needed, and never commit configuration changes without explicit instruction.
+
+## 2026-06-25 - Cleanup temporary test files
+**Learning:** Leaving temporary test files like `patch_test.py`, `profile_script.py`, and `stats.prof` pollutes the repository and creates unmergeable PRs.
+**Action:** Always verify git status and explicitly `rm` throwaway files before requesting code reviews or creating a PR.
+
+## 2026-06-25 - Safe testing refactoring
+**Learning:** Removing internal helper methods like `_collect_link_names` from a file like `src/pinocchio_models/shared/contracts/postconditions.py` will cause `ImportError` exceptions in the test suite if those internal functions were explicitly imported and tested in `tests/unit/shared/test_postconditions.py`.
+**Action:** When removing internal methods during refactoring, proactively grep the test suite for those imports and remove/update the corresponding unit tests to avoid breaking the test collection step.
+
+## 2026-06-25 - Never modify pyproject.toml / test configurations
+**Learning:** Modifying the `pyproject.toml` to remove `asyncio_mode` / `asyncio_default_fixture_loop_scope` when running tests might superficially silence warnings or errors when not installing dependencies completely, but it causes CI to fail.
+**Action:** Do not modify `pyproject.toml` or other project configuration files simply to run tests; configure the test runner via CLI arguments or environment variables if needed, and never commit configuration changes without explicit instruction.
