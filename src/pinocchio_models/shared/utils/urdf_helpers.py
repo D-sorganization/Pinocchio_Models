@@ -321,8 +321,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         # ⚡ Bolt Optimization: Avoiding intermediate list allocations or string concatenations
         # by directly collapsing multiple `append()` calls for opening tags and attributes into fewer concatenated writes
         # provides measurable latency reduction during URDF string generation.
+        # Direct append using f-strings and joining strings in attributes is slightly slower
+        # than calling `append` with parts because python strings are immutable.
+        # Actually doing append in a loop and formatting directly is slightly faster.
+
+        append(f"<{tag}")
         if attrib:
-            opening = f"<{tag}"
             for k, v in attrib.items():
                 if (
                     "&" in v
@@ -342,9 +346,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                         .replace("\r", "&#13;")
                         .replace("\t", "&#9;")
                     )
-                opening += f' {k}="{v}"'
-        else:
-            opening = f"<{tag}"
+                append(f' {k}="{v}"')
 
         if text:
             if "&" in text or "<" in text or ">" in text:
@@ -352,16 +354,16 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 )
             if elem_len == 0:
-                append(f"{opening}>{text}</{tag}>")
+                append(f">{text}</{tag}>")
             else:
-                append(f"{opening}>{text}")
+                append(f">{text}")
                 for child in elem:
                     _serialize(child)
                 append(f"</{tag}>")
         elif elem_len == 0:
-            append(f"{opening} />")
+            append(" />")
         else:
-            append(f"{opening}>")
+            append(">")
             for child in elem:
                 _serialize(child)
             append(f"</{tag}>")
