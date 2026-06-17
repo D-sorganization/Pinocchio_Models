@@ -14,14 +14,13 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import ArrayLike
 
+import robotics_contracts.preconditions as _rc
 from pinocchio_models.exceptions import URDFError
 
 
 def require_positive(value: float, name: str) -> None:
     """Require *value* to be strictly positive."""
     try:
-        import robotics_contracts.preconditions as _rc
-
         _rc.require_positive(value, name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM101") from exc
@@ -30,8 +29,6 @@ def require_positive(value: float, name: str) -> None:
 def require_non_negative(value: float, name: str) -> None:
     """Require *value* >= 0."""
     try:
-        import robotics_contracts.preconditions as _rc
-
         _rc.require_non_negative(value, name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM102") from exc
@@ -56,8 +53,6 @@ def require_unit_vector(vec: ArrayLike, name: str, tol: float = 1e-6) -> None:
 def require_finite(arr: ArrayLike, name: str) -> None:
     """Require all elements of *arr* to be finite (no NaN/Inf)."""
     try:
-        import robotics_contracts.preconditions as _rc
-
         _rc.require_finite(arr, name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM105") from exc
@@ -66,8 +61,6 @@ def require_finite(arr: ArrayLike, name: str) -> None:
 def require_in_range(value: float, low: float, high: float, name: str) -> None:
     """Require *low* <= *value* <= *high*."""
     try:
-        import robotics_contracts.preconditions as _rc
-
         _rc.require_in_range(value, low, high, name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM106") from exc
@@ -76,8 +69,6 @@ def require_in_range(value: float, low: float, high: float, name: str) -> None:
 def require_shape(arr: ArrayLike, expected: tuple[int, ...], name: str) -> None:
     """Require *arr* to have the given shape."""
     try:
-        import robotics_contracts.preconditions as _rc
-
         _rc.require_shape(arr, expected, name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM107") from exc

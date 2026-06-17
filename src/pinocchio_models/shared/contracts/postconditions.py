@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import xml.etree.ElementTree as ET
 
+import robotics_contracts.postconditions as _rc
 from pinocchio_models.exceptions import URDFError
 
 logger = logging.getLogger(__name__)
@@ -184,8 +185,6 @@ def ensure_valid_urdf(xml_string: str) -> ET.Element:
 def ensure_positive_mass(mass: float, body_name: str) -> None:
     """Validate that a body's mass is positive after computation."""
     try:
-        import robotics_contracts.postconditions as _rc
-
         _rc.ensure_positive_mass(mass, body_name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM205") from exc
@@ -196,8 +195,6 @@ def ensure_positive_definite_inertia(
 ) -> None:
     """Validate that principal inertias are positive (necessary for PD)."""
     try:
-        import robotics_contracts.postconditions as _rc
-
         _rc.ensure_positive_definite_inertia(ixx, iyy, izz, body_name)
     except ValueError as exc:
         raise URDFError(str(exc), error_code="PM206") from exc
