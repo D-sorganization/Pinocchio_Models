@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+                                          |
 | **License**             | MIT                                                   |
 | **Current Version**     | 0.1.0                                                 |
-| **Spec Version**        | 1.0.26                                                |
-| **Last Spec Update**    | 2026-06-14                                            |
+| **Spec Version**        | 1.0.28                                                |
+| **Last Spec Update**    | 2026-06-17                                            |
 
 ## 2. Purpose & Mission
 
@@ -318,3 +318,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-14 | 1.0.25  | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection.                                                                |
 | 2026-06-14 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
 | 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.                                                     |
+| 2026-06-17 | 1.0.28  | Moved shared robotics contract imports to module scope in precondition and postcondition wrappers, reducing hot-path import checks while preserving Pinocchio `URDFError` code mapping.  |
