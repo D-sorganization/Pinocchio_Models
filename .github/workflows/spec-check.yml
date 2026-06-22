@@ -9,6 +9,10 @@ permissions:
   contents: read
   pull-requests: write
 
+concurrency:
+  group: spec-check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   spec-freshness:
     name: Verify SPEC.md freshness
@@ -18,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
