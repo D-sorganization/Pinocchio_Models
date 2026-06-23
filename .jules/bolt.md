@@ -99,3 +99,6 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+## 2024-06-26 - Verify bottlenecks before micro-optimizations
+**Learning:** When applying micro-optimizations (like moving inline imports to module scope), always ensure the targeted function has been explicitly identified as an actual bottleneck by a profiler. Optimizing rarely-called paths yields no measurable benefits and can even degrade overall operations per second.
+**Action:** Do not blindly apply optimizations without profiling the exact function first.

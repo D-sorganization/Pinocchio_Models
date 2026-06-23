@@ -11,11 +11,14 @@ Migration note:
 
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
+
 import numpy as np
 from numpy.typing import ArrayLike
 
 import robotics_contracts.preconditions as _rc
 from pinocchio_models.exceptions import URDFError
+from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
 
 
 def require_positive(value: float, name: str) -> None:
@@ -93,8 +96,6 @@ def require_valid_urdf_string(urdf_str: str) -> None:
             error_code="PM108",
         )
 
-    import xml.etree.ElementTree as ET
-
     try:
         root = ET.fromstring(urdf_str)  # nosec B314 -- validating input
     except ET.ParseError as exc:
@@ -116,8 +117,6 @@ def require_valid_exercise_name(exercise_name: str) -> None:
     Raises :class:`ValueError` with a descriptive message listing the
     valid options when the name is not recognised.
     """
-    from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
-
     if exercise_name not in VALID_EXERCISE_NAMES:
         raise URDFError(
             f"Unknown exercise '{exercise_name}'. "
