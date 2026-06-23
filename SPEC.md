@@ -319,7 +319,6 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-14 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
 | 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                     |
+| 2026-06-26 | 1.0.29 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
 
 
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
