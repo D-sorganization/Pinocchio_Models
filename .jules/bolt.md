@@ -99,3 +99,6 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+## 2026-06-25 - Avoid temporary list allocation in high frequency loops
+**Learning:** In high-frequency, performance-critical validation paths (e.g., `ensure_positive_definite_inertia` called for every URDF link), allocating a small temporary list of tuples `[("Ixx", ixx), ...]` to iterate over incurs measurable overhead over thousands of calls due to continuous object allocation/deallocation.
+**Action:** Unroll loops that create temporary objects in hot paths into sequential `if` statements. This completely removes the overhead and produces faster execution.
