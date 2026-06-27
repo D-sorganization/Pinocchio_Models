@@ -99,3 +99,6 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+## 2024-06-27 - Local caching of append/add methods
+**Learning:** Even on modern Python versions (3.11+), when iterating over large datasets or deeply nested structures like URDF XML trees in a tight `for` loop, repeatedly calling methods like `.append` or `.add` on variables incurs a dictionary attribute lookup overhead.
+**Action:** Always consider assigning methods to local variables (e.g., `list_append = my_list.append`) outside the loop for high-frequency or deep iteration loops to squeeze out extra micro-performance. Ensure a descriptive comment is added to explain why this unusual code structure is present, matching Bolt's requirement.

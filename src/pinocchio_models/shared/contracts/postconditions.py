@@ -69,6 +69,11 @@ def _collect_link_names_and_joints(
     link_names: set[str] = set()
     joints: list[ET.Element] = []
 
+    # ⚡ Bolt Optimization: Resolving list/set method attributes outside the hot loop
+    # prevents repeated dictionary lookups during deep URDF tree iterations,
+    # lowering loop overhead and improving generation OPS.
+    link_names_add = link_names.add
+    joints_append = joints.append
     for el in root.iter():
         tag = el.tag
         if type(tag) is not str:
@@ -83,9 +88,9 @@ def _collect_link_names_and_joints(
         if tag == "link":
             name = el.get("name")
             if name:
-                link_names.add(name)
+                link_names_add(name)
         elif tag == "joint":
-            joints.append(el)
+            joints_append(el)
 
     return link_names, joints
 
