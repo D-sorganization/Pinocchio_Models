@@ -99,3 +99,11 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+
+## 2024-05-18 - Optimize XML tag validation loops
+**Learning:** In tight loops validating XML tags, checking if a tag is a non-string (e.g. comment/processing instruction) via `type(tag) is not str` adds measurable overhead for every single valid element. Since we already have a `_VALID_TAGS` set, checking `if tag in _VALID_TAGS` first acts as a very fast happy path, safely rejecting both invalid strings and non-string types (which naturally aren't in the string set).
+**Action:** When validating ElementTree nodes against a whitelist of valid tags, prioritize the whitelist check first to skip type-checking overhead for valid nodes.
+
+## 2024-05-18 - Cache set and list methods in tight loops
+**Learning:** During micro-optimization, caching methods like `set.add` and `list.append` (e.g. `link_names_add = link_names.add`) before a tight loop traversing a large ElementTree measurably speeds up the loop by avoiding repeated dictionary/attribute lookups.
+**Action:** In high-frequency parsing loops, assign frequently called methods of local objects to local variables before the loop begins.
