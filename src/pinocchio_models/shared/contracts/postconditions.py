@@ -62,65 +62,7 @@ _VALID_TAGS = frozenset(
 )
 
 
-def _collect_link_names_and_joints(
-    root: ET.Element,
-) -> tuple[set[str], list[ET.Element]]:
-    """Collect declared link names and joint elements while validating tags."""
-    link_names: set[str] = set()
-    joints: list[ET.Element] = []
-
-    for el in root.iter():
-        tag = el.tag
-        if type(tag) is not str:
-            # ElementTree stores comments and processing instructions as
-            # callables in the .tag field, so we skip them.
-            continue
-        if tag not in _VALID_TAGS:
-            raise URDFError(
-                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
-                error_code="PM204",
-            )
-        if tag == "link":
-            name = el.get("name")
-            if name:
-                link_names.add(name)
-        elif tag == "joint":
-            joints.append(el)
-
-    return link_names, joints
-
-
-def _ensure_known_child_link(
-    joint_name: str,
-    child_link: str,
-    link_names: set[str],
-) -> None:
-    """Verify a joint child link refers to a declared link."""
-    if child_link and child_link not in link_names:
-        raise URDFError(
-            f"Joint '{joint_name}' references unknown child link '{child_link}'",
-            error_code="PM201",
-        )
-
-
-def _ensure_single_parent_link(
-    joint_name: str,
-    child_link: str,
-    child_parent_map: dict[str, str],
-) -> None:
-    """Verify a child link is assigned to at most one parent joint."""
-    if child_link in child_parent_map:
-        raise URDFError(
-            f"Link '{child_link}' is declared as child of both "
-            f"'{child_parent_map[child_link]}' and '{joint_name}' — "
-            "URDF requires each link to have exactly one parent joint",
-            error_code="PM202",
-        )
-    if child_link:
-        child_parent_map[child_link] = joint_name
-
-
-def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
     """Validate a URDF ElementTree and return the root element.
 
     Validates:
@@ -141,7 +83,31 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
             error_code="PM203",
         )
 
-    link_names, joints = _collect_link_names_and_joints(root)
+    link_names: set[str] = set()
+    link_names_add = link_names.add
+    joints: list[ET.Element] = []
+    joints_append = joints.append
+
+    # Inline validation and collection logic to avoid function call overhead
+    # in the hot path.
+    for el in root.iter():
+        tag = el.tag
+        if tag in _VALID_TAGS:
+            if tag == "link":
+                name = el.get("name")
+                if name:
+                    link_names_add(name)
+            elif tag == "joint":
+                joints_append(el)
+        elif type(tag) is not str:
+            # ElementTree stores comments and processing instructions as
+            # callables in the .tag field, so we skip them.
+            continue
+        else:
+            raise URDFError(
+                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
+                error_code="PM204",
+            )
 
     child_parent_map: dict[str, str] = {}
     for joint in joints:
@@ -158,8 +124,21 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
         # However, this is intentional for aliased parent links in the body model, and logging
         # causes significant overhead during benchmark/generation. Therefore, we do not log.
 
-        _ensure_known_child_link(joint_name, child_link, link_names)
-        _ensure_single_parent_link(joint_name, child_link, child_parent_map)
+        if child_link and child_link not in link_names:
+            raise URDFError(
+                f"Joint '{joint_name}' references unknown child link '{child_link}'",
+                error_code="PM201",
+            )
+
+        if child_link in child_parent_map:
+            raise URDFError(
+                f"Link '{child_link}' is declared as child of both "
+                f"'{child_parent_map[child_link]}' and '{joint_name}' — "
+                "URDF requires each link to have exactly one parent joint",
+                error_code="PM202",
+            )
+        if child_link:
+            child_parent_map[child_link] = joint_name
 
     return root
 
