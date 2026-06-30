@@ -99,3 +99,7 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+
+## 2026-06-30 - Inline validation helpers in URDF generation
+**Learning:** When analyzing performance in hot paths (like iterating through large `xml.etree.ElementTree` models for validation), calling multiple small internal helper functions (such as `_collect_link_names_and_joints` and `_ensure_known_child_link`) per-node incurs a significant Python function overhead. Inlining these validations into a single traversal loop with local cached method lookups (`link_names_add = link_names.add`) reduces execution time by around 20%.
+**Action:** Inline tight-loop validation functions into the primary iteration when verifying large recursive tree structures. It is acceptable to suppress linter complexity checks (`# noqa: C901`) on the resulting function if the logic remains readable and strictly targeted at reducing function call overhead.
