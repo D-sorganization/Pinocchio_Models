@@ -147,12 +147,20 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
 
-        parent_el = joint.find("parent")
-        child_el = joint.find("child")
-        if parent_el is None or child_el is None:
-            continue
+        # ⚡ Bolt Optimization: inline loop instead of Element.find() to avoid ElementPath overhead
+        parent_link = None
+        child_link = None
+        for child in joint:
+            tag = child.tag
+            if tag == "parent":
+                parent_link = child.get("link", "")
+            elif tag == "child":
+                child_link = child.get("link", "")
+            if parent_link is not None and child_link is not None:
+                break
 
-        child_link = child_el.get("link", "")
+        if parent_link is None or child_link is None:
+            continue
 
         # (a) We used to warn if parent link name does not exist in the declared link set.
         # However, this is intentional for aliased parent links in the body model, and logging

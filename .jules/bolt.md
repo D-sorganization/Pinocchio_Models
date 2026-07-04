@@ -99,3 +99,7 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+
+## 2026-07-04 - Optimize ElementTree element searches in hot loops
+**Learning:** In tight loops iterating over `xml.etree.ElementTree` elements (like URDF validation where a joint element has fewer than ~5 children), replacing `element.find("tag")` with a manual iteration `for child in element:` is measurably faster. `.find()` internally parses the `ElementPath` object and executes more instructions than a direct enumeration of direct children, creating an overhead in hot paths.
+**Action:** When searching for immediate children in very small collections (like `<parent>` inside `<joint>`) within high-frequency loops, use direct child iteration instead of `Element.find()`.
