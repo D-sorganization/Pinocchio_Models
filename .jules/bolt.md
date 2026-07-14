@@ -103,3 +103,7 @@
 ## 2026-07-14 - Optimize URDF tree validation with single-pass iteration
 **Learning:** In `ensure_valid_urdf_tree` (inside `src/pinocchio_models/shared/contracts/postconditions.py`), executing multiple passes over the XML tree using `.iter()` and `.find()` was creating significant traversal overhead. Specifically, `joint.find("child")` triggers python's `ElementPath` parsing for every joint, which is noticeably slower than a direct unrolled inline loop.
 **Action:** When validating XML structures, combine node collection and validation into a single deep `.iter()` loop where possible. Additionally, replace `.find()` inside small child lists with explicit unrolled loops to eliminate `ElementPath` overhead. This yielded a solid reduction in validation time for high-frequency model generation.
+
+## 2026-07-14 - Cyclomatic Complexity vs Micro-Optimizations
+**Learning:** Inlining multiple helper functions into a single pass (like `ensure_valid_urdf_tree`) can trigger linter violations for high cyclomatic complexity (e.g., Radon CC > 10 in our CI). While `# noqa: C901` suppresses Ruff, the standalone `radon` check requires functions to be split.
+**Action:** When performing loop unrolling or single-pass deep iteration optimizations, extract independent validation steps (like `_ensure_known_child_link` and `_ensure_single_parent_link`) into small helper functions if they increase branching. The minor function call overhead is sometimes unavoidable to satisfy strict CI complexity gates.

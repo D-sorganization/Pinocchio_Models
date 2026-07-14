@@ -62,30 +62,12 @@ _VALID_TAGS = frozenset(
 )
 
 
-def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
-    """Validate a URDF ElementTree and return the root element.
-
-    Validates:
-    1. Root tag is ``<robot>``.
-    2. Every joint's ``child`` link name exists in the declared link set.
-    3. No link appears as ``child`` of more than one joint (single-parent rule).
-    4. All tags must be valid XML identifiers.
-
-    Parent link names are checked with a warning only, because the body model
-    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
-    structurally intentional and do not need to match a declared link name.
-
-    Raises ValueError if any check fails.
-    """
-    if root.tag != "robot":
-        raise URDFError(
-            f"URDF root must be <robot>, got <{root.tag}>",
-            error_code="PM203",
-        )
-
-    # ⚡ Bolt Optimization: Replacing multiple specific .findall() traversals
-    # and helper function calls with a single-pass deep iteration and inline
-    # validation logic avoids significant ElementPath parsing overhead.
+def _collect_link_names_and_joints(
+    root: ET.Element,
+) -> tuple[set[str], list[ET.Element]]:
+    """Collect declared link names and joint elements while validating tags."""
+    # ⚡ Bolt Optimization: Replace multiple specific .findall() traversals
+    # with a single-pass deep iteration to avoid ElementPath overhead.
     link_names: set[str] = set()
     link_add = link_names.add
     joints: list[ET.Element] = []
@@ -110,6 +92,62 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
                 error_code="PM204",
             )
 
+    return link_names, joints
+
+
+def _ensure_known_child_link(
+    joint_name: str,
+    child_link: str,
+    link_names: set[str],
+) -> None:
+    """Verify a joint child link refers to a declared link."""
+    if child_link and child_link not in link_names:
+        raise URDFError(
+            f"Joint '{joint_name}' references unknown child link '{child_link}'",
+            error_code="PM201",
+        )
+
+
+def _ensure_single_parent_link(
+    joint_name: str,
+    child_link: str,
+    child_parent_map: dict[str, str],
+) -> None:
+    """Verify a child link is assigned to at most one parent joint."""
+    if child_link in child_parent_map:
+        raise URDFError(
+            f"Link '{child_link}' is declared as child of both "
+            f"'{child_parent_map[child_link]}' and '{joint_name}' — "
+            "URDF requires each link to have exactly one parent joint",
+            error_code="PM202",
+        )
+    if child_link:
+        child_parent_map[child_link] = joint_name
+
+
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
+    """Validate a URDF ElementTree and return the root element.
+
+    Validates:
+    1. Root tag is ``<robot>``.
+    2. Every joint's ``child`` link name exists in the declared link set.
+    3. No link appears as ``child`` of more than one joint (single-parent rule).
+    4. All tags must be valid XML identifiers.
+
+    Parent link names are checked with a warning only, because the body model
+    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
+    structurally intentional and do not need to match a declared link name.
+
+    Raises ValueError if any check fails.
+    """
+    if root.tag != "robot":
+        raise URDFError(
+            f"URDF root must be <robot>, got <{root.tag}>",
+            error_code="PM203",
+        )
+
+    link_names, joints = _collect_link_names_and_joints(root)
+
     child_parent_map: dict[str, str] = {}
     for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
@@ -133,21 +171,8 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
         # However, this is intentional for aliased parent links in the body model, and logging
         # causes significant overhead during benchmark/generation. Therefore, we do not log.
 
-        if child_link and child_link not in link_names:
-            raise URDFError(
-                f"Joint '{joint_name}' references unknown child link '{child_link}'",
-                error_code="PM201",
-            )
-
-        if child_link in child_parent_map:
-            raise URDFError(
-                f"Link '{child_link}' is declared as child of both "
-                f"'{child_parent_map[child_link]}' and '{joint_name}' — "
-                "URDF requires each link to have exactly one parent joint",
-                error_code="PM202",
-            )
-        if child_link:
-            child_parent_map[child_link] = joint_name
+        _ensure_known_child_link(joint_name, child_link, link_names)
+        _ensure_single_parent_link(joint_name, child_link, child_parent_map)
 
     return root
 
