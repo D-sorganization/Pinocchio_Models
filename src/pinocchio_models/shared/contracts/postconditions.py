@@ -124,20 +124,8 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
     for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
 
-        # ⚡ Bolt Optimization: Replacing `.find()` with a direct loop avoids ElementPath
-        # parsing overhead for small, simple child lists.
-        parent_el = None
-        child_el = None
-        for j_child in joint:
-            j_tag = j_child.tag
-            if j_tag == "parent":
-                parent_el = j_child
-                if child_el is not None:
-                    break
-            elif j_tag == "child":
-                child_el = j_child
-                if parent_el is not None:
-                    break
+        parent_el = joint.find("parent")
+        child_el = joint.find("child")
 
         if parent_el is None or child_el is None:
             continue
