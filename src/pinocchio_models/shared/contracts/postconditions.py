@@ -90,37 +90,7 @@ def _collect_link_names_and_joints(
     return link_names, joints
 
 
-def _ensure_known_child_link(
-    joint_name: str,
-    child_link: str,
-    link_names: set[str],
-) -> None:
-    """Verify a joint child link refers to a declared link."""
-    if child_link and child_link not in link_names:
-        raise URDFError(
-            f"Joint '{joint_name}' references unknown child link '{child_link}'",
-            error_code="PM201",
-        )
-
-
-def _ensure_single_parent_link(
-    joint_name: str,
-    child_link: str,
-    child_parent_map: dict[str, str],
-) -> None:
-    """Verify a child link is assigned to at most one parent joint."""
-    if child_link in child_parent_map:
-        raise URDFError(
-            f"Link '{child_link}' is declared as child of both "
-            f"'{child_parent_map[child_link]}' and '{joint_name}' — "
-            "URDF requires each link to have exactly one parent joint",
-            error_code="PM202",
-        )
-    if child_link:
-        child_parent_map[child_link] = joint_name
-
-
-def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
     """Validate a URDF ElementTree and return the root element.
 
     Validates:
@@ -158,8 +128,23 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
         # However, this is intentional for aliased parent links in the body model, and logging
         # causes significant overhead during benchmark/generation. Therefore, we do not log.
 
-        _ensure_known_child_link(joint_name, child_link, link_names)
-        _ensure_single_parent_link(joint_name, child_link, child_parent_map)
+        # ⚡ Bolt Optimization: Inline small helper functions to avoid
+        # Python function call overhead for every node.
+        if child_link and child_link not in link_names:
+            raise URDFError(
+                f"Joint '{joint_name}' references unknown child link '{child_link}'",
+                error_code="PM201",
+            )
+
+        if child_link in child_parent_map:
+            raise URDFError(
+                f"Link '{child_link}' is declared as child of both "
+                f"'{child_parent_map[child_link]}' and '{joint_name}' — "
+                "URDF requires each link to have exactly one parent joint",
+                error_code="PM202",
+            )
+        if child_link:
+            child_parent_map[child_link] = joint_name
 
     return root
 

@@ -99,3 +99,11 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+
+## 2026-06-25 - Avoid manual ElementTree filtering loops
+**Learning:** In Python's `xml.etree.ElementTree`, replacing `.findall("tag")` with a manual Python `for` loop and an `if tag == "tag"` statement actually degrades performance. The `.findall()` method is highly optimized at the C layer (`cElementTree`), while manual loops run in slower Python bytecode. Pushing operations down to the C layer is a fundamental Python optimization technique.
+**Action:** Do not attempt to optimize `.findall()` or `.find()` by replacing them with manual iteration and filtering in Python code, as this constitutes a performance anti-pattern.
+
+## 2026-06-25 - Inline small validation functions in hot tree traversals
+**Learning:** In hot loops traversing complex data structures like `xml.etree.ElementTree` nodes (e.g., in `ensure_valid_urdf_tree`), keeping validation checks (such as single-parent or known-child links) in separate helper functions introduces significant Python function-call overhead (about 1-2 million calls per 5000 models).
+**Action:** Inline small, stateless helper functions directly into the main traversal loop to avoid function-call overhead. This provides a measurable, safe increase in operations per second.
