@@ -317,9 +317,6 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-14 | 1.0.24  | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation.                                            |
 | 2026-06-14 | 1.0.25  | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection.                                                                |
 | 2026-06-14 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
-| 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                     |
-
-
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
+| 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`. |
+| 2026-06-25 | 1.0.28  | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
+| 2026-07-15 | 1.0.29  | Optimized URDF tree generation by inlining validation helper functions in `ensure_valid_urdf_tree`. |
