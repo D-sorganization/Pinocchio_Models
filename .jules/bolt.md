@@ -99,3 +99,7 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+
+## 2026-06-25 - Avoid `ElementPath` parsing overhead in hot loops
+**Learning:** During profiling of `ensure_valid_urdf_tree` inside `src/pinocchio_models/shared/contracts/postconditions.py`, it was found that calling `joint.find("parent")` and `joint.find("child")` repeatedly inside a loop across thousands of joint elements introduces significant overhead due to Python `xml.etree.ElementPath` compiling and parsing the XPath queries.
+**Action:** When searching for single child nodes by tag name within a heavily traversed function and when the element contains very few children (e.g. `<joint>`), use a direct inline loop (`for child in element: if child.tag == "parent": ...`) instead of `.find()`. This simple modification avoids `ElementPath` overhead and yields measurable latency reduction.
