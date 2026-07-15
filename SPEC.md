@@ -321,5 +321,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                     |
 
 
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
+| 2026-07-15 | 1.0.29  | Optimized joint child lookup in `ensure_valid_urdf_tree` by replacing `ElementPath` with inline loops.                                                                        |
