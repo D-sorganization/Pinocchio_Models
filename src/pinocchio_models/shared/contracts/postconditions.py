@@ -62,7 +62,40 @@ _VALID_TAGS = frozenset(
 )
 
 
-def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
+def _validate_joint(
+    joint: ET.Element,
+    link_names: set[str],
+    child_parent_map: dict[str, str],
+) -> None:
+    """Verify child link exists and has at most one parent."""
+    joint_name = joint.get("name", "<unnamed>")
+    parent_el = joint.find("parent")
+    child_el = joint.find("child")
+
+    if parent_el is None or child_el is None:
+        return
+
+    child_link = child_el.get("link", "")
+
+    if child_link and child_link not in link_names:
+        raise URDFError(
+            f"Joint '{joint_name}' references unknown child link '{child_link}'",
+            error_code="PM201",
+        )
+
+    if child_link in child_parent_map:
+        raise URDFError(
+            f"Link '{child_link}' is declared as child of both "
+            f"'{child_parent_map[child_link]}' and '{joint_name}' — "
+            "URDF requires each link to have exactly one parent joint",
+            error_code="PM202",
+        )
+
+    if child_link:
+        child_parent_map[child_link] = joint_name
+
+
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     """Validate a URDF ElementTree and return the root element.
 
     Validates:
@@ -112,34 +145,7 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
 
     child_parent_map: dict[str, str] = {}
     for joint in joints:
-        joint_name = joint.get("name", "<unnamed>")
-
-        parent_el = joint.find("parent")
-        child_el = joint.find("child")
-        if parent_el is None or child_el is None:
-            continue
-
-        child_link = child_el.get("link", "")
-
-        # (a) We used to warn if parent link name does not exist in the declared link set.
-        # However, this is intentional for aliased parent links in the body model, and logging
-        # causes significant overhead during benchmark/generation. Therefore, we do not log.
-
-        if child_link and child_link not in link_names:
-            raise URDFError(
-                f"Joint '{joint_name}' references unknown child link '{child_link}'",
-                error_code="PM201",
-            )
-
-        if child_link in child_parent_map:
-            raise URDFError(
-                f"Link '{child_link}' is declared as child of both "
-                f"'{child_parent_map[child_link]}' and '{joint_name}' — "
-                "URDF requires each link to have exactly one parent joint",
-                error_code="PM202",
-            )
-        if child_link:
-            child_parent_map[child_link] = joint_name
+        _validate_joint(joint, link_names, child_parent_map)
 
     return root
 
