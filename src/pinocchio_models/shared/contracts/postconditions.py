@@ -62,27 +62,53 @@ _VALID_TAGS = frozenset(
 )
 
 
-def _validate_joint(
-    joint: ET.Element,
+def _collect_link_names_and_joints(
+    root: ET.Element,
+) -> tuple[set[str], list[ET.Element]]:
+    """Collect declared link names and joint elements while validating tags."""
+    link_names: set[str] = set()
+    joints: list[ET.Element] = []
+
+    for el in root.iter():
+        tag = el.tag
+        if type(tag) is not str:
+            # ElementTree stores comments and processing instructions as
+            # callables in the .tag field, so we skip them.
+            continue
+        if tag not in _VALID_TAGS:
+            raise URDFError(
+                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
+                error_code="PM204",
+            )
+        if tag == "link":
+            name = el.get("name")
+            if name:
+                link_names.add(name)
+        elif tag == "joint":
+            joints.append(el)
+
+    return link_names, joints
+
+
+def _ensure_known_child_link(
+    joint_name: str,
+    child_link: str,
     link_names: set[str],
-    child_parent_map: dict[str, str],
 ) -> None:
-    """Verify child link exists and has at most one parent."""
-    joint_name = joint.get("name", "<unnamed>")
-    parent_el = joint.find("parent")
-    child_el = joint.find("child")
-
-    if parent_el is None or child_el is None:
-        return
-
-    child_link = child_el.get("link", "")
-
+    """Verify a joint child link refers to a declared link."""
     if child_link and child_link not in link_names:
         raise URDFError(
             f"Joint '{joint_name}' references unknown child link '{child_link}'",
             error_code="PM201",
         )
 
+
+def _ensure_single_parent_link(
+    joint_name: str,
+    child_link: str,
+    child_parent_map: dict[str, str],
+) -> None:
+    """Verify a child link is assigned to at most one parent joint."""
     if child_link in child_parent_map:
         raise URDFError(
             f"Link '{child_link}' is declared as child of both "
@@ -90,7 +116,6 @@ def _validate_joint(
             "URDF requires each link to have exactly one parent joint",
             error_code="PM202",
         )
-
     if child_link:
         child_parent_map[child_link] = joint_name
 
@@ -116,36 +141,25 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
             error_code="PM203",
         )
 
-    link_names: set[str] = set()
-    joints: list[ET.Element] = []
-
-    # ⚡ Bolt Optimization: Localizing methods and checking `tag in _VALID_TAGS`
-    # first (fast-path) eliminates function call overhead and speeds up tree traversal.
-    add_link = link_names.add
-    append_joint = joints.append
-
-    for el in root.iter():
-        tag = el.tag
-        if tag in _VALID_TAGS:
-            if tag == "link":
-                name = el.get("name")
-                if name:
-                    add_link(name)
-            elif tag == "joint":
-                append_joint(el)
-        elif type(tag) is not str:
-            # ElementTree stores comments and processing instructions as
-            # callables in the .tag field, so we skip them.
-            continue
-        else:
-            raise URDFError(
-                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
-                error_code="PM204",
-            )
+    link_names, joints = _collect_link_names_and_joints(root)
 
     child_parent_map: dict[str, str] = {}
     for joint in joints:
-        _validate_joint(joint, link_names, child_parent_map)
+        joint_name = joint.get("name", "<unnamed>")
+
+        parent_el = joint.find("parent")
+        child_el = joint.find("child")
+        if parent_el is None or child_el is None:
+            continue
+
+        child_link = child_el.get("link", "")
+
+        # (a) We used to warn if parent link name does not exist in the declared link set.
+        # However, this is intentional for aliased parent links in the body model, and logging
+        # causes significant overhead during benchmark/generation. Therefore, we do not log.
+
+        _ensure_known_child_link(joint_name, child_link, link_names)
+        _ensure_single_parent_link(joint_name, child_link, child_parent_map)
 
     return root
 
