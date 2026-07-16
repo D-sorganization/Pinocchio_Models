@@ -350,7 +350,9 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             if text:
                 if "&" in text or "<" in text or ">" in text:
                     text = (
-                        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                        text.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
                     )
                 if elem_len == 0:
                     append(f">{text}</{tag}>")
@@ -370,7 +372,9 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             if text:
                 if "&" in text or "<" in text or ">" in text:
                     text = (
-                        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                        text.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
                     )
                 if elem_len == 0:
                     append(f"<{tag}>{text}</{tag}>")
