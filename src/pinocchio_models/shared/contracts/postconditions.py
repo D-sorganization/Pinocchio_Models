@@ -69,23 +69,29 @@ def _collect_link_names_and_joints(
     link_names: set[str] = set()
     joints: list[ET.Element] = []
 
+    # ⚡ Bolt Optimization: Cache methods for tight loop.
+    link_names_add = link_names.add
+    joints_append = joints.append
+
     for el in root.iter():
         tag = el.tag
-        if type(tag) is not str:
+        # ⚡ Bolt Optimization: Fast path for valid string tags avoids `type(tag) is not str` overhead.
+        if tag in _VALID_TAGS:
+            if tag == "link":
+                name = el.get("name")
+                if name:
+                    link_names_add(name)
+            elif tag == "joint":
+                joints_append(el)
+        elif type(tag) is not str:
             # ElementTree stores comments and processing instructions as
             # callables in the .tag field, so we skip them.
             continue
-        if tag not in _VALID_TAGS:
+        else:
             raise URDFError(
                 f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
                 error_code="PM204",
             )
-        if tag == "link":
-            name = el.get("name")
-            if name:
-                link_names.add(name)
-        elif tag == "joint":
-            joints.append(el)
 
     return link_names, joints
 
@@ -147,8 +153,16 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
 
-        parent_el = joint.find("parent")
-        child_el = joint.find("child")
+        # ⚡ Bolt Optimization: Manual inline find avoiding ElementPath parsing overhead.
+        parent_el = None
+        child_el = None
+        for child in joint:
+            ctag = child.tag
+            if ctag == "parent":
+                parent_el = child
+            elif ctag == "child":
+                child_el = child
+
         if parent_el is None or child_el is None:
             continue
 

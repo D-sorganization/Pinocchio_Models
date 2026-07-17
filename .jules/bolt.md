@@ -99,3 +99,10 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+## 2026-07-17 - Optimize XML iteration and Element path finding
+**Learning:** In a high-frequency XML validation path traversing thousands of nodes using `ElementTree` methods, we observed substantial overhead from `type(tag) is not str` for tag screening and from calling `joint.find("parent")` to locate direct children.
+**Action:** Always prioritize the "happy path" by validating string identity via a set `_VALID_TAGS` first, and manually loop over immediate children for lookup instead of relying on the general purpose `ElementPath` search which introduces significant latency in tight loops.
+
+## 2026-07-17 - Unroll iteration overhead for fixed collections
+**Learning:** During continuous validation of numerical physics properties, executing code inside loops iterating over hard-coded tuple lists (`[("Ixx", ixx), ("Iyy", iyy), ... ]`) added substantial object creation and loop administration overhead in frequently accessed paths.
+**Action:** Explicitly unroll loop structures and avoid intermediate tuple collections in small validation steps when the operation executes on the order of millions of times per simulation tick.
