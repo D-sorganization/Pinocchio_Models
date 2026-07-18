@@ -62,32 +62,11 @@ _VALID_TAGS = frozenset(
 )
 
 
-def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
-    """Validate a URDF ElementTree and return the root element.
+def _collect_and_validate_nodes(root: ET.Element) -> tuple[set[str], list[ET.Element]]:
+    """Iterate tree to collect links and joints while validating tags.
 
-    Validates:
-    1. Root tag is ``<robot>``.
-    2. Every joint's ``child`` link name exists in the declared link set.
-    3. No link appears as ``child`` of more than one joint (single-parent rule).
-    4. All tags must be valid XML identifiers.
-
-    Parent link names are checked with a warning only, because the body model
-    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
-    structurally intentional and do not need to match a declared link name.
-
-    Raises ValueError if any check fails.
+    ⚡ Bolt Optimization: Fast inline validation.
     """
-    if root.tag != "robot":
-        raise URDFError(
-            f"URDF root must be <robot>, got <{root.tag}>",
-            error_code="PM203",
-        )
-
-    # ⚡ Bolt Optimization: Inline tree traversal and validation logic.
-    # By eliminating intermediate helper functions (_collect_link_names_and_joints,
-    # _ensure_known_child_link, _ensure_single_parent_link) and localizing
-    # set.add and list.append, we avoid thousands of function call overheads
-    # during URDF tree validation.
     link_names: set[str] = set()
     joints: list[ET.Element] = []
     link_names_add = link_names.add
@@ -111,6 +90,31 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
                 f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
                 error_code="PM204",
             )
+    return link_names, joints
+
+
+def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
+    """Validate a URDF ElementTree and return the root element.
+
+    Validates:
+    1. Root tag is ``<robot>``.
+    2. Every joint's ``child`` link name exists in the declared link set.
+    3. No link appears as ``child`` of more than one joint (single-parent rule).
+    4. All tags must be valid XML identifiers.
+
+    Parent link names are checked with a warning only, because the body model
+    uses resolved parent aliases (e.g. ``torso_l`` → ``torso``) that are
+    structurally intentional and do not need to match a declared link name.
+
+    Raises ValueError if any check fails.
+    """
+    if root.tag != "robot":
+        raise URDFError(
+            f"URDF root must be <robot>, got <{root.tag}>",
+            error_code="PM203",
+        )
+
+    link_names, joints = _collect_and_validate_nodes(root)
 
     child_parent_map: dict[str, str] = {}
     for joint in joints:
@@ -124,10 +128,6 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:  # noqa: C901
         child_link = child_el.get("link", "")
         if not child_link:
             continue
-
-        # (a) We used to warn if parent link name does not exist in the declared link set.
-        # However, this is intentional for aliased parent links in the body model, and logging
-        # causes significant overhead during benchmark/generation. Therefore, we do not log.
 
         if child_link not in link_names:
             raise URDFError(
