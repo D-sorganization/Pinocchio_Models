@@ -2,7 +2,7 @@
 
 <!--
   TEMPLATE VERSION: 1.0.0
-  LAST UPDATED: 2026-06-16
+  LAST UPDATED: 2026-07-18
 
   This document is the canonical repository specification for Pinocchio_Models.
   Keep it aligned with the current codebase, entrypoints, and validation rules.
