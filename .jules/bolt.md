@@ -103,3 +103,7 @@
 ## 2026-06-25 - Optimize URDF tree validation with single-pass iteration
 **Learning:** In `ensure_valid_urdf_tree`, separating the validation steps into an initial traversal (collecting tags/links) and a secondary check over `joints` with repeated `.find()` calls incurred unnecessary overhead. By combining these steps into a single `root.iter()` loop with cached `.add()` and `.append()` methods, we avoid function call boundaries and redundant tree traversal. Furthermore, using a fast-path check `tag in _VALID_TAGS` optimizes tag string matching.
 **Action:** Always prefer a single-pass iteration using `.iter()` and cache list/set methods when validating complex XML structures (like URDFs) in hot paths.
+
+## 2026-06-25 - Avoid cyclomatic complexity bounds with method caching
+**Learning:** Combining nested XML tree traversals and link validations into a single function raised cyclomatic complexity beyond acceptable limits (C>10) causing CI failures in `quality-gate`. However, keeping the traversal separate but caching method lookups (`link_names.add` and `joints.append`) still provides the vast majority of the execution time reduction because dictionary attribute lookup during loop execution dominates function call boundaries when the boundary is only crossed once.
+**Action:** When refactoring for performance in highly restrictive CI environments, favor local variable caching for array/set modification functions over complete inline structural refactoring.
