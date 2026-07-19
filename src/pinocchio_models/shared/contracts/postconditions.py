@@ -62,34 +62,6 @@ _VALID_TAGS = frozenset(
 )
 
 
-def _collect_link_names_and_joints(
-    root: ET.Element,
-) -> tuple[set[str], list[ET.Element]]:
-    """Collect declared link names and joint elements while validating tags."""
-    link_names: set[str] = set()
-    joints: list[ET.Element] = []
-
-    for el in root.iter():
-        tag = el.tag
-        if type(tag) is not str:
-            # ElementTree stores comments and processing instructions as
-            # callables in the .tag field, so we skip them.
-            continue
-        if tag not in _VALID_TAGS:
-            raise URDFError(
-                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
-                error_code="PM204",
-            )
-        if tag == "link":
-            name = el.get("name")
-            if name:
-                link_names.add(name)
-        elif tag == "joint":
-            joints.append(el)
-
-    return link_names, joints
-
-
 def _ensure_known_child_link(
     joint_name: str,
     child_link: str,
@@ -141,7 +113,32 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
             error_code="PM203",
         )
 
-    link_names, joints = _collect_link_names_and_joints(root)
+    link_names: set[str] = set()
+    link_names_add = link_names.add
+    joints: list[ET.Element] = []
+    joints_append = joints.append
+
+    # ⚡ Bolt Optimization: Use a single-pass deep iteration to collect link names
+    # and joint elements, avoiding the overhead of multiple tree traversals.
+    for el in root.iter():
+        tag = el.tag
+        if type(tag) is not str:
+            # ElementTree stores comments and processing instructions as
+            # callables in the .tag field, so we skip them.
+            continue
+
+        # In URDF validation loop, order conditional checks to prioritize happy path.
+        if tag not in _VALID_TAGS:
+            raise URDFError(
+                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
+                error_code="PM204",
+            )
+        if tag == "link":
+            name = el.get("name")
+            if name:
+                link_names_add(name)
+        elif tag == "joint":
+            joints_append(el)
 
     child_parent_map: dict[str, str] = {}
     for joint in joints:
