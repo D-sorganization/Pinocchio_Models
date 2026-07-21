@@ -99,3 +99,8 @@
 ## 2026-06-25 - Avoid inline imports in high-frequency functions
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
+
+
+## 2024-07-21 - Optimize URDF Postcondition Validation Loops
+**Learning:** In the codebase, validating URDF trees using `xml.etree.ElementTree` inside tight loops like `_collect_link_names_and_joints` can be slow due to repeated dictionary lookups and type checks over many elements. Using cached `set.add` and `list.append` on local variables inside the loop reduces dictionary attribute lookup overhead and provides a minor but measurable performance benefit in high-frequency validation routines. Additionally, prioritizing the most frequent "happy path" checks (e.g. membership in `_VALID_TAGS`) before type checking callables in the iterator loop slightly improves node traversal speed for large trees.
+**Action:** When working on large validation loops, cache list/set methods and structure condition checks to prioritize the most frequently passed rules to minimize overhead.
