@@ -30,12 +30,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Dependency Review
-        uses: actions/dependency-review-action@v5
+        uses: actions/dependency-review-action@v4
         continue-on-error: true
-        env:
-          DEPENDENCY_REVIEW_ACTION_FAIL_ON_API_ERROR: false
         with:
           fail-on-severity: moderate
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 120
+          fail-on-api-error: false
 
   pick-runner:
     runs-on: d-sorg-fleet
@@ -68,12 +69,13 @@ jobs:
           fetch-depth: 0
       - name: Dependency Review
         if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v5
+        uses: actions/dependency-review-action@v4
         continue-on-error: true
-        env:
-          DEPENDENCY_REVIEW_ACTION_FAIL_ON_API_ERROR: false
         with:
           fail-on-severity: moderate
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 120
+          fail-on-api-error: false
           comment-summary-in-pr: always
       - name: Set up Python venv
         run: |
