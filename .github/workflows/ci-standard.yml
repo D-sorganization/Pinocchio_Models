@@ -32,6 +32,8 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v5
         continue-on-error: true
+        env:
+          DEPENDENCY_REVIEW_ACTION_FAIL_ON_API_ERROR: false
         with:
           fail-on-severity: moderate
 
@@ -68,6 +70,8 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v5
         continue-on-error: true
+        env:
+          DEPENDENCY_REVIEW_ACTION_FAIL_ON_API_ERROR: false
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: always
