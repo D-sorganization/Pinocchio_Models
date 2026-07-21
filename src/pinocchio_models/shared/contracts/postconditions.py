@@ -65,27 +65,37 @@ _VALID_TAGS = frozenset(
 def _collect_link_names_and_joints(
     root: ET.Element,
 ) -> tuple[set[str], list[ET.Element]]:
-    """Collect declared link names and joint elements while validating tags."""
+    """Collect declared link names and joint elements while validating tags.
+
+    ⚡ Bolt Optimization:
+    - Pre-cache `add` and `append` methods to local variables before tight loop.
+    - Validate string membership before checking `type(tag) is not str` since
+      string tags are the overwhelmingly frequent case, avoiding `type` overhead.
+    """
     link_names: set[str] = set()
     joints: list[ET.Element] = []
 
+    link_names_add = link_names.add
+    joints_append = joints.append
+
     for el in root.iter():
         tag = el.tag
-        if type(tag) is not str:
+        if tag in _VALID_TAGS:
+            if tag == "link":
+                name = el.get("name")
+                if name:
+                    link_names_add(name)
+            elif tag == "joint":
+                joints_append(el)
+        elif type(tag) is not str:
             # ElementTree stores comments and processing instructions as
             # callables in the .tag field, so we skip them.
             continue
-        if tag not in _VALID_TAGS:
+        else:
             raise URDFError(
                 f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
                 error_code="PM204",
             )
-        if tag == "link":
-            name = el.get("name")
-            if name:
-                link_names.add(name)
-        elif tag == "joint":
-            joints.append(el)
 
     return link_names, joints
 
