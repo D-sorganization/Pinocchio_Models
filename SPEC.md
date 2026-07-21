@@ -321,5 +321,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                     |
 
 
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
+| 2026-07-21 | 1.0.29 | Optimized `_collect_link_names_and_joints` by caching Python methods to local variables and prioritizing valid string tags. |
