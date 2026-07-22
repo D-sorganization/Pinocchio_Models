@@ -337,15 +337,20 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     or "\r" in v
                     or "\t" in v
                 ):
-                    v = (
-                        v.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace('"', "&quot;")
-                        .replace("\n", "&#10;")
-                        .replace("\r", "&#13;")
-                        .replace("\t", "&#9;")
-                    )
+                    if "&" in v:
+                        v = v.replace("&", "&amp;")
+                    if "<" in v:
+                        v = v.replace("<", "&lt;")
+                    if ">" in v:
+                        v = v.replace(">", "&gt;")
+                    if '"' in v:
+                        v = v.replace('"', "&quot;")
+                    if "\n" in v:
+                        v = v.replace("\n", "&#10;")
+                    if "\r" in v:
+                        v = v.replace("\r", "&#13;")
+                    if "\t" in v:
+                        v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
 
         if text:
