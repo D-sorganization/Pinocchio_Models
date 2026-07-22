@@ -69,27 +69,23 @@ def _collect_link_names_and_joints(
     link_names: set[str] = set()
     joints: list[ET.Element] = []
 
-    link_add = link_names.add
-    joints_append = joints.append
-
     for el in root.iter():
         tag = el.tag
-        if tag in _VALID_TAGS:
-            if tag == "link":
-                name = el.get("name")
-                if name:
-                    link_add(name)
-            elif tag == "joint":
-                joints_append(el)
-        elif type(tag) is not str:
+        if type(tag) is not str:
             # ElementTree stores comments and processing instructions as
             # callables in the .tag field, so we skip them.
-            pass
-        else:
+            continue
+        if tag not in _VALID_TAGS:
             raise URDFError(
                 f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
                 error_code="PM204",
             )
+        if tag == "link":
+            name = el.get("name")
+            if name:
+                link_names.add(name)
+        elif tag == "joint":
+            joints.append(el)
 
     return link_names, joints
 
