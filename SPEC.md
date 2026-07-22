@@ -323,3 +323,4 @@ The repository is in active maintenance. Shared model generation is established,
 
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
+| 2026-07-22 | 1.0.29 | Optimized URDF serialization and tag validation by conditionally escaping attributes and pre-allocating lookup methods in the validation loop. |
