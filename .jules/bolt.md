@@ -117,3 +117,7 @@
 ## 2026-06-25 - Avoid cyclomatic complexity bounds with method caching
 **Learning:** Combining nested XML tree traversals and link validations into a single function raised cyclomatic complexity beyond acceptable limits (C>10) causing CI failures in `quality-gate`. However, keeping the traversal separate but caching method lookups (`link_names.add` and `joints.append`) still provides the vast majority of the execution time reduction because dictionary attribute lookup during loop execution dominates function call boundaries when the boundary is only crossed once.
 **Action:** When refactoring for performance in highly restrictive CI environments, favor local variable caching for array/set modification functions over complete inline structural refactoring.
+
+## 2026-07-23 - Avoid manual inline iteration over XML elements for `find` functionality
+**Learning:** In Python's `xml.etree.ElementTree`, replacing `.find()` with a manual direct inline loop (e.g., `for child in joint:`) actually degrades performance. The C-level `.find()` method is highly optimized and significantly faster than manual Python iteration, even for extremely small, simple child lists.
+**Action:** Always prefer the native `.find()` method for searching a single subelement instead of creating a manual Python iteration loop, as the C implementation avoids Python bytecode overhead.
