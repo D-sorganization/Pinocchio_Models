@@ -117,3 +117,6 @@
 ## 2026-06-25 - Avoid cyclomatic complexity bounds with method caching
 **Learning:** Combining nested XML tree traversals and link validations into a single function raised cyclomatic complexity beyond acceptable limits (C>10) causing CI failures in `quality-gate`. However, keeping the traversal separate but caching method lookups (`link_names.add` and `joints.append`) still provides the vast majority of the execution time reduction because dictionary attribute lookup during loop execution dominates function call boundaries when the boundary is only crossed once.
 **Action:** When refactoring for performance in highly restrictive CI environments, favor local variable caching for array/set modification functions over complete inline structural refactoring.
+## 2025-07-16 - Fast-path element tags with no attributes
+**Learning:** When manually serializing `xml.etree.ElementTree` nodes, creating a fast-path for elements without attributes to directly output their tag in a single string, avoids the loop checks and separated appends, which yields significant performance improvements in high-frequency URDF generation.
+**Action:** When working on tight loop element generation in `xml.etree.ElementTree`, construct the simple representation in a single operation if no attributes exist.
