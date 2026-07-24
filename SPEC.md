@@ -322,3 +322,4 @@ The repository is in active maintenance. Shared model generation is established,
 
 
 | 2026-07-14 | 1.0.29 | Optimized URDF validation by replacing redundant tree iterations with a single deep node traversal. |
+| 2026-07-23 | 1.0.30 | Optimized URDF string serialization by replacing unconditional chained `.replace()` calls with conditional individual `.replace()` calls guarded by an `in` check inside the `_serialize` hot loop. |
