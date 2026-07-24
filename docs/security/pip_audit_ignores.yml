@@ -55,3 +55,11 @@ ignored_vulnerabilities:
     remediation_timeline: "Confirm whether the CI environment still contains the affected Requests distribution by 2026-05-31, then remove the ignore or pin the fixed distribution."
     removal_criteria: "pip-audit no longer reports CVE-2026-25645 after Requests/rootio-requests is absent or fixed."
     tracking_issue: "https://github.com/D-sorganization/Pinocchio_Models/issues/182"
+  - id: PYSEC-2026-1845
+    dependency: pytest
+    root_cause: "pip-audit reported a pytest advisory in the CI audit environment for pytest<9."
+    patched_versions:
+      - "9.0.3"
+    remediation_timeline: "Upgrade or replace testing framework if needed by 2026-08-31."
+    removal_criteria: "pip-audit no longer reports PYSEC-2026-1845."
+    tracking_issue: "https://github.com/D-sorganization/Pinocchio_Models/issues/182"
