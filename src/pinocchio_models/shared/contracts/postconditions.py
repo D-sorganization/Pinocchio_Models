@@ -66,10 +66,11 @@ def _collect_link_names_and_joints(
     root: ET.Element,
 ) -> tuple[set[str], list[ET.Element]]:
     """Collect declared link names and joint elements while validating tags."""
+    # ⚡ Bolt Optimization: Replace multiple specific .findall() traversals
+    # with a single-pass deep iteration to avoid ElementPath overhead.
     link_names: set[str] = set()
+    link_add = link_names.add
     joints: list[ET.Element] = []
-
-    link_names_add = link_names.add
     joints_append = joints.append
 
     for el in root.iter():
@@ -78,13 +79,13 @@ def _collect_link_names_and_joints(
             if tag == "link":
                 name = el.get("name")
                 if name:
-                    link_names_add(name)
+                    link_add(name)
             elif tag == "joint":
                 joints_append(el)
         elif type(tag) is not str:
             # ElementTree stores comments and processing instructions as
             # callables in the .tag field, so we skip them.
-            continue
+            pass
         else:
             raise URDFError(
                 f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
@@ -151,8 +152,16 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
 
-        parent_el = joint.find("parent")
-        child_el = joint.find("child")
+        # Unroll small child iteration instead of `joint.find()` which is slow
+        parent_el = None
+        child_el = None
+        for child in joint:
+            ctag = child.tag
+            if ctag == "parent":
+                parent_el = child
+            elif ctag == "child":
+                child_el = child
+
         if parent_el is None or child_el is None:
             continue
 
