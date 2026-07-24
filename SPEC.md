@@ -317,11 +317,12 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-25 | 1.0.24  | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation.                                            |
 | 2026-06-25 | 1.0.25  | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection.                                                                |
 | 2026-06-25 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
-| 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                     |
-
+| 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.                                                     |
+| 2026-06-25 | 1.0.28  | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                                    |
 
 | 2026-07-14 | 1.0.29 | Optimized URDF validation by replacing redundant tree iterations with a single deep node traversal. |
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
-| 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
-| 2026-07-16 | 1.0.29 | Optimized _serialize by bypassing empty attributes iteration |
+| 2026-07-23 | 1.0.30 | Optimized URDF string serialization by replacing unconditional chained `.replace()` calls with conditional individual `.replace()` calls guarded by an `in` check inside the `_serialize` hot loop. |
+| 2026-07-24 | 1.0.31 | Optimized foot collision search in body model by replacing recursive ElementPath traversal with a reverse child iteration. |
+| 2026-07-24 | 1.0.32 | Pinned pytest dependency `<9.0.0` to resolve pluggy conflict |
+| 2026-07-24 | 1.0.33 | Optimized URDF validation by using `ElementTree.find` over unrolled loops for child element retrieval. |
+| 2026-07-24 | 1.0.34 | Optimized URDF serialization by fast-pathing elements without attributes. |
