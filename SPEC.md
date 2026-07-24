@@ -323,3 +323,5 @@ The repository is in active maintenance. Shared model generation is established,
 
 | 2026-07-14 | 1.0.29 | Optimized URDF validation by replacing redundant tree iterations with a single deep node traversal. |
 | 2026-07-23 | 1.0.30 | Optimized URDF string serialization by replacing unconditional chained `.replace()` calls with conditional individual `.replace()` calls guarded by an `in` check inside the `_serialize` hot loop. |
+| 2026-07-24 | 1.0.31 | Optimized foot collision search in body model by replacing recursive ElementPath traversal with a reverse child iteration. |
+| 2026-07-24 | 1.0.32 | Pinned pytest dependency `<9.0.0` to resolve pluggy conflict |
