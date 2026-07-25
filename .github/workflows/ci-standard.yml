@@ -31,7 +31,6 @@ jobs:
       - uses: actions/checkout@v7
       - name: Dependency Review
         uses: actions/dependency-review-action@v5
-        if: false
         continue-on-error: true
         with:
           fail-on-severity: moderate
@@ -66,7 +65,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Dependency Review
-        if: false
+        if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v5
         continue-on-error: true
         with:
@@ -150,8 +149,7 @@ jobs:
             --ignore-vuln CVE-2026-21883 \
             --ignore-vuln CVE-2026-27205 \
             --ignore-vuln CVE-2024-47081 \
-            --ignore-vuln CVE-2026-25645 \
-            --ignore-vuln PYSEC-2026-1845
+            --ignore-vuln CVE-2026-25645
 
       - name: Bandit Security Scan
         run: |
