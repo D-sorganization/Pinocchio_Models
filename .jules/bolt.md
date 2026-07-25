@@ -158,6 +158,11 @@
 **Learning:** In Python's `xml.etree.ElementTree`, replacing `.find()` with a manual direct inline loop (e.g., `for child in joint:`) actually degrades performance. The C-level `.find()` method is highly optimized and significantly faster than manual Python iteration, even for extremely small, simple child lists.
 **Action:** Always prefer the native `.find()` method for searching a single subelement instead of creating a manual Python iteration loop, as the C implementation avoids Python bytecode overhead.
 
+## 2025-07-16 - Fast-path element tags with no attributes
+
+**Learning:** When manually serializing `xml.etree.ElementTree` nodes, creating a fast-path for elements without attributes to directly output their tag in a single string, avoids the loop checks and separated appends, which yields significant performance improvements in high-frequency URDF generation.
+**Action:** When working on tight loop element generation in `xml.etree.ElementTree`, construct the simple representation in a single operation if no attributes exist.
+
 ## 2026-07-22 - Use conditional replacements in tight loops for XML escaping
 
 **Learning:** In tight Python loops dealing with URDF XML string escaping (e.g. `_serialize`), performing a fast boolean pre-check for special characters (like `if "&" in v or "<" in v...`) followed by an unconditional chain of `.replace()` calls is slower than a fast pre-check followed by individual `if` checks for each character before replacing. The chained approach forces the Python runtime to allocate new string instances or traverse the string repeatedly even when a specific character isn't present.

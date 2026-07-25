@@ -308,20 +308,21 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-05-01 | 1.0.15  | Optimization: Used exact type checking for primitive and numpy scalar types in tight loop precondition validation.                                                                       |
 | 2026-05-05 | 1.0.16  | Updated CI workflow artifact uploads to `actions/upload-artifact@v7` and documented that workflow contract tests enforce artifact presence rather than a pinned action major.            |
 | 2026-05-19 | 1.0.17  | Optimized URDF serialization bypassing xml.etree.ElementTree.tostring internal overhead.                                                                                                 |
-| 2026-07-23 | 1.0.18  | Optimized XML text escaping by inlining logic in `serialize_model` recursive inner loop.                                                                                                 |
+| 2026-06-25 | 1.0.18  | Optimized XML text escaping by inlining logic in `serialize_model` recursive inner loop.                                                                                                 |
 | 2026-05-24 | 1.0.19  | Optimized `set_joint_default` by precomputing invariant strings before iteration.                                                                                                        |
-| 2026-07-23 | 1.0.20  | Optimized `serialize_model` by collapsing f-strings into fewer `append` calls during XML attribute and text serialization.                                                               |
-| 2026-07-23 | 1.0.21  | Optimized `require_finite` by using `np.isfinite(arr).all()` and adding an `np.ndarray` fast-path for array validation.                                                                  |
-| 2026-07-23 | 1.0.22  | Optimized URDF string serialization by inlining string builder and reducing concatenation overhead.                                                                                      |
+| 2026-06-25 | 1.0.20  | Optimized `serialize_model` by collapsing f-strings into fewer `append` calls during XML attribute and text serialization.                                                               |
+| 2026-06-25 | 1.0.21  | Optimized `require_finite` by using `np.isfinite(arr).all()` and adding an `np.ndarray` fast-path for array validation.                                                                  |
+| 2026-06-25 | 1.0.22  | Optimized URDF string serialization by inlining string builder and reducing concatenation overhead.                                                                                      |
 | 2026-06-03 | 1.0.23  | Optimized optional addon finite-array checks with boolean-mask `.all()` and reduced intermediate allocation in URDF attribute serialization.                                             |
-| 2026-07-23 | 1.0.24  | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation.                                            |
-| 2026-07-23 | 1.0.25  | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection.                                                                |
-| 2026-07-23 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
-| 2026-07-23 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.                                                     |
-| 2026-07-23 | 1.0.28  | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                                    |
+| 2026-06-25 | 1.0.24  | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation.                                            |
+| 2026-06-25 | 1.0.25  | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection.                                                                |
+| 2026-06-25 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
+| 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.                                                     |
+| 2026-06-25 | 1.0.28  | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                                    |
 
 | 2026-07-14 | 1.0.29 | Optimized URDF validation by replacing redundant tree iterations with a single deep node traversal. |
 | 2026-07-23 | 1.0.30 | Optimized URDF string serialization by replacing unconditional chained `.replace()` calls with conditional individual `.replace()` calls guarded by an `in` check inside the `_serialize` hot loop. |
 | 2026-07-24 | 1.0.31 | Optimized foot collision search in body model by replacing recursive ElementPath traversal with a reverse child iteration. |
 | 2026-07-24 | 1.0.32 | Pinned pytest dependency `<9.0.0` to resolve pluggy conflict |
 | 2026-07-24 | 1.0.33 | Optimized URDF validation by using `ElementTree.find` over unrolled loops for child element retrieval. |
+| 2026-07-24 | 1.0.34 | Optimized URDF serialization by fast-pathing elements without attributes. |
