@@ -321,11 +321,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         # ⚡ Bolt Optimization: Avoiding intermediate list allocations or string concatenations
         # by directly collapsing multiple `append()` calls for opening tags and attributes into fewer concatenated writes
         # provides measurable latency reduction during URDF string generation.
-        # Creating a fast-path for elements without attributes allows us to skip the intermediate
-        # attribute checking altogether, which yields a substantial speedup to serialization.
+        # Direct append using f-strings and joining strings in attributes is slightly slower
+        # than calling `append` with parts because python strings are immutable.
+        # Actually doing append in a loop and formatting directly is slightly faster.
 
+        append(f"<{tag}")
         if attrib:
-            append(f"<{tag}")
             for k, v in attrib.items():
                 if (
                     "&" in v
@@ -347,51 +348,25 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     )
                 append(f' {k}="{v}"')
 
-            if text:
-                if "&" in text or "<" in text or ">" in text:
-                    if "&" in text:
-                        text = text.replace("&", "&amp;")
-                    if "<" in text:
-                        text = text.replace("<", "&lt;")
-                    if ">" in text:
-                        text = text.replace(">", "&gt;")
-                if elem_len == 0:
-                    append(f">{text}</{tag}>")
-                else:
-                    append(f">{text}")
-                    for child in elem:
-                        _serialize(child)
-                    append(f"</{tag}>")
-            elif elem_len == 0:
-                append(" />")
+        if text:
+            if "&" in text or "<" in text or ">" in text:
+                text = (
+                    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                )
+            if elem_len == 0:
+                append(f">{text}</{tag}>")
             else:
-                append(">")
+                append(f">{text}")
                 for child in elem:
                     _serialize(child)
                 append(f"</{tag}>")
+        elif elem_len == 0:
+            append(" />")
         else:
-            if text:
-                if "&" in text or "<" in text or ">" in text:
-                    if "&" in text:
-                        text = text.replace("&", "&amp;")
-                    if "<" in text:
-                        text = text.replace("<", "&lt;")
-                    if ">" in text:
-                        text = text.replace(">", "&gt;")
-                if elem_len == 0:
-                    append(f"<{tag}>{text}</{tag}>")
-                else:
-                    append(f"<{tag}>{text}")
-                    for child in elem:
-                        _serialize(child)
-                    append(f"</{tag}>")
-            elif elem_len == 0:
-                append(f"<{tag} />")
-            else:
-                append(f"<{tag}>")
-                for child in elem:
-                    _serialize(child)
-                append(f"</{tag}>")
+            append(">")
+            for child in elem:
+                _serialize(child)
+            append(f"</{tag}>")
 
         tail = elem.tail
         if tail:
