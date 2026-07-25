@@ -167,3 +167,8 @@
 
 **Learning:** In `src/pinocchio_models/shared/contracts/postconditions.py`, repeated attribute lookup inside `_collect_link_names_and_joints` adds measurable overhead when validating large URDF trees.
 **Action:** Cache `set.add` and `list.append` in local variables inside tight XML validation loops while preserving the existing helper split that keeps CI complexity gates satisfied.
+
+## 2024-07-24 - Do not manually unroll `.find()` for element children
+
+**Learning:** In Python's `xml.etree.ElementTree`, manually iterating over an element's children using a `for` loop to find a specific tag is slower than using `.find()`. Although unrolling small loops often reduces overhead in pure Python, `ElementTree.find()` is implemented in C and heavily optimized, making it faster even for small child lists.
+**Action:** When searching for an element by tag within `xml.etree.ElementTree`, always prefer `.find()` over manual Python iteration loops.
