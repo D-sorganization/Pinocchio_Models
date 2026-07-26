@@ -326,3 +326,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-07-24 | 1.0.32 | Pinned pytest dependency `<9.0.0` to resolve pluggy conflict |
 | 2026-07-24 | 1.0.33 | Optimized URDF validation by using `ElementTree.find` over unrolled loops for child element retrieval. |
 | 2026-07-24 | 1.0.34 | Optimized URDF serialization by fast-pathing elements without attributes. |
+| 2026-07-24 | 1.0.35 | Optimized URDF validation loops by caching hot-path collection methods. |

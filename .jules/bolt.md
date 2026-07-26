@@ -173,6 +173,11 @@
 **Learning:** Using `root.find(".//link[@name=...]")` uses Python's `ElementPath` implementation, which recursively parses and scans the entire XML tree. In flat, dynamically generated URDF structures where links are appended sequentially, this creates massive overhead. If the target element is added late in the generation process (like foot collisions appended after the main leg links), it is significantly faster to iterate over the tree manually in reverse.
 **Action:** Replace slow `.find()` ElementPath queries with manual `for link in reversed(root):` iterations when the target is known to be near the end of the tree, yielding an O(1) best-case complexity.
 
+## 2026-07-21 - Cache hot-path URDF validation methods
+
+**Learning:** In `src/pinocchio_models/shared/contracts/postconditions.py`, repeated attribute lookup inside `_collect_link_names_and_joints` adds measurable overhead when validating large URDF trees.
+**Action:** Cache `set.add` and `list.append` in local variables inside tight XML validation loops while preserving the existing helper split that keeps CI complexity gates satisfied.
+
 ## 2024-07-24 - Do not manually unroll `.find()` for element children
 
 **Learning:** In Python's `xml.etree.ElementTree`, manually iterating over an element's children using a `for` loop to find a specific tag is slower than using `.find()`. Although unrolling small loops often reduces overhead in pure Python, `ElementTree.find()` is implemented in C and heavily optimized, making it faster even for small child lists.
