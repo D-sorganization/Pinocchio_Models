@@ -23,22 +23,6 @@ permissions:
   pull-requests: read
 
 jobs:
-  dependency-review:
-    if: github.event_name == 'pull_request'
-    runs-on: d-sorg-fleet
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v7
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v5
-        if: false
-        continue-on-error: true
-        with:
-          fail-on-severity: moderate
-          retry-on-snapshot-warnings: true
-          retry-on-snapshot-warnings-timeout: 120
-          fail-on-api-error: false
-
   pick-runner:
     runs-on: d-sorg-fleet
     timeout-minutes: 2
@@ -68,16 +52,6 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Dependency Review
-        if: false
-        uses: actions/dependency-review-action@v5
-        continue-on-error: true
-        with:
-          fail-on-severity: moderate
-          retry-on-snapshot-warnings: true
-          retry-on-snapshot-warnings-timeout: 120
-          fail-on-api-error: false
-          comment-summary-in-pr: always
       - name: Set up Python venv
         run: |
           for PYTHON in python3.11 python3.12 python3.10 python; do
