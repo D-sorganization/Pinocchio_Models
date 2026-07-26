@@ -120,6 +120,7 @@ def ensure_valid_urdf_tree(root: ET.Element) -> ET.Element:
     for joint in joints:
         joint_name = joint.get("name", "<unnamed>")
 
+        # Use .find() which is faster due to C-level optimization
         parent_el = joint.find("parent")
         child_el = joint.find("child")
         if parent_el is None or child_el is None:
