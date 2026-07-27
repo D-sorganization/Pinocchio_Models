@@ -182,3 +182,7 @@
 
 **Learning:** In Python's `xml.etree.ElementTree`, manually iterating over an element's children using a `for` loop to find a specific tag is slower than using `.find()`. Although unrolling small loops often reduces overhead in pure Python, `ElementTree.find()` is implemented in C and heavily optimized, making it faster even for small child lists.
 **Action:** When searching for an element by tag within `xml.etree.ElementTree`, always prefer `.find()` over manual Python iteration loops.
+
+## 2026-07-27 - Optimize ET.SubElement kwargs unpacking
+**Learning:** Using `ET.SubElement` with keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) incurs unnecessary argument packing/unpacking overhead in high-frequency URDF generation paths, compared to passing an explicit attribute dictionary (`ET.SubElement(parent, tag, {"key": value})`).
+**Action:** Refactor `ET.SubElement` calls to use dictionary unpacking or direct dictionary passing where multiple attributes are defined.
