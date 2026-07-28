@@ -306,12 +306,11 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             tail = elem.tail
             if tail:
                 if "&" in tail or "<" in tail or ">" in tail:
-                    if "&" in tail:
-                        tail = tail.replace("&", "&amp;")
-                    if "<" in tail:
-                        tail = tail.replace("<", "&lt;")
-                    if ">" in tail:
-                        tail = tail.replace(">", "&gt;")
+                    tail = (
+                        tail.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                    )
                 append(tail)
             return
 
@@ -322,11 +321,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         # ⚡ Bolt Optimization: Avoiding intermediate list allocations or string concatenations
         # by directly collapsing multiple `append()` calls for opening tags and attributes into fewer concatenated writes
         # provides measurable latency reduction during URDF string generation.
-        # Creating a fast-path for elements without attributes allows us to skip the intermediate
-        # attribute checking altogether, which yields a substantial speedup to serialization.
+        # Direct append using f-strings and joining strings in attributes is slightly slower
+        # than calling `append` with parts because python strings are immutable.
+        # Actually doing append in a loop and formatting directly is slightly faster.
 
+        append(f"<{tag}")
         if attrib:
-            append(f"<{tag}")
             for k, v in attrib.items():
                 if (
                     "&" in v
@@ -337,80 +337,43 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     or "\r" in v
                     or "\t" in v
                 ):
-                    # ⚡ Bolt Optimization: Use individual condition checks for special chars
-                    # rather than chained unconditional .replace() calls. This avoids string
-                    # traversal and allocation overhead when a character is absent.
-                    if "&" in v:
-                        v = v.replace("&", "&amp;")
-                    if "<" in v:
-                        v = v.replace("<", "&lt;")
-                    if ">" in v:
-                        v = v.replace(">", "&gt;")
-                    if '"' in v:
-                        v = v.replace('"', "&quot;")
-                    if "\n" in v:
-                        v = v.replace("\n", "&#10;")
-                    if "\r" in v:
-                        v = v.replace("\r", "&#13;")
-                    if "\t" in v:
-                        v = v.replace("\t", "&#9;")
+                    v = (
+                        v.replace("&", "&amp;")
+                        .replace("<", "&lt;")
+                        .replace(">", "&gt;")
+                        .replace('"', "&quot;")
+                        .replace("\n", "&#10;")
+                        .replace("\r", "&#13;")
+                        .replace("\t", "&#9;")
+                    )
                 append(f' {k}="{v}"')
 
-            if text:
-                if "&" in text or "<" in text or ">" in text:
-                    if "&" in text:
-                        text = text.replace("&", "&amp;")
-                    if "<" in text:
-                        text = text.replace("<", "&lt;")
-                    if ">" in text:
-                        text = text.replace(">", "&gt;")
-                if elem_len == 0:
-                    append(f">{text}</{tag}>")
-                else:
-                    append(f">{text}")
-                    for child in elem:
-                        _serialize(child)
-                    append(f"</{tag}>")
-            elif elem_len == 0:
-                append(" />")
+        if text:
+            if "&" in text or "<" in text or ">" in text:
+                text = (
+                    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                )
+            if elem_len == 0:
+                append(f">{text}</{tag}>")
             else:
-                append(">")
+                append(f">{text}")
                 for child in elem:
                     _serialize(child)
                 append(f"</{tag}>")
+        elif elem_len == 0:
+            append(" />")
         else:
-            if text:
-                if "&" in text or "<" in text or ">" in text:
-                    if "&" in text:
-                        text = text.replace("&", "&amp;")
-                    if "<" in text:
-                        text = text.replace("<", "&lt;")
-                    if ">" in text:
-                        text = text.replace(">", "&gt;")
-                if elem_len == 0:
-                    append(f"<{tag}>{text}</{tag}>")
-                else:
-                    append(f"<{tag}>{text}")
-                    for child in elem:
-                        _serialize(child)
-                    append(f"</{tag}>")
-            elif elem_len == 0:
-                append(f"<{tag} />")
-            else:
-                append(f"<{tag}>")
-                for child in elem:
-                    _serialize(child)
-                append(f"</{tag}>")
+            append(">")
+            for child in elem:
+                _serialize(child)
+            append(f"</{tag}>")
 
         tail = elem.tail
         if tail:
             if "&" in tail or "<" in tail or ">" in tail:
-                if "&" in tail:
-                    tail = tail.replace("&", "&amp;")
-                if "<" in tail:
-                    tail = tail.replace("<", "&lt;")
-                if ">" in tail:
-                    tail = tail.replace(">", "&gt;")
+                tail = (
+                    tail.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                )
             append(tail)
 
     _serialize(root)
@@ -455,19 +418,12 @@ def set_joint_default(
     """
     val_str = float_str(value)
     prefix_underscore = f"{prefix}_"
-
-    if exact_suffix is None:
-        for joint in robot.findall("joint"):
-            name = joint.get("name", "")
-            if name == prefix or name.startswith(prefix_underscore):
-                joint.set("initial_position", val_str)
-    else:
-        for joint in robot.findall("joint"):
-            name = joint.get("name", "")
-            if (name == prefix or name.startswith(prefix_underscore)) and name.endswith(
-                exact_suffix
-            ):
-                joint.set("initial_position", val_str)
+    for joint in robot.findall("joint"):
+        name = joint.get("name", "")
+        if name == prefix or name.startswith(prefix_underscore):
+            if exact_suffix is not None and not name.endswith(exact_suffix):
+                continue
+            joint.set("initial_position", val_str)
 
 
 def _import_pinocchio() -> Any:
