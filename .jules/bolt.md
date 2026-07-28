@@ -184,5 +184,6 @@
 **Action:** When searching for an element by tag within `xml.etree.ElementTree`, always prefer `.find()` over manual Python iteration loops.
 
 ## 2026-07-27 - Optimize ET.SubElement kwargs unpacking
+
 **Learning:** Using `ET.SubElement` with keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) incurs unnecessary argument packing/unpacking overhead in high-frequency URDF generation paths, compared to passing an explicit attribute dictionary (`ET.SubElement(parent, tag, {"key": value})`).
 **Action:** Refactor `ET.SubElement` calls to use dictionary unpacking or direct dictionary passing where multiple attributes are defined.
