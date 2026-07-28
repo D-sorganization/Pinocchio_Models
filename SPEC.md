@@ -323,3 +323,4 @@ The repository is in active maintenance. Shared model generation is established,
 
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
 | 2026-07-27 | 1.0.29 | Optimized postconditions checks by inlining tree validation helper methods to eliminate function call overhead. |
+| 2026-07-28 | 1.0.30 | Optimized URDF helpers by using dictionary attribute packing for ET.SubElement and loop unswitching. |
