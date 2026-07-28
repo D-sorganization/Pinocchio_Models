@@ -99,6 +99,9 @@ jobs:
       - name: Validate pip-audit ignore tracking
         run: python -m pytest tests/unit/test_pip_audit_ignores.py
 
+      - name: Restore mypy-compatible scientific pins
+        run: pip install "mypy==1.13.0" "numpy<2.3"
+
       - name: Verify Clean Working Tree
         run: |
           if git ls-files --others --exclude-standard | grep -qE '__pycache__|\.pyc$'; then
