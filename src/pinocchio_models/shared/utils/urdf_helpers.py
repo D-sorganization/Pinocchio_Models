@@ -87,7 +87,7 @@ def _add_inertial(
         {
             "xyz": vec3_str(*origin_xyz),
             "rpy": vec3_str(*origin_rpy),
-        }
+        },
     )
     ET.SubElement(inertial, "mass", {"value": float_str(mass)})
     ET.SubElement(
@@ -100,7 +100,7 @@ def _add_inertial(
             "ixy": float_str(ixy),
             "ixz": float_str(ixz),
             "iyz": float_str(iyz),
-        }
+        },
     )
     return inertial
 
@@ -236,7 +236,7 @@ def add_revolute_joint(
         {
             "xyz": vec3_str(*origin_xyz),
             "rpy": vec3_str(*origin_rpy),
-        }
+        },
     )
     ET.SubElement(joint, "parent", {"link": parent})
     ET.SubElement(joint, "child", {"link": child})
@@ -254,7 +254,7 @@ def add_revolute_joint(
             "upper": float_str(upper),
             "effort": e_str,
             "velocity": v_str,
-        }
+        },
     )
     return joint
 
@@ -277,7 +277,7 @@ def add_fixed_joint(
         {
             "xyz": vec3_str(*origin_xyz),
             "rpy": vec3_str(*origin_rpy),
-        }
+        },
     )
     ET.SubElement(joint, "parent", {"link": parent})
     ET.SubElement(joint, "child", {"link": child})
@@ -442,9 +442,12 @@ def set_joint_default(
     if exact_suffix is not None:
         for joint in robot.findall("joint"):
             name = joint.get("name")
-            if name and (name == prefix or name.startswith(prefix_underscore)):
-                if name.endswith(exact_suffix):
-                    joint.set("initial_position", val_str)
+            if (
+                name
+                and (name == prefix or name.startswith(prefix_underscore))
+                and name.endswith(exact_suffix)
+            ):
+                joint.set("initial_position", val_str)
     else:
         for joint in robot.findall("joint"):
             name = joint.get("name")
