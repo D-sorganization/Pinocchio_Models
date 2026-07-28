@@ -75,24 +75,32 @@ def _add_inertial(
     ixz: float,
     iyz: float,
 ) -> ET.Element:
-    """Append the inertial block for a URDF link."""
+    """Append the inertial block for a URDF link.
+
+    ⚡ Bolt Optimization: Use dictionary passing to ET.SubElement
+    and precomputed string formatting to avoid Python argument packing overhead.
+    """
     inertial = ET.SubElement(link, "inertial")
     ET.SubElement(
         inertial,
         "origin",
-        xyz=vec3_str(*origin_xyz),
-        rpy=vec3_str(*origin_rpy),
+        {
+            "xyz": vec3_str(*origin_xyz),
+            "rpy": vec3_str(*origin_rpy),
+        }
     )
-    ET.SubElement(inertial, "mass", value=float_str(mass))
+    ET.SubElement(inertial, "mass", {"value": float_str(mass)})
     ET.SubElement(
         inertial,
         "inertia",
-        ixx=float_str(ixx),
-        iyy=float_str(iyy),
-        izz=float_str(izz),
-        ixy=float_str(ixy),
-        ixz=float_str(ixz),
-        iyz=float_str(iyz),
+        {
+            "ixx": float_str(ixx),
+            "iyy": float_str(iyy),
+            "izz": float_str(izz),
+            "ixy": float_str(ixy),
+            "ixz": float_str(ixz),
+            "iyz": float_str(iyz),
+        }
     )
     return inertial
 
@@ -219,16 +227,20 @@ def add_revolute_joint(
     velocity: float = 10.0,
 ) -> ET.Element:
     """Append a <joint type='revolute'> to *robot*."""
-    joint = ET.SubElement(robot, "joint", name=name, type="revolute")
+    # ⚡ Bolt Optimization: Use dictionary for attributes in ET.SubElement
+    # and precomputed string formatting to avoid Python argument packing overhead.
+    joint = ET.SubElement(robot, "joint", {"name": name, "type": "revolute"})
     ET.SubElement(
         joint,
         "origin",
-        xyz=vec3_str(*origin_xyz),
-        rpy=vec3_str(*origin_rpy),
+        {
+            "xyz": vec3_str(*origin_xyz),
+            "rpy": vec3_str(*origin_rpy),
+        }
     )
-    ET.SubElement(joint, "parent", link=parent)
-    ET.SubElement(joint, "child", link=child)
-    ET.SubElement(joint, "axis", xyz=vec3_str(*axis))
+    ET.SubElement(joint, "parent", {"link": parent})
+    ET.SubElement(joint, "child", {"link": child})
+    ET.SubElement(joint, "axis", {"xyz": vec3_str(*axis)})
     # Note: Using :.1f for effort/velocity as in original implementation
     # to maintain compatibility with existing tests/expectations for these fields,
     # unless they are exactly 0.
@@ -237,10 +249,12 @@ def add_revolute_joint(
     ET.SubElement(
         joint,
         "limit",
-        lower=float_str(lower),
-        upper=float_str(upper),
-        effort=e_str,
-        velocity=v_str,
+        {
+            "lower": float_str(lower),
+            "upper": float_str(upper),
+            "effort": e_str,
+            "velocity": v_str,
+        }
     )
     return joint
 
@@ -255,15 +269,18 @@ def add_fixed_joint(
     origin_rpy: tuple[float, float, float] = (0, 0, 0),
 ) -> ET.Element:
     """Append a <joint type='fixed'> (weld) to *robot*."""
-    joint = ET.SubElement(robot, "joint", name=name, type="fixed")
+    # ⚡ Bolt Optimization: Use dictionary for attributes in ET.SubElement
+    joint = ET.SubElement(robot, "joint", {"name": name, "type": "fixed"})
     ET.SubElement(
         joint,
         "origin",
-        xyz=vec3_str(*origin_xyz),
-        rpy=vec3_str(*origin_rpy),
+        {
+            "xyz": vec3_str(*origin_xyz),
+            "rpy": vec3_str(*origin_rpy),
+        }
     )
-    ET.SubElement(joint, "parent", link=parent)
-    ET.SubElement(joint, "child", link=child)
+    ET.SubElement(joint, "parent", {"link": parent})
+    ET.SubElement(joint, "child", {"link": child})
     return joint
 
 
@@ -418,12 +435,21 @@ def set_joint_default(
     """
     val_str = float_str(value)
     prefix_underscore = f"{prefix}_"
-    for joint in robot.findall("joint"):
-        name = joint.get("name", "")
-        if name == prefix or name.startswith(prefix_underscore):
-            if exact_suffix is not None and not name.endswith(exact_suffix):
-                continue
-            joint.set("initial_position", val_str)
+
+    # ⚡ Bolt Optimization: Loop unswitching.
+    # Hoisting the exact_suffix check outside the loop eliminates redundant
+    # conditional evaluations during every iteration.
+    if exact_suffix is not None:
+        for joint in robot.findall("joint"):
+            name = joint.get("name")
+            if name and (name == prefix or name.startswith(prefix_underscore)):
+                if name.endswith(exact_suffix):
+                    joint.set("initial_position", val_str)
+    else:
+        for joint in robot.findall("joint"):
+            name = joint.get("name")
+            if name and (name == prefix or name.startswith(prefix_underscore)):
+                joint.set("initial_position", val_str)
 
 
 def _import_pinocchio() -> Any:

@@ -103,3 +103,7 @@
 ## 2026-06-25 - Optimize URDF tree validation
 **Learning:** During URDF tree validation, function call boundaries for tiny helper functions (`_collect_link_names_and_joints`, `_ensure_known_child_link`, `_ensure_single_parent_link`) executed thousands of times caused measurable overhead. Inlining this logic directly inside `ensure_valid_urdf_tree` alongside method localizations (`link_names.add`) provided a ~10-15% benchmark latency reduction while iterating nodes.
 **Action:** In high-frequency, hot-path tree traversal code like URDF validation, prefer carefully commented inline loops and direct variable access over deep hierarchies of single-use helper functions.
+
+## 2023-10-27 - [Dictionary packing for ET.SubElement]
+**Learning:** When dynamically generating many XML elements using `xml.etree.ElementTree.SubElement`, passing a dictionary for attributes (`ET.SubElement(parent, tag, attrib_dict)`) is significantly faster than passing keyword arguments (`**kwargs`) due to Python's argument packing/unpacking overhead.
+**Action:** Use dictionary passing for attributes in high-frequency ElementTree creations instead of kwargs.
