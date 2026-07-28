@@ -75,19 +75,12 @@ def _add_inertial(
     ixz: float,
     iyz: float,
 ) -> ET.Element:
-    """Append the inertial block for a URDF link.
-
-    ⚡ Bolt Optimization: Use dictionary passing to ET.SubElement
-    and precomputed string formatting to avoid Python argument packing overhead.
-    """
+    """Append the inertial block for a URDF link."""
     inertial = ET.SubElement(link, "inertial")
     ET.SubElement(
         inertial,
         "origin",
-        {
-            "xyz": vec3_str(*origin_xyz),
-            "rpy": vec3_str(*origin_rpy),
-        },
+        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
     )
     ET.SubElement(inertial, "mass", {"value": float_str(mass)})
     ET.SubElement(
@@ -116,8 +109,7 @@ def _add_visual(
     ET.SubElement(
         visual,
         "origin",
-        xyz="0 0 0",
-        rpy=vec3_str(*visual_origin_rpy),
+        {"xyz": "0 0 0", "rpy": vec3_str(*visual_origin_rpy)},
     )
     visual.append(visual_geometry)
     return visual
@@ -129,7 +121,7 @@ def _add_collision(
 ) -> ET.Element:
     """Append the optional collision block for a URDF link."""
     collision = ET.SubElement(link, "collision")
-    ET.SubElement(collision, "origin", xyz="0 0 0", rpy="0 0 0")
+    ET.SubElement(collision, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
     collision.append(collision_geometry)
     return collision
 
@@ -159,7 +151,7 @@ def add_link(
         Roll-pitch-yaw for the visual geometry origin. Use ``(math.pi/2, 0, 0)``
         to rotate a cylinder from its default Z-axis orientation to lie along Y.
     """
-    link = ET.SubElement(robot, "link", name=name)
+    link = ET.SubElement(robot, "link", {"name": name})
 
     _add_inertial(
         link,
@@ -227,16 +219,11 @@ def add_revolute_joint(
     velocity: float = 10.0,
 ) -> ET.Element:
     """Append a <joint type='revolute'> to *robot*."""
-    # ⚡ Bolt Optimization: Use dictionary for attributes in ET.SubElement
-    # and precomputed string formatting to avoid Python argument packing overhead.
     joint = ET.SubElement(robot, "joint", {"name": name, "type": "revolute"})
     ET.SubElement(
         joint,
         "origin",
-        {
-            "xyz": vec3_str(*origin_xyz),
-            "rpy": vec3_str(*origin_rpy),
-        },
+        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
     )
     ET.SubElement(joint, "parent", {"link": parent})
     ET.SubElement(joint, "child", {"link": child})
@@ -269,15 +256,11 @@ def add_fixed_joint(
     origin_rpy: tuple[float, float, float] = (0, 0, 0),
 ) -> ET.Element:
     """Append a <joint type='fixed'> (weld) to *robot*."""
-    # ⚡ Bolt Optimization: Use dictionary for attributes in ET.SubElement
     joint = ET.SubElement(robot, "joint", {"name": name, "type": "fixed"})
     ET.SubElement(
         joint,
         "origin",
-        {
-            "xyz": vec3_str(*origin_xyz),
-            "rpy": vec3_str(*origin_rpy),
-        },
+        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
     )
     ET.SubElement(joint, "parent", {"link": parent})
     ET.SubElement(joint, "child", {"link": child})
@@ -287,21 +270,23 @@ def add_fixed_joint(
 def make_cylinder_geometry(radius: float, length: float) -> ET.Element:
     """Create a <geometry><cylinder> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "cylinder", radius=float_str(radius), length=float_str(length))
+    ET.SubElement(
+        geom, "cylinder", {"radius": float_str(radius), "length": float_str(length)}
+    )
     return geom
 
 
 def make_box_geometry(x: float, y: float, z: float) -> ET.Element:
     """Create a <geometry><box> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "box", size=vec3_str(x, y, z))
+    ET.SubElement(geom, "box", {"size": vec3_str(x, y, z)})
     return geom
 
 
 def make_sphere_geometry(radius: float) -> ET.Element:
     """Create a <geometry><sphere> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "sphere", radius=float_str(radius))
+    ET.SubElement(geom, "sphere", {"radius": float_str(radius)})
     return geom
 
 
@@ -435,23 +420,17 @@ def set_joint_default(
     """
     val_str = float_str(value)
     prefix_underscore = f"{prefix}_"
-
-    # ⚡ Bolt Optimization: Loop unswitching.
-    # Hoisting the exact_suffix check outside the loop eliminates redundant
-    # conditional evaluations during every iteration.
     if exact_suffix is not None:
         for joint in robot.findall("joint"):
-            name = joint.get("name")
-            if (
-                name
-                and (name == prefix or name.startswith(prefix_underscore))
-                and name.endswith(exact_suffix)
+            name = joint.get("name", "")
+            if (name == prefix or name.startswith(prefix_underscore)) and name.endswith(
+                exact_suffix
             ):
                 joint.set("initial_position", val_str)
     else:
         for joint in robot.findall("joint"):
-            name = joint.get("name")
-            if name and (name == prefix or name.startswith(prefix_underscore)):
+            name = joint.get("name", "")
+            if name == prefix or name.startswith(prefix_underscore):
                 joint.set("initial_position", val_str)
 
 
