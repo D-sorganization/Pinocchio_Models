@@ -13,8 +13,8 @@ and host this repo's exercise content. See the umbrella tracking issue
 ```python
 from pinocchio_models.model_pack import resolve, manifest, list_exercises
 
-resolve()         # absolute path to the installed exercises directory
-manifest()        # parsed model_pack.yaml as a dict
+resolve()  # absolute path to the installed exercises directory
+manifest()  # parsed model_pack.yaml as a dict
 list_exercises()  # ['squat', 'deadlift', ...]
 ```
 
@@ -83,7 +83,10 @@ pip install -e ".[crocoddyl]"
 ```
 
 ```python
-from pinocchio_models.addons.crocoddyl.optimal_control import create_exercise_ocp, solve_trajectory
+from pinocchio_models.addons.crocoddyl.optimal_control import (
+    create_exercise_ocp,
+    solve_trajectory,
+)
 ```
 
 ## Quick Start
@@ -96,6 +99,7 @@ urdf_str = build_squat_model(body_mass=80.0, height=1.75, plate_mass_per_side=60
 
 # Load into Pinocchio
 import pinocchio as pin
+
 model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
 model.gravity = pin.Motion.Zero()
 model.gravity.linear[2] = -9.80665  # Z-up
