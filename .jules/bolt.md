@@ -187,3 +187,7 @@
 
 **Learning:** Using `ET.SubElement` with keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) incurs unnecessary argument packing/unpacking overhead in high-frequency URDF generation paths, compared to passing an explicit attribute dictionary (`ET.SubElement(parent, tag, {"key": value})`).
 **Action:** Refactor `ET.SubElement` calls to use dictionary unpacking or direct dictionary passing where multiple attributes are defined.
+
+## 2024-05-18 - [URDF Serialization String Escaping Optimization]
+**Learning:** Chaining `.replace()` calls unconditionally for every possible special character in hot paths (like URDF string generation) adds overhead due to unnecessary function calls and string traversal for characters not present.
+**Action:** Use an `in` boolean pre-check (e.g., `if "&" in v: v = v.replace("&", "&amp;")`) to only perform string replacement when necessary.
