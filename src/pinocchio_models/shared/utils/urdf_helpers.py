@@ -80,20 +80,19 @@ def _add_inertial(
     ET.SubElement(
         inertial,
         "origin",
-        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
+        xyz=vec3_str(*origin_xyz),
+        rpy=vec3_str(*origin_rpy),
     )
-    ET.SubElement(inertial, "mass", {"value": float_str(mass)})
+    ET.SubElement(inertial, "mass", value=float_str(mass))
     ET.SubElement(
         inertial,
         "inertia",
-        {
-            "ixx": float_str(ixx),
-            "iyy": float_str(iyy),
-            "izz": float_str(izz),
-            "ixy": float_str(ixy),
-            "ixz": float_str(ixz),
-            "iyz": float_str(iyz),
-        },
+        ixx=float_str(ixx),
+        iyy=float_str(iyy),
+        izz=float_str(izz),
+        ixy=float_str(ixy),
+        ixz=float_str(ixz),
+        iyz=float_str(iyz),
     )
     return inertial
 
@@ -109,7 +108,8 @@ def _add_visual(
     ET.SubElement(
         visual,
         "origin",
-        {"xyz": "0 0 0", "rpy": vec3_str(*visual_origin_rpy)},
+        xyz="0 0 0",
+        rpy=vec3_str(*visual_origin_rpy),
     )
     visual.append(visual_geometry)
     return visual
@@ -121,7 +121,7 @@ def _add_collision(
 ) -> ET.Element:
     """Append the optional collision block for a URDF link."""
     collision = ET.SubElement(link, "collision")
-    ET.SubElement(collision, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
+    ET.SubElement(collision, "origin", xyz="0 0 0", rpy="0 0 0")
     collision.append(collision_geometry)
     return collision
 
@@ -151,7 +151,7 @@ def add_link(
         Roll-pitch-yaw for the visual geometry origin. Use ``(math.pi/2, 0, 0)``
         to rotate a cylinder from its default Z-axis orientation to lie along Y.
     """
-    link = ET.SubElement(robot, "link", {"name": name})
+    link = ET.SubElement(robot, "link", name=name)
 
     _add_inertial(
         link,
@@ -219,15 +219,16 @@ def add_revolute_joint(
     velocity: float = 10.0,
 ) -> ET.Element:
     """Append a <joint type='revolute'> to *robot*."""
-    joint = ET.SubElement(robot, "joint", {"name": name, "type": "revolute"})
+    joint = ET.SubElement(robot, "joint", name=name, type="revolute")
     ET.SubElement(
         joint,
         "origin",
-        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
+        xyz=vec3_str(*origin_xyz),
+        rpy=vec3_str(*origin_rpy),
     )
-    ET.SubElement(joint, "parent", {"link": parent})
-    ET.SubElement(joint, "child", {"link": child})
-    ET.SubElement(joint, "axis", {"xyz": vec3_str(*axis)})
+    ET.SubElement(joint, "parent", link=parent)
+    ET.SubElement(joint, "child", link=child)
+    ET.SubElement(joint, "axis", xyz=vec3_str(*axis))
     # Note: Using :.1f for effort/velocity as in original implementation
     # to maintain compatibility with existing tests/expectations for these fields,
     # unless they are exactly 0.
@@ -236,12 +237,10 @@ def add_revolute_joint(
     ET.SubElement(
         joint,
         "limit",
-        {
-            "lower": float_str(lower),
-            "upper": float_str(upper),
-            "effort": e_str,
-            "velocity": v_str,
-        },
+        lower=float_str(lower),
+        upper=float_str(upper),
+        effort=e_str,
+        velocity=v_str,
     )
     return joint
 
@@ -256,37 +255,36 @@ def add_fixed_joint(
     origin_rpy: tuple[float, float, float] = (0, 0, 0),
 ) -> ET.Element:
     """Append a <joint type='fixed'> (weld) to *robot*."""
-    joint = ET.SubElement(robot, "joint", {"name": name, "type": "fixed"})
+    joint = ET.SubElement(robot, "joint", name=name, type="fixed")
     ET.SubElement(
         joint,
         "origin",
-        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
+        xyz=vec3_str(*origin_xyz),
+        rpy=vec3_str(*origin_rpy),
     )
-    ET.SubElement(joint, "parent", {"link": parent})
-    ET.SubElement(joint, "child", {"link": child})
+    ET.SubElement(joint, "parent", link=parent)
+    ET.SubElement(joint, "child", link=child)
     return joint
 
 
 def make_cylinder_geometry(radius: float, length: float) -> ET.Element:
     """Create a <geometry><cylinder> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(
-        geom, "cylinder", {"radius": float_str(radius), "length": float_str(length)}
-    )
+    ET.SubElement(geom, "cylinder", radius=float_str(radius), length=float_str(length))
     return geom
 
 
 def make_box_geometry(x: float, y: float, z: float) -> ET.Element:
     """Create a <geometry><box> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "box", {"size": vec3_str(x, y, z)})
+    ET.SubElement(geom, "box", size=vec3_str(x, y, z))
     return geom
 
 
 def make_sphere_geometry(radius: float) -> ET.Element:
     """Create a <geometry><sphere> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "sphere", {"radius": float_str(radius)})
+    ET.SubElement(geom, "sphere", radius=float_str(radius))
     return geom
 
 
@@ -300,23 +298,26 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     """
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
+    type_fn = type
+    len_fn = len
 
     def _serialize(elem: ET.Element) -> None:  # noqa: C901
         tag = elem.tag
-        if type(tag) is not str:
+        if type_fn(tag) is not str:
             append(f"<!--{elem.text}-->")
             tail = elem.tail
             if tail:
                 if "&" in tail or "<" in tail or ">" in tail:
-                    tail = (
-                        tail.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                    )
+                    if "&" in tail:
+                        tail = tail.replace("&", "&amp;")
+                    if "<" in tail:
+                        tail = tail.replace("<", "&lt;")
+                    if ">" in tail:
+                        tail = tail.replace(">", "&gt;")
                 append(tail)
             return
 
-        elem_len = len(elem)
+        elem_len = len_fn(elem)
         text = elem.text
         attrib = elem.attrib
 
@@ -339,22 +340,30 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     or "\r" in v
                     or "\t" in v
                 ):
-                    v = (
-                        v.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace('"', "&quot;")
-                        .replace("\n", "&#10;")
-                        .replace("\r", "&#13;")
-                        .replace("\t", "&#9;")
-                    )
+                    if "&" in v:
+                        v = v.replace("&", "&amp;")
+                    if "<" in v:
+                        v = v.replace("<", "&lt;")
+                    if ">" in v:
+                        v = v.replace(">", "&gt;")
+                    if '"' in v:
+                        v = v.replace('"', "&quot;")
+                    if "\n" in v:
+                        v = v.replace("\n", "&#10;")
+                    if "\r" in v:
+                        v = v.replace("\r", "&#13;")
+                    if "\t" in v:
+                        v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
 
         if text:
             if "&" in text or "<" in text or ">" in text:
-                text = (
-                    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                )
+                if "&" in text:
+                    text = text.replace("&", "&amp;")
+                if "<" in text:
+                    text = text.replace("<", "&lt;")
+                if ">" in text:
+                    text = text.replace(">", "&gt;")
             if elem_len == 0:
                 append(f">{text}</{tag}>")
             else:
@@ -373,9 +382,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         tail = elem.tail
         if tail:
             if "&" in tail or "<" in tail or ">" in tail:
-                tail = (
-                    tail.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                )
+                if "&" in tail:
+                    tail = tail.replace("&", "&amp;")
+                if "<" in tail:
+                    tail = tail.replace("<", "&lt;")
+                if ">" in tail:
+                    tail = tail.replace(">", "&gt;")
             append(tail)
 
     _serialize(root)
