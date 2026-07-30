@@ -442,9 +442,8 @@ def set_joint_default(
     if exact_suffix is not None:
         for joint in robot.findall("joint"):
             name = joint.get("name")
-            if name and (name == prefix or name.startswith(prefix_underscore)):
-                if name.endswith(exact_suffix):
-                    joint.set("initial_position", val_str)
+            if name and (name == prefix or name.startswith(prefix_underscore)) and name.endswith(exact_suffix):
+                joint.set("initial_position", val_str)
     else:
         for joint in robot.findall("joint"):
             name = joint.get("name")
