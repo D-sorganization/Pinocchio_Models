@@ -188,6 +188,17 @@
 **Learning:** Using `ET.SubElement` with keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) incurs unnecessary argument packing/unpacking overhead in high-frequency URDF generation paths, compared to passing an explicit attribute dictionary (`ET.SubElement(parent, tag, {"key": value})`).
 **Action:** Refactor `ET.SubElement` calls to use dictionary unpacking or direct dictionary passing where multiple attributes are defined.
 
-## 2024-05-18 - [URDF Serialization String Escaping Optimization]
+## 2026-07-28 - [URDF Serialization String Escaping Optimization]
+
 **Learning:** Chaining `.replace()` calls unconditionally for every possible special character in hot paths (like URDF string generation) adds overhead due to unnecessary function calls and string traversal for characters not present.
 **Action:** Use an `in` boolean pre-check (e.g., `if "&" in v: v = v.replace("&", "&amp;")`) to only perform string replacement when necessary.
+
+## 2026-07-28 - Unroll loops in high-frequency validation paths
+
+**Learning:** During profiling of URDF generation, it was found that the validation loop in `ensure_positive_definite_inertia` (`src/robotics_contracts/postconditions.py`) incurred overhead due to intermediate tuple and list creation for the `for label, val in [("Ixx", ixx), ("Iyy", iyy), ("Izz", izz)]` construct. Since this function is called repeatedly in a hot path during continuous validation or URDF generation, the intermediate allocations accumulated into measurable overhead.
+**Action:** Unroll the small loop structure into discrete `if` statements to eliminate the intermediate object creation overhead. This yields a minor but measurable latency reduction in performance-critical validation routines.
+
+## 2026-07-28 - Avoid manual reverse iteration for find operations in ElementTree
+
+**Learning:** When attempting to optimize `set_joint_default` in `src/pinocchio_models/shared/utils/urdf_helpers.py`, replacing `robot.findall("joint")` with a manual reverse iteration (`for joint in reversed(robot):`) was deemed unnecessary and less readable for a micro-optimization. The native `findall` or `iter` is generally preferred unless there is a massive proven bottleneck (e.g., using `ElementPath` deeply nested). In small lists, reverse iteration creates confusion over why iteration needs to be backward.
+**Action:** Stick to standard forward iteration or `.find`/`.iter` unless profiling definitively shows reverse iteration on flat structures is a crucial bottleneck for O(1) appending. Do not sacrifice code readability for unproven micro-optimizations.
