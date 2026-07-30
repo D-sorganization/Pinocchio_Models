@@ -111,8 +111,8 @@ The URDF builder writes `initial_position` attributes onto joint elements to
 record the intended starting configuration for each exercise (e.g. the
 hip-flexed starting position for a deadlift).
 
-> **Important:** Pinocchio does *not* read `initial_position` attributes when
-> loading a URDF.  The attributes are metadata only — they have no effect on
+> **Important:** Pinocchio does _not_ read `initial_position` attributes when
+> loading a URDF. The attributes are metadata only — they have no effect on
 > simulation unless consumed explicitly.
 
 Use `get_initial_configuration` to convert those attributes into a numpy
