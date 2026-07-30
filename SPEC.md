@@ -328,3 +328,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-07-24 | 1.0.34 | Optimized URDF serialization by fast-pathing elements without attributes. |
 | 2026-07-24 | 1.0.35 | Optimized URDF validation loops by caching hot-path collection methods. |
 | 2026-07-27 | 1.0.36 | Optimized `ET.SubElement` calls by replacing keyword arguments with dictionary passing to avoid argument unpacking overhead. |
+| 2026-07-30 | 1.0.37 | Applied Bolt optimization to `urdf_helpers.py`: updated chained `.replace()` calls to use conditional pre-checks for special characters during serialization. |
