@@ -420,12 +420,13 @@ def set_joint_default(
     """
     val_str = float_str(value)
     prefix_underscore = f"{prefix}_"
-    for joint in robot.findall("joint"):
-        name = joint.get("name", "")
-        if name == prefix or name.startswith(prefix_underscore):
-            if exact_suffix is not None and not name.endswith(exact_suffix):
-                continue
-            joint.set("initial_position", val_str)
+    for joint in robot:
+        if joint.tag == "joint":
+            name = joint.get("name", "")
+            if name == prefix or name.startswith(prefix_underscore):
+                if exact_suffix is not None and not name.endswith(exact_suffix):
+                    continue
+                joint.set("initial_position", val_str)
 
 
 def _import_pinocchio() -> Any:
