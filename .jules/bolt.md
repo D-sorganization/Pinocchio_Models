@@ -197,3 +197,7 @@
 
 **Learning:** When attempting to optimize `set_joint_default` in `src/pinocchio_models/shared/utils/urdf_helpers.py`, replacing `robot.findall("joint")` with a manual reverse iteration (`for joint in reversed(robot):`) was deemed unnecessary and less readable for a micro-optimization. The native `findall` or `iter` is generally preferred unless there is a massive proven bottleneck (e.g., using `ElementPath` deeply nested). In small lists, reverse iteration creates confusion over why iteration needs to be backward.
 **Action:** Stick to standard forward iteration or `.find`/`.iter` unless profiling definitively shows reverse iteration on flat structures is a crucial bottleneck for O(1) appending. Do not sacrifice code readability for unproven micro-optimizations.
+## 2026-07-29 - Optimize conditional replacements in tight loops for XML escaping
+
+**Learning:** In tight Python loops dealing with URDF XML string escaping, chaining `.replace()` calls when escaping attributes/text/tails creates intermediate strings and traversal overhead. Using a rapid boolean pre-check for special characters (like `if "&" in v or "<" in v...`) followed by individual `if` checks and conditional replacements for each character (e.g. `if "&" in v: v = v.replace("&", "&amp;")`) is measurably faster than unconditional chained `.replace()` calls, improving performance in the URDF generation hot path.
+**Action:** When escaping strings in extremely hot paths, prefer individual conditional replacements over chained unconditional `.replace()` calls.
