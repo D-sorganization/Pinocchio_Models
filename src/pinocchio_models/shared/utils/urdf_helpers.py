@@ -87,7 +87,7 @@ def _add_inertial(
         {
             "xyz": vec3_str(*origin_xyz),
             "rpy": vec3_str(*origin_rpy),
-        },
+        }
     )
     ET.SubElement(inertial, "mass", {"value": float_str(mass)})
     ET.SubElement(
@@ -100,7 +100,7 @@ def _add_inertial(
             "ixy": float_str(ixy),
             "ixz": float_str(ixz),
             "iyz": float_str(iyz),
-        },
+        }
     )
     return inertial
 
@@ -236,7 +236,7 @@ def add_revolute_joint(
         {
             "xyz": vec3_str(*origin_xyz),
             "rpy": vec3_str(*origin_rpy),
-        },
+        }
     )
     ET.SubElement(joint, "parent", {"link": parent})
     ET.SubElement(joint, "child", {"link": child})
@@ -254,7 +254,7 @@ def add_revolute_joint(
             "upper": float_str(upper),
             "effort": e_str,
             "velocity": v_str,
-        },
+        }
     )
     return joint
 
@@ -277,7 +277,7 @@ def add_fixed_joint(
         {
             "xyz": vec3_str(*origin_xyz),
             "rpy": vec3_str(*origin_rpy),
-        },
+        }
     )
     ET.SubElement(joint, "parent", {"link": parent})
     ET.SubElement(joint, "child", {"link": child})
@@ -397,6 +397,26 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     return "".join(chunks)
 
 
+def _set_initial_positions_suffix(
+    joints: list[ET.Element], prefix: str, prefix_underscore: str, val_str: str, exact_suffix: str
+) -> None:
+    """Apply initial position to joints matching the prefix and exact suffix."""
+    for joint in joints:
+        name = joint.get("name")
+        if name and (name == prefix or name.startswith(prefix_underscore)) and name.endswith(exact_suffix):
+            joint.set("initial_position", val_str)
+
+
+def _set_initial_positions(
+    joints: list[ET.Element], prefix: str, prefix_underscore: str, val_str: str
+) -> None:
+    """Apply initial position to joints matching the prefix."""
+    for joint in joints:
+        name = joint.get("name")
+        if name and (name == prefix or name.startswith(prefix_underscore)):
+            joint.set("initial_position", val_str)
+
+
 def set_joint_default(
     robot: ET.Element,
     prefix: str,
@@ -435,24 +455,15 @@ def set_joint_default(
     """
     val_str = float_str(value)
     prefix_underscore = f"{prefix}_"
+    joints = robot.findall("joint")
 
     # ⚡ Bolt Optimization: Loop unswitching.
     # Hoisting the exact_suffix check outside the loop eliminates redundant
     # conditional evaluations during every iteration.
     if exact_suffix is not None:
-        for joint in robot.findall("joint"):
-            name = joint.get("name")
-            if (
-                name
-                and (name == prefix or name.startswith(prefix_underscore))
-                and name.endswith(exact_suffix)
-            ):
-                joint.set("initial_position", val_str)
+        _set_initial_positions_suffix(joints, prefix, prefix_underscore, val_str, exact_suffix)
     else:
-        for joint in robot.findall("joint"):
-            name = joint.get("name")
-            if name and (name == prefix or name.startswith(prefix_underscore)):
-                joint.set("initial_position", val_str)
+        _set_initial_positions(joints, prefix, prefix_underscore, val_str)
 
 
 def _import_pinocchio() -> Any:
