@@ -339,22 +339,30 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     or "\r" in v
                     or "\t" in v
                 ):
-                    v = (
-                        v.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace('"', "&quot;")
-                        .replace("\n", "&#10;")
-                        .replace("\r", "&#13;")
-                        .replace("\t", "&#9;")
-                    )
+                    if "&" in v:
+                        v = v.replace("&", "&amp;")
+                    if "<" in v:
+                        v = v.replace("<", "&lt;")
+                    if ">" in v:
+                        v = v.replace(">", "&gt;")
+                    if '"' in v:
+                        v = v.replace('"', "&quot;")
+                    if "\n" in v:
+                        v = v.replace("\n", "&#10;")
+                    if "\r" in v:
+                        v = v.replace("\r", "&#13;")
+                    if "\t" in v:
+                        v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
 
         if text:
             if "&" in text or "<" in text or ">" in text:
-                text = (
-                    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                )
+                if "&" in text:
+                    text = text.replace("&", "&amp;")
+                if "<" in text:
+                    text = text.replace("<", "&lt;")
+                if ">" in text:
+                    text = text.replace(">", "&gt;")
             if elem_len == 0:
                 append(f">{text}</{tag}>")
             else:
@@ -373,9 +381,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         tail = elem.tail
         if tail:
             if "&" in tail or "<" in tail or ">" in tail:
-                tail = (
-                    tail.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                )
+                if "&" in tail:
+                    tail = tail.replace("&", "&amp;")
+                if "<" in tail:
+                    tail = tail.replace("<", "&lt;")
+                if ">" in tail:
+                    tail = tail.replace(">", "&gt;")
             append(tail)
 
     _serialize(root)

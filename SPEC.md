@@ -329,3 +329,4 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-07-24 | 1.0.35 | Optimized URDF validation loops by caching hot-path collection methods. |
 | 2026-07-27 | 1.0.36 | Optimized `ET.SubElement` calls by replacing keyword arguments with dictionary passing to avoid argument unpacking overhead. |
 | 2026-07-28 | 1.0.37 | Optimized URDF validation loops by unrolling tuple/list creation for inertia assertions. |
+| 2026-07-29 | 1.0.38 | Optimized XML text escaping by conditionally invoking individual string replacements instead of chained unconditional replace calls. |
