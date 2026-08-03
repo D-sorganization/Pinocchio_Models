@@ -55,7 +55,7 @@ concurrency:
 
 jobs:
   close-redundant:
-    runs-on: d-sorg-fleet
+    runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
     timeout-minutes: 10
     steps:
       - name: Generate Jules app token
@@ -78,7 +78,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-          cache: 'pip'
+          cache: "pip"
 
       - name: Close redundant agent PRs
         continue-on-error: true

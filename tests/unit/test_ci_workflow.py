@@ -84,3 +84,28 @@ def test_ci_workflow_uploads_line_profiler_report() -> None:
     assert "profiling/model-generation.lprof" in run_blocks
     assert "profiling/model-generation-line-profiler.txt" in run_blocks
     assert artifact_steps, "profiling job must upload the line_profiler reports"
+
+
+def test_ci_picker_is_zero_polling_and_reversible() -> None:
+    """Public CI routing must not inventory the local fleet before starting."""
+    import yaml  # noqa: PLC0415
+
+    workflow = yaml.safe_load(_CI_WORKFLOW.read_text(encoding="utf-8"))
+    picker = workflow["jobs"]["pick-runner"]
+    scripts = "\n".join(step.get("run", "") for step in picker["steps"])
+
+    assert "CI_RUNNER_MODE != 'local'" in picker["runs-on"]
+    assert "gh api" not in scripts
+    assert "runner=ubuntu-latest" in scripts
+
+
+def test_lightweight_ci_is_hosted_eligible_but_heavy_jobs_stay_local() -> None:
+    """Only lightweight test/gate lanes participate in the hosted fast lane."""
+    import yaml  # noqa: PLC0415
+
+    jobs = yaml.safe_load(_CI_WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+
+    assert jobs["tests"]["runs-on"] == "${{ needs.pick-runner.outputs.runner }}"
+    assert jobs["tests"]["strategy"]["max-parallel"] == 3
+    for job_name in ("benchmarks", "profiling"):
+        assert "d-sorg-fleet" in jobs[job_name]["runs-on"]
