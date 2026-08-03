@@ -230,6 +230,10 @@ breach investigations.
 ### CI/CD Pipeline
 
 - CI must run the repo-standard lint and test jobs before merge.
+- Lightweight public CI uses GitHub-hosted Linux when `CI_RUNNER_MODE=hosted`
+  by default for public repositories and returns to `d-sorg-fleet` for `local`;
+  private repositories remain local and the selector performs no
+  runner inventory calls. Scheduled profiling, benchmarks, and releases remain local.
 - CI may generate line_profiler artifacts on scheduled and manually triggered runs without adding profiling cost to pull request runs.
 - CI workflow contract tests validate the presence of required uploaded artifacts
   without pinning a specific `actions/upload-artifact` major version.
@@ -317,6 +321,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-25 | 1.0.24  | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation.                                            |
 | 2026-06-25 | 1.0.25  | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection.                                                                |
 | 2026-06-25 | 1.0.26  | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior.                                     |
+| 2026-08-03 | 1.0.27  | Added zero-polling reversible hosted routing for lightweight public CI while retaining benchmarks, profiling, and publishing on the local fleet.                                         |
 | 2026-06-25 | 1.0.27  | Optimized URDF string serialization by replacing intermediate attribute string allocations with direct list appends in `_serialize`.                                                     |
 | 2026-06-25 | 1.0.28  | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`.                                                                    |
 

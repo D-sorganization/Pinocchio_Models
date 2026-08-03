@@ -25,7 +25,7 @@ permissions:
 jobs:
   dependency-review:
     if: github.event_name == 'pull_request'
-    runs-on: d-sorg-fleet
+    runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
@@ -36,27 +36,30 @@ jobs:
           fail-on-severity: moderate
 
   pick-runner:
-    runs-on: d-sorg-fleet
-    timeout-minutes: 2
+    runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
+    timeout-minutes: 1
     outputs:
       runner: ${{ steps.check.outputs.runner }}
+      mode: ${{ steps.check.outputs.mode }}
     steps:
-      - name: Check for self-hosted runner
+      - name: Select runner target
         id: check
         env:
-          GH_TOKEN: ${{ secrets.RUNNER_CHECK_TOKEN }}
+          CI_RUNNER_MODE: ${{ vars.CI_RUNNER_MODE }}
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+          LOCAL_RUNNER: d-sorg-fleet
+        shell: bash
         run: |
-          mkdir -p "$(dirname "$GITHUB_OUTPUT")"
-          ONLINE=$(gh api /orgs/${{ github.repository_owner }}/actions/runners \
-            --jq '[.runners[] | select(.status == "online") | select(.labels[].name == "d-sorg-fleet")] | length' \
-            2>/dev/null || echo "0")
-          if [[ "$ONLINE" -gt 0 ]]; then
-            echo "runner=d-sorg-fleet" >> "$GITHUB_OUTPUT"
-            echo "Self-hosted runner online - routing locally"
+          if [ "$REPOSITORY_PRIVATE" != "true" ] && [ "${CI_RUNNER_MODE:-auto}" != "local" ]; then
+            runner=ubuntu-latest
+            mode=hosted
           else
-            echo "runner=d-sorg-fleet" >> "$GITHUB_OUTPUT"
-            echo "No self-hosted runner - using local self-hosted"
+            runner="$LOCAL_RUNNER"
+            mode=local
           fi
+          echo "runner=$runner" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Selected $runner ($mode)"
   quality-gate:
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     timeout-minutes: 30
@@ -177,7 +180,7 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: 3
       matrix:
         python: ["3.10", "3.11", "3.12"]
     steps:
@@ -230,7 +233,7 @@ jobs:
   benchmarks:
     needs:
       - pick-runner
-    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -264,7 +267,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs:
       - pick-runner
-    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
