@@ -1,0 +1,80 @@
+<<<<<<< SEARCH
+            if tail:
+                if "&" in tail: tail = tail.replace("&", "&amp;")
+                if "<" in tail: tail = tail.replace("<", "&lt;")
+                if ">" in tail: tail = tail.replace(">", "&gt;")
+                append(tail)
+=======
+            if tail:
+                if "&" in tail:
+                    tail = tail.replace("&", "&amp;")
+                if "<" in tail:
+                    tail = tail.replace("<", "&lt;")
+                if ">" in tail:
+                    tail = tail.replace(">", "&gt;")
+                append(tail)
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+        if attrib:
+            for k, v in attrib.items():
+                if "&" in v: v = v.replace("&", "&amp;")
+                if "<" in v: v = v.replace("<", "&lt;")
+                if ">" in v: v = v.replace(">", "&gt;")
+                if '"' in v: v = v.replace('"', "&quot;")
+                if "\n" in v: v = v.replace("\n", "&#10;")
+                if "\r" in v: v = v.replace("\r", "&#13;")
+                if "\t" in v: v = v.replace("\t", "&#9;")
+                append(f' {k}="{v}"')
+=======
+        if attrib:
+            for k, v in attrib.items():
+                if "&" in v:
+                    v = v.replace("&", "&amp;")
+                if "<" in v:
+                    v = v.replace("<", "&lt;")
+                if ">" in v:
+                    v = v.replace(">", "&gt;")
+                if '"' in v:
+                    v = v.replace('"', "&quot;")
+                if "\n" in v:
+                    v = v.replace("\n", "&#10;")
+                if "\r" in v:
+                    v = v.replace("\r", "&#13;")
+                if "\t" in v:
+                    v = v.replace("\t", "&#9;")
+                append(f' {k}="{v}"')
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+        if text:
+            if "&" in text: text = text.replace("&", "&amp;")
+            if "<" in text: text = text.replace("<", "&lt;")
+            if ">" in text: text = text.replace(">", "&gt;")
+            if elem_len == 0:
+=======
+        if text:
+            if "&" in text:
+                text = text.replace("&", "&amp;")
+            if "<" in text:
+                text = text.replace("<", "&lt;")
+            if ">" in text:
+                text = text.replace(">", "&gt;")
+            if elem_len == 0:
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+        tail = elem.tail
+        if tail:
+            if "&" in tail: tail = tail.replace("&", "&amp;")
+            if "<" in tail: tail = tail.replace("<", "&lt;")
+            if ">" in tail: tail = tail.replace(">", "&gt;")
+            append(tail)
+=======
+        tail = elem.tail
+        if tail:
+            if "&" in tail:
+                tail = tail.replace("&", "&amp;")
+            if "<" in tail:
+                tail = tail.replace("<", "&lt;")
+            if ">" in tail:
+                tail = tail.replace(">", "&gt;")
+            append(tail)
+>>>>>>> REPLACE

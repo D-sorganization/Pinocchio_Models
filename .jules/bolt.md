@@ -202,3 +202,8 @@
 
 **Learning:** When attempting to optimize `set_joint_default` in `src/pinocchio_models/shared/utils/urdf_helpers.py`, replacing `robot.findall("joint")` with a manual reverse iteration (`for joint in reversed(robot):`) was deemed unnecessary and less readable for a micro-optimization. The native `findall` or `iter` is generally preferred unless there is a massive proven bottleneck (e.g., using `ElementPath` deeply nested). In small lists, reverse iteration creates confusion over why iteration needs to be backward.
 **Action:** Stick to standard forward iteration or `.find`/`.iter` unless profiling definitively shows reverse iteration on flat structures is a crucial bottleneck for O(1) appending. Do not sacrifice code readability for unproven micro-optimizations.
+
+## 2026-08-04 - Unrolling XML attribute serialization `in` conditions
+
+**Learning:** In URDF generation's string escaping logic (`_serialize`), wrapping individual `.replace()` calls inside a large compound `if` block with `in` conditions (e.g., `if "&" in v or "<" in v or ">" in v...`) is slightly slower than simply testing each character individually (e.g., `if "&" in v: v = v.replace(...)`). The boolean logic overhead of the compound check in Python outweighs the cost of sequential `in` checks because most attributes do not contain these special characters, and `in` on short attribute strings is highly optimized in C.
+**Action:** When escaping XML/URDF strings for special characters in hot loops, use separate `if "char" in string:` checks instead of grouping them all into one large `if` condition. This speeds up string validation by eliminating the compound evaluation overhead.
