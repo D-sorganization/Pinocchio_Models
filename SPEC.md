@@ -19,7 +19,7 @@
 | **License**             | MIT                                                   |
 | **Current Version**     | 0.1.0                                                 |
 | **Spec Version**        | 1.0.26                                                |
-| **Last Spec Update**    | 2026-07-23                                            |
+| **Last Spec Update**    | 2026-08-04                                            |
 
 ## 2. Purpose & Mission
 
