@@ -301,9 +301,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
 
+    type_fn = type
+    len_fn = len
+
     def _serialize(elem: ET.Element) -> None:  # noqa: C901
         tag = elem.tag
-        if type(tag) is not str:
+        if type_fn(tag) is not str:
             append(f"<!--{elem.text}-->")
             tail = elem.tail
             if tail:
@@ -316,7 +319,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(tail)
             return
 
-        elem_len = len(elem)
+        elem_len = len_fn(elem)
         text = elem.text
         attrib = elem.attrib
 
