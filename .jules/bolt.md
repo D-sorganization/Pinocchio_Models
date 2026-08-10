@@ -207,3 +207,7 @@
 
 **Learning:** In URDF generation's string escaping logic (`_serialize`), wrapping individual `.replace()` calls inside a large compound `if` block with `in` conditions (e.g., `if "&" in v or "<" in v or ">" in v...`) is slightly slower than simply testing each character individually (e.g., `if "&" in v: v = v.replace(...)`). The boolean logic overhead of the compound check in Python outweighs the cost of sequential `in` checks because most attributes do not contain these special characters, and `in` on short attribute strings is highly optimized in C.
 **Action:** When escaping XML/URDF strings for special characters in hot loops, use separate `if "char" in string:` checks instead of grouping them all into one large `if` condition. This speeds up string validation by eliminating the compound evaluation overhead.
+
+## 2026-08-04 - Avoid ElementPath searching for known elements
+**Learning:** Using `ElementTree.find()` with `ElementPath` strings (e.g. `robot.find(".//link")`) is slow because it recursively parses and scans the entire tree. For elements whose structural location is known, simple traversal techniques (like `iter` or manual iteration) are much faster.
+**Action:** Replace `ElementTree.find()` involving `ElementPath` with `iter()` (or manual iteration) when locating specific known elements inside flat or well-structured trees.

@@ -255,10 +255,16 @@ def _add_foot_collision(
         side: ``'l'`` or ``'r'``.
         dims: ``(length, width, height)`` of the sole contact box in metres.
     """
-    foot_link = robot.find(f".//link[@name='foot_{side}']")
+    target_name = f"foot_{side}"
+    foot_link = None
+    for link in robot.iter("link"):
+        if link.get("name") == target_name:
+            foot_link = link
+            break
+
     if foot_link is not None:
         collision = ET.SubElement(foot_link, "collision")
-        ET.SubElement(collision, "origin", xyz="0 0 -0.01", rpy="0 0 0")
+        ET.SubElement(collision, "origin", {"xyz": "0 0 -0.01", "rpy": "0 0 0"})
         collision.append(make_box_geometry(*dims))
 
 
