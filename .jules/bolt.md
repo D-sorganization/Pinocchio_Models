@@ -188,3 +188,6 @@
 ## 2024-05-19 - Optimize Fast-Path XML Serialization
 **Learning:** In tight recursive `xml.etree.ElementTree` string serialization, replacing chained `.replace()` calls with conditional check and replacement for each character (e.g. `if '&' in text: text = text.replace('&', '&amp;')`) and caching built-ins (`type_fn = type`, `len_fn = len`) avoids significant function call and namespace lookup overheads, saving about ~40% execution time during heavy URDF generations.
 **Action:** In high-frequency text formatting or string builder functions, always pre-fetch built-ins and use conditional string replacements to skip operations entirely when a substring is absent.
+## 2023-10-27 - [Dictionary packing for ET.SubElement]
+**Learning:** When dynamically generating many XML elements using `xml.etree.ElementTree.SubElement`, passing a dictionary for attributes (`ET.SubElement(parent, tag, attrib_dict)`) is significantly faster than passing keyword arguments (`**kwargs`) due to Python's argument packing/unpacking overhead.
+**Action:** Use dictionary passing for attributes in high-frequency ElementTree creations instead of kwargs.
