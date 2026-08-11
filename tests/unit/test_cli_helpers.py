@@ -21,7 +21,7 @@ def test_add_exercise_argument_accepts_known_and_all() -> None:
     """Known exercise names and the ``all`` keyword parse successfully."""
     p = argparse.ArgumentParser()
     cli._add_exercise_argument(p)
-    known = sorted(VALID_EXERCISE_NAMES)[0]
+    known = min(VALID_EXERCISE_NAMES)
     assert p.parse_args([known]).exercise == known
     assert p.parse_args(["all"]).exercise == "all"
 
@@ -59,7 +59,7 @@ def test_add_output_arguments_defaults_and_flags() -> None:
 def test_create_parser_composes_all_groups() -> None:
     """End-to-end: the composed parser accepts one command from each group."""
     p = cli._create_parser()
-    known = sorted(VALID_EXERCISE_NAMES)[0]
+    known = min(VALID_EXERCISE_NAMES)
     ns = p.parse_args(
         [known, "--mass", "70", "--height", "1.7", "--plates", "10", "-v"]
     )
