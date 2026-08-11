@@ -191,3 +191,7 @@
 ## 2023-10-27 - [Dictionary packing for ET.SubElement]
 **Learning:** When dynamically generating many XML elements using `xml.etree.ElementTree.SubElement`, passing a dictionary for attributes (`ET.SubElement(parent, tag, attrib_dict)`) is significantly faster than passing keyword arguments (`**kwargs`) due to Python's argument packing/unpacking overhead.
 **Action:** Use dictionary passing for attributes in high-frequency ElementTree creations instead of kwargs.
+## 2026-07-14 - Optimize URDF tree validation with single-pass iteration
+## 2026-07-29 - Optimize conditional replacements in tight loops for XML escaping
+**Learning:** In tight Python loops dealing with URDF XML string escaping, chaining `.replace()` calls when escaping attributes/text/tails creates intermediate strings and traversal overhead. Using a rapid boolean pre-check for special characters (like `if "&" in v or "<" in v...`) followed by individual `if` checks and conditional replacements for each character (e.g. `if "&" in v: v = v.replace("&", "&amp;")`) is measurably faster than unconditional chained `.replace()` calls, improving performance in the URDF generation hot path.
+**Action:** When escaping strings in extremely hot paths, prefer individual conditional replacements over chained unconditional `.replace()` calls.

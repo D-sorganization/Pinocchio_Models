@@ -612,3 +612,14 @@ def _set_initial_positions(
         _set_initial_positions_suffix(joints, prefix, prefix_underscore, val_str, exact_suffix)
     else:
         _set_initial_positions(joints, prefix, prefix_underscore, val_str)
+        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
+        },
+        {"xyz": "0 0 0", "rpy": vec3_str(*visual_origin_rpy)},
+    ET.SubElement(collision, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
+    link = ET.SubElement(robot, "link", {"name": name})
+        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
+        },
+        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
+        geom, "cylinder", {"radius": float_str(radius), "length": float_str(length)}
+    ET.SubElement(geom, "box", {"size": vec3_str(x, y, z)})
+    ET.SubElement(geom, "sphere", {"radius": float_str(radius)})
