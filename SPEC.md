@@ -349,3 +349,4 @@ The repository is in active maintenance. Shared model generation is established,
 | **Last Spec Update**    | 2026-07-23                                            |
 | 2026-07-28 | 1.0.37 | Optimized URDF validation loops by unrolling tuple/list creation for inertia assertions. |
 | 2026-07-29 | 1.0.38 | Optimized XML text escaping by conditionally invoking individual string replacements instead of chained unconditional replace calls. |
+| 2026-08-09 | 1.0.39 | Optimized URDF serialization by pre-fetching Python built-ins like `type` and `len` into local variables in `_serialize` to avoid global namespace lookup overhead. |
