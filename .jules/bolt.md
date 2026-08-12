@@ -211,3 +211,9 @@
 ## 2026-08-04 - Avoid ElementPath searching for known elements
 **Learning:** Using `ElementTree.find()` with `ElementPath` strings (e.g. `robot.find(".//link")`) is slow because it recursively parses and scans the entire tree. For elements whose structural location is known, simple traversal techniques (like `iter` or manual iteration) are much faster.
 **Action:** Replace `ElementTree.find()` involving `ElementPath` with `iter()` (or manual iteration) when locating specific known elements inside flat or well-structured trees.
+## 2026-08-12 - ElementTree  vs  for direct children
+**Learning:** While `root.iter()` is faster for single-pass deep traversals, when retrieving only the direct children of a specific tag, `root.findall('tag')` is significantly faster than `root.iter('tag')` and manual loop iterations in Python.
+**Action:** Use `findall('tag')` to fetch direct children instead of manual `for child in root:` checking tags or using `iter('tag')`.
+## 2026-08-12 - ElementTree findall() vs iter() for direct children
+**Learning:** While `root.iter()` is faster for single-pass deep traversals, when retrieving only the direct children of a specific tag, `root.findall('tag')` is significantly faster than `root.iter('tag')` and manual loop iterations in Python.
+**Action:** Use `findall('tag')` to fetch direct children instead of manual `for child in root:` checking tags or using `iter('tag')`.
