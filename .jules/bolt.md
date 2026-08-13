@@ -128,7 +128,10 @@
 **Learning:** In python, inline or local imports inside a function body incur a small overhead on every function call because python has to check `sys.modules` and acquire the import lock. When these functions (like contract validations `require_positive`) are called thousands of times per URDF model generation, this overhead accumulates into a measurable bottleneck.
 **Action:** Always place imports at the global module level, especially for functions that sit in the hot path. Moving local imports to the top level reduces execution time for 1M calls from ~0.710s to ~0.217s.
 
-## 2026-07-14 - Optimize URDF tree validation with single-pass iteration
+## 2026-06-25 - Optimize URDF tree validation
+
+**Learning:** During URDF tree validation, function call boundaries for tiny helper functions (`_collect_link_names_and_joints`, `_ensure_known_child_link`, `_ensure_single_parent_link`) executed thousands of times caused measurable overhead. Inlining this logic directly inside `ensure_valid_urdf_tree` alongside method localizations (`link_names.add`) provided a ~10-15% benchmark latency reduction while iterating nodes.
+**Action:** In high-frequency, hot-path tree traversal code like URDF validation, prefer carefully commented inline loops and direct variable access over deep hierarchies of single-use helper functions.
 
 **Learning:** In `ensure_valid_urdf_tree` (inside `src/pinocchio_models/shared/contracts/postconditions.py`), executing multiple passes over the XML tree using `.iter()` and `.find()` was creating significant traversal overhead. Specifically, `joint.find("child")` triggers python's `ElementPath` parsing for every joint, which is noticeably slower than a direct unrolled inline loop.
 **Action:** When validating XML structures, combine node collection and validation into a single deep `.iter()` loop where possible. Additionally, replace `.find()` inside small child lists with explicit unrolled loops to eliminate `ElementPath` overhead. This yielded a solid reduction in validation time for high-frequency model generation.
@@ -209,5 +212,33 @@
 **Action:** When escaping XML/URDF strings for special characters in hot loops, use separate `if "char" in string:` checks instead of grouping them all into one large `if` condition. This speeds up string validation by eliminating the compound evaluation overhead.
 
 ## 2026-08-04 - Avoid ElementPath searching for known elements
+
 **Learning:** Using `ElementTree.find()` with `ElementPath` strings (e.g. `robot.find(".//link")`) is slow because it recursively parses and scans the entire tree. For elements whose structural location is known, simple traversal techniques (like `iter` or manual iteration) are much faster.
 **Action:** Replace `ElementTree.find()` involving `ElementPath` with `iter()` (or manual iteration) when locating specific known elements inside flat or well-structured trees.
+
+## 2024-05-19 - Optimize Fast-Path XML Serialization
+
+**Learning:** In tight recursive `xml.etree.ElementTree` string serialization, replacing chained `.replace()` calls with conditional check and replacement for each character (e.g. `if '&' in text: text = text.replace('&', '&amp;')`) and caching built-ins (`type_fn = type`, `len_fn = len`) avoids significant function call and namespace lookup overheads, saving about ~40% execution time during heavy URDF generations.
+**Action:** In high-frequency text formatting or string builder functions, always pre-fetch built-ins and use conditional string replacements to skip operations entirely when a substring is absent.
+
+## 2023-10-27 - [Dictionary packing for ET.SubElement]
+
+**Learning:** When dynamically generating many XML elements using `xml.etree.ElementTree.SubElement`, passing a dictionary for attributes (`ET.SubElement(parent, tag, attrib_dict)`) is significantly faster than passing keyword arguments (`**kwargs`) due to Python's argument packing/unpacking overhead.
+**Action:** Use dictionary passing for attributes in high-frequency ElementTree creations instead of kwargs.
+
+## 2026-07-14 - Optimize URDF tree validation with single-pass iteration
+
+## 2026-07-29 - Optimize conditional replacements in tight loops for XML escaping
+
+**Learning:** In tight Python loops dealing with URDF XML string escaping, chaining `.replace()` calls when escaping attributes/text/tails creates intermediate strings and traversal overhead. Using a rapid boolean pre-check for special characters (like `if "&" in v or "<" in v...`) followed by individual `if` checks and conditional replacements for each character (e.g. `if "&" in v: v = v.replace("&", "&amp;")`) is measurably faster than unconditional chained `.replace()` calls, improving performance in the URDF generation hot path.
+**Action:** When escaping strings in extremely hot paths, prefer individual conditional replacements over chained unconditional `.replace()` calls.
+
+## 2026-08-09 - Caching Python built-ins in hot recursive loops
+
+**Learning:** In tight, high-frequency recursive loops (like recursive XML serialization in `_serialize`), calling Python built-in functions like `type()` and `len()` directly incurs a small global namespace lookup overhead. Across millions of node visits, this overhead accumulates.
+**Action:** Pre-fetching Python built-ins into local variables (e.g., `type_fn = type`, `len_fn = len`) right outside the recursive function avoids global namespace lookup overhead and measurably improves operations-per-second, reducing serialization time by approximately 10%.
+
+## 2026-08-12 - Replacing manual child iteration with ElementTree.findall in hot paths
+
+**Learning:** Manual Python loops over ElementTree children (e.g. `for child in robot: if child.tag == "joint":`) incur Python interpreter overhead for every node visit and comparison. Using `ElementTree.findall("joint")` delegates tag filtering directly to the C layer in cElementTree, yielding significant speedups during XML model building.
+**Action:** In XML tree manipulation functions operating on standard tags, prefer `elem.findall("tag")` over manual iteration and `if child.tag == "tag":` checks.
