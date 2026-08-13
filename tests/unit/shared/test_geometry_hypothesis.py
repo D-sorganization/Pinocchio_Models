@@ -7,7 +7,7 @@ import pytest
 
 pytest.importorskip("hypothesis")
 
-from hypothesis import given, settings
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from pinocchio_models.shared.utils.geometry import (
@@ -34,7 +34,7 @@ angle = st.floats(
 
 class TestCylinderInertiaProperties:
     @given(mass=positive_float, radius=positive_float, length=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_all_inertias_positive(
         self, mass: float, radius: float, length: float
     ) -> None:
@@ -44,7 +44,7 @@ class TestCylinderInertiaProperties:
         assert izz > 0
 
     @given(mass=positive_float, radius=positive_float, length=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_transverse_symmetry(
         self, mass: float, radius: float, length: float
     ) -> None:
@@ -52,7 +52,7 @@ class TestCylinderInertiaProperties:
         assert abs(ixx - iyy) < 1e-10 * max(abs(ixx), 1.0)
 
     @given(mass=positive_float, radius=positive_float, length=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_triangle_inequality(
         self, mass: float, radius: float, length: float
     ) -> None:
@@ -62,7 +62,7 @@ class TestCylinderInertiaProperties:
         assert iyy + izz >= ixx
 
     @given(mass=positive_float, radius=positive_float, length=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_scales_linearly_with_mass(
         self, mass: float, radius: float, length: float
     ) -> None:
@@ -80,7 +80,7 @@ class TestRectangularPrismInertiaProperties:
         height=positive_float,
         depth=positive_float,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_all_positive(
         self, mass: float, width: float, height: float, depth: float
     ) -> None:
@@ -90,7 +90,7 @@ class TestRectangularPrismInertiaProperties:
         assert izz > 0
 
     @given(mass=positive_float, side=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_cube_all_equal(self, mass: float, side: float) -> None:
         ixx, iyy, izz = rectangular_prism_inertia(mass, side, side, side)
         assert abs(ixx - iyy) < 1e-10 * max(abs(ixx), 1.0)
@@ -99,14 +99,14 @@ class TestRectangularPrismInertiaProperties:
 
 class TestSphereInertiaProperties:
     @given(mass=positive_float, radius=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_all_equal(self, mass: float, radius: float) -> None:
         ixx, iyy, izz = sphere_inertia(mass, radius)
         assert abs(ixx - iyy) < 1e-10 * max(abs(ixx), 1.0)
         assert abs(iyy - izz) < 1e-10 * max(abs(iyy), 1.0)
 
     @given(mass=positive_float, radius=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_positive(self, mass: float, radius: float) -> None:
         ixx, iyy, izz = sphere_inertia(mass, radius)
         assert ixx > 0
@@ -114,7 +114,7 @@ class TestSphereInertiaProperties:
 
 class TestParallelAxisShiftProperties:
     @given(mass=positive_float)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_zero_displacement_identity(self, mass: float) -> None:
         inertia = (1.0, 2.0, 3.0)
         result = parallel_axis_shift(mass, inertia, np.zeros(3))
@@ -128,7 +128,7 @@ class TestParallelAxisShiftProperties:
         dy=small_float,
         dz=small_float,
     )
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_inertia_never_decreases(
         self, mass: float, dx: float, dy: float, dz: float
     ) -> None:
@@ -141,25 +141,25 @@ class TestParallelAxisShiftProperties:
 
 class TestRotationMatrixProperties:
     @given(theta=angle)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_orthogonality_x(self, theta: float) -> None:
         r = rotation_matrix_x(theta)
         np.testing.assert_allclose(r @ r.T, np.eye(3), atol=1e-12)
 
     @given(theta=angle)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_orthogonality_y(self, theta: float) -> None:
         r = rotation_matrix_y(theta)
         np.testing.assert_allclose(r @ r.T, np.eye(3), atol=1e-12)
 
     @given(theta=angle)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_orthogonality_z(self, theta: float) -> None:
         r = rotation_matrix_z(theta)
         np.testing.assert_allclose(r @ r.T, np.eye(3), atol=1e-12)
 
     @given(theta=angle)
-    @settings(max_examples=50)
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
     def test_determinant_one(self, theta: float) -> None:
         for func in [rotation_matrix_x, rotation_matrix_y, rotation_matrix_z]:
             r = func(theta)
