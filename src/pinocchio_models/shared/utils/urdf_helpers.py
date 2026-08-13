@@ -464,13 +464,16 @@ def set_joint_default(
     """
     val_str = float_str(value)
     prefix_underscore = f"{prefix}_"
-    for joint in robot:
-        if joint.tag == "joint":
-            name = joint.get("name", "")
-            if name == prefix or name.startswith(prefix_underscore):
-                if exact_suffix is not None and not name.endswith(exact_suffix):
-                    continue
-                joint.set("initial_position", val_str)
+    # ⚡ Bolt Optimization: Replace manual loop and tag check with findall().
+    # .findall("joint") is highly optimized at the C layer in cElementTree and
+    # avoids slower Python bytecode execution, yielding a measurable speedup
+    # during URDF generation.
+    for joint in robot.findall("joint"):
+        name = joint.get("name", "")
+        if name == prefix or name.startswith(prefix_underscore):
+            if exact_suffix is not None and not name.endswith(exact_suffix):
+                continue
+            joint.set("initial_position", val_str)
 
 
 def _import_pinocchio() -> Any:
@@ -528,98 +531,3 @@ def get_initial_configuration(model: Any, xml_str: str) -> Any:
     """Return a Pinocchio configuration seeded from URDF metadata."""
     pin = _import_pinocchio()
     return _build_initial_configuration(pin, model, _parse_initial_positions(xml_str))
-    """Append the inertial block for a URDF link.
-    ⚡ Bolt Optimization: Use dictionary passing to ET.SubElement
-    and precomputed string formatting to avoid Python argument packing overhead.
-        {
-            "xyz": vec3_str(*origin_xyz),
-            "rpy": vec3_str(*origin_rpy),
-        }
-    ET.SubElement(inertial, "mass", {"value": float_str(mass)})
-        {
-            "ixx": float_str(ixx),
-            "iyy": float_str(iyy),
-            "izz": float_str(izz),
-            "ixy": float_str(ixy),
-            "ixz": float_str(ixz),
-            "iyz": float_str(iyz),
-        }
-    # ⚡ Bolt Optimization: Use dictionary for attributes in ET.SubElement
-    # and precomputed string formatting to avoid Python argument packing overhead.
-    joint = ET.SubElement(robot, "joint", {"name": name, "type": "revolute"})
-        {
-            "xyz": vec3_str(*origin_xyz),
-            "rpy": vec3_str(*origin_rpy),
-        }
-    ET.SubElement(joint, "parent", {"link": parent})
-    ET.SubElement(joint, "child", {"link": child})
-    ET.SubElement(joint, "axis", {"xyz": vec3_str(*axis)})
-        {
-            "lower": float_str(lower),
-            "upper": float_str(upper),
-            "effort": e_str,
-            "velocity": v_str,
-        }
-    # ⚡ Bolt Optimization: Use dictionary for attributes in ET.SubElement
-    joint = ET.SubElement(robot, "joint", {"name": name, "type": "fixed"})
-        {
-            "xyz": vec3_str(*origin_xyz),
-            "rpy": vec3_str(*origin_rpy),
-        }
-    ET.SubElement(joint, "parent", {"link": parent})
-    ET.SubElement(joint, "child", {"link": child})
-        if type(tag) is not str:
-                    tail = (
-                        tail.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                    )
-        elem_len = len(elem)
-                    v = (
-                        v.replace("&", "&amp;")
-                        .replace("<", "&lt;")
-                        .replace(">", "&gt;")
-                        .replace('"', "&quot;")
-                        .replace("\n", "&#10;")
-                        .replace("\r", "&#13;")
-                        .replace("\t", "&#9;")
-                    )
-                text = (
-                    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                )
-                tail = (
-                    tail.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                )
-def _set_initial_positions_suffix(
-    joints: list[ET.Element], prefix: str, prefix_underscore: str, val_str: str, exact_suffix: str
-    """Apply initial position to joints matching the prefix and exact suffix."""
-    for joint in joints:
-        name = joint.get("name")
-        if name and (name == prefix or name.startswith(prefix_underscore)) and name.endswith(exact_suffix):
-            joint.set("initial_position", val_str)
-def _set_initial_positions(
-    joints: list[ET.Element], prefix: str, prefix_underscore: str, val_str: str
-    """Apply initial position to joints matching the prefix."""
-    for joint in joints:
-        name = joint.get("name")
-        if name and (name == prefix or name.startswith(prefix_underscore)):
-            joint.set("initial_position", val_str)
-    joints = robot.findall("joint")
-    # ⚡ Bolt Optimization: Loop unswitching.
-    # Hoisting the exact_suffix check outside the loop eliminates redundant
-    # conditional evaluations during every iteration.
-    if exact_suffix is not None:
-        _set_initial_positions_suffix(joints, prefix, prefix_underscore, val_str, exact_suffix)
-    else:
-        _set_initial_positions(joints, prefix, prefix_underscore, val_str)
-        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
-        },
-        {"xyz": "0 0 0", "rpy": vec3_str(*visual_origin_rpy)},
-    ET.SubElement(collision, "origin", {"xyz": "0 0 0", "rpy": "0 0 0"})
-    link = ET.SubElement(robot, "link", {"name": name})
-        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
-        },
-        {"xyz": vec3_str(*origin_xyz), "rpy": vec3_str(*origin_rpy)},
-        geom, "cylinder", {"radius": float_str(radius), "length": float_str(length)}
-    ET.SubElement(geom, "box", {"size": vec3_str(x, y, z)})
-    ET.SubElement(geom, "sphere", {"radius": float_str(radius)})
