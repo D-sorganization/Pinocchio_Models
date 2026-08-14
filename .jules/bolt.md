@@ -242,3 +242,7 @@
 
 **Learning:** Manual Python loops over ElementTree children (e.g. `for child in robot: if child.tag == "joint":`) incur Python interpreter overhead for every node visit and comparison. Using `ElementTree.findall("joint")` delegates tag filtering directly to the C layer in cElementTree, yielding significant speedups during XML model building.
 **Action:** In XML tree manipulation functions operating on standard tags, prefer `elem.findall("tag")` over manual iteration and `if child.tag == "tag":` checks.
+## 2026-08-14 - Fix redundant string replacements in URDF generation
+
+**Learning:** Unrolling string replacement compound conditions with duplicate `if` blocks for `tail` and `text` properties without `in` checks actually hurts performance by redundantly evaluating replacements, and that replacing them with a single compound `if "&" in x or "<" in x or ">" in x:` followed by individual `if` checks eliminates unnecessary function call overhead.
+**Action:** Remove duplicate `if` blocks for `tail` and `text` properties in URDF generation and ensure a single compound check is used for each property.

@@ -307,12 +307,6 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             append(f"<!--{elem.text}-->")
             tail = elem.tail
             if tail:
-                if "&" in tail:
-                    tail = tail.replace("&", "&amp;")
-                if "<" in tail:
-                    tail = tail.replace("<", "&lt;")
-                if ">" in tail:
-                    tail = tail.replace(">", "&gt;")
                 if "&" in tail or "<" in tail or ">" in tail:
                     if "&" in tail:
                         tail = tail.replace("&", "&amp;")
@@ -354,35 +348,6 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(f' {k}="{v}"')
 
         if text:
-            if "&" in text:
-                text = text.replace("&", "&amp;")
-            if "<" in text:
-                text = text.replace("<", "&lt;")
-            if ">" in text:
-                text = text.replace(">", "&gt;")
-                if (
-                    "&" in v
-                    or "<" in v
-                    or ">" in v
-                    or '"' in v
-                    or "\n" in v
-                    or "\r" in v
-                    or "\t" in v
-                ):
-                    if "&" in v:
-                        v = v.replace("&", "&amp;")
-                    if "<" in v:
-                        v = v.replace("<", "&lt;")
-                    if ">" in v:
-                        v = v.replace(">", "&gt;")
-                    if '"' in v:
-                        v = v.replace('"', "&quot;")
-                    if "\n" in v:
-                        v = v.replace("\n", "&#10;")
-                    if "\r" in v:
-                        v = v.replace("\r", "&#13;")
-                    if "\t" in v:
-                        v = v.replace("\t", "&#9;")
             if "&" in text or "<" in text or ">" in text:
                 if "&" in text:
                     text = text.replace("&", "&amp;")
@@ -407,12 +372,6 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
 
         tail = elem.tail
         if tail:
-            if "&" in tail:
-                tail = tail.replace("&", "&amp;")
-            if "<" in tail:
-                tail = tail.replace("<", "&lt;")
-            if ">" in tail:
-                tail = tail.replace(">", "&gt;")
             if "&" in tail or "<" in tail or ">" in tail:
                 if "&" in tail:
                     tail = tail.replace("&", "&amp;")
