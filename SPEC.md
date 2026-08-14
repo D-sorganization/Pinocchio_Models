@@ -351,3 +351,6 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-07-29 | 1.0.38 | Optimized XML text escaping by conditionally invoking individual string replacements instead of chained unconditional replace calls. |
 | 2026-08-09 | 1.0.39 | Optimized URDF serialization by pre-fetching Python built-ins like `type` and `len` into local variables in `_serialize` to avoid global namespace lookup overhead. |
 | 2026-08-12 | 1.0.40 | Optimized URDF tree parsing in `set_joint_default` by replacing manual child iteration with `ElementTree.findall()`. |
+
+## 2026-08-14 - Fix redundant string replacements in URDF generation
+Redundant string replacements in `_serialize` in `urdf_helpers.py` were optimized to eliminate unnecessary evaluation.
