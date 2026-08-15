@@ -354,3 +354,8 @@ The repository is in active maintenance. Shared model generation is established,
 
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 Redundant string replacements in `_serialize` in `urdf_helpers.py` were optimized to eliminate unnecessary evaluation.
+
+## 2026-08-15 - Unaliasing Python built-ins
+
+**Learning:** Caching built-in functions like `type` and `len` into local variables (e.g. `type_fn = type`) does not speed up execution in Python 3.11+. The built-in lookup is heavily optimized via inline caching in modern Python versions, and aliasing them to a local scope variable might even degrade performance.
+**Action:** Remove local aliases for built-ins in hot paths.
