@@ -247,7 +247,7 @@
 **Learning:** Unrolling string replacement compound conditions with duplicate `if` blocks for `tail` and `text` properties without `in` checks actually hurts performance by redundantly evaluating replacements, and that replacing them with a single compound `if "&" in x or "<" in x or ">" in x:` followed by individual `if` checks eliminates unnecessary function call overhead.
 **Action:** Remove duplicate `if` blocks for `tail` and `text` properties in URDF generation and ensure a single compound check is used for each property.
 
-## 2026-08-14 - Fix redundant string replacements in URDF generation (Correction)
+## 2026-08-15 - Unaliasing Python built-ins
 
-**Learning:** Unrolling string replacement compound conditions with duplicate `if` blocks without `in` checks hurts performance. Using individual conditions `if "&" in v:` without wrapping them in an outer compound condition `if "&" in v or "<" in v or ">" in v:` is faster, but only if they are properly formatted on separate lines to pass Ruff lint checks. Placing multiple statements on the same line (e.g., `if "&" in v: v = v.replace(...)`) causes Ruff E701 errors.
-**Action:** When unrolling conditional checks, ensure they are formatted on multiple lines to pass `ruff check`.
+**Learning:** Caching built-in functions like `type` and `len` into local variables (e.g. `type_fn = type`) does not speed up execution in Python 3.11+. The built-in lookup is heavily optimized via inline caching in modern Python versions, and aliasing them to a local scope variable might even degrade performance.
+**Action:** Remove local aliases for built-ins in hot paths.

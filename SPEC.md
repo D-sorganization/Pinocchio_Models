@@ -354,7 +354,3 @@ The repository is in active maintenance. Shared model generation is established,
 
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 Redundant string replacements in `_serialize` in `urdf_helpers.py` were optimized to eliminate unnecessary evaluation.
-
-
-## 2026-08-15 - URDF string serialization micro-optimizations
-XML character escaping compound logical checks (e.g. `if '&' in string or '<' in string:`) have been unwrapped into independent conditional statements in hot paths. This avoids compounding boolean logic overhead where strings lack all evaluated characters, improving ops/second.
