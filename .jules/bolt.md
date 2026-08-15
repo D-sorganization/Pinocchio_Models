@@ -246,3 +246,8 @@
 
 **Learning:** Unrolling string replacement compound conditions with duplicate `if` blocks for `tail` and `text` properties without `in` checks actually hurts performance by redundantly evaluating replacements, and that replacing them with a single compound `if "&" in x or "<" in x or ">" in x:` followed by individual `if` checks eliminates unnecessary function call overhead.
 **Action:** Remove duplicate `if` blocks for `tail` and `text` properties in URDF generation and ensure a single compound check is used for each property.
+
+## 2026-08-15 - Unaliasing Python built-ins
+
+**Learning:** Caching built-in functions like `type` and `len` into local variables (e.g. `type_fn = type`) does not speed up execution in Python 3.11+. The built-in lookup is heavily optimized via inline caching in modern Python versions, and aliasing them to a local scope variable might even degrade performance.
+**Action:** Remove local aliases for built-ins in hot paths.
