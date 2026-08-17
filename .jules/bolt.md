@@ -251,3 +251,8 @@
 
 **Learning:** Caching built-in functions like `type` and `len` into local variables (e.g. `type_fn = type`) does not speed up execution in Python 3.11+. The built-in lookup is heavily optimized via inline caching in modern Python versions, and aliasing them to a local scope variable might even degrade performance.
 **Action:** Remove local aliases for built-ins in hot paths.
+
+## 2026-08-17 - Optimize ET.SubElement by replacing kwargs with a dictionary
+
+**Learning:** When generating XML elements heavily with `xml.etree.ElementTree.SubElement`, passing keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) introduces kwargs packing/unpacking overhead in python. Providing a single dictionary for attributes (e.g. `ET.SubElement(parent, tag, {"key": value})`) bypasses this overhead. While the per-call saving is small, it adds up over thousands of node generations in URDF creation, yielding a measurable performance improvement in operations per second.
+**Action:** When working with `ET.SubElement` in high-frequency generation loops, prefer dictionary literals for the `attrib` parameter rather than using keyword arguments.
