@@ -282,7 +282,9 @@ def add_fixed_joint(
 def make_cylinder_geometry(radius: float, length: float) -> ET.Element:
     """Create a <geometry><cylinder> element."""
     geom = ET.Element("geometry")
-    ET.SubElement(geom, "cylinder", {"radius": float_str(radius), "length": float_str(length)})
+    ET.SubElement(
+        geom, "cylinder", {"radius": float_str(radius), "length": float_str(length)}
+    )
     return geom
 
 
