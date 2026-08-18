@@ -256,3 +256,7 @@
 
 **Learning:** When generating XML elements heavily with `xml.etree.ElementTree.SubElement`, passing keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) introduces kwargs packing/unpacking overhead in python. Providing a single dictionary for attributes (e.g. `ET.SubElement(parent, tag, {"key": value})`) bypasses this overhead. While the per-call saving is small, it adds up over thousands of node generations in URDF creation, yielding a measurable performance improvement in operations per second.
 **Action:** When working with `ET.SubElement` in high-frequency generation loops, prefer dictionary literals for the `attrib` parameter rather than using keyword arguments.
+
+## 2024-08-18 - Loop Unswitching in URDF Helpers
+**Learning:** In performance-sensitive Python loops, invariant conditional checks (like checking if an optional parameter is `None`) incur redundant evaluation overhead during every iteration.
+**Action:** Apply 'loop unswitching' by hoisting the invariant check outside the loop.
