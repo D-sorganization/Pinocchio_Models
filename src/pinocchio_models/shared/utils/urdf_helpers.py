@@ -441,12 +441,18 @@ def set_joint_default(
     # .findall("joint") is highly optimized at the C layer in cElementTree and
     # avoids slower Python bytecode execution, yielding a measurable speedup
     # during URDF generation.
-    for joint in robot.findall("joint"):
-        name = joint.get("name", "")
-        if name == prefix or name.startswith(prefix_underscore):
-            if exact_suffix is not None and not name.endswith(exact_suffix):
-                continue
-            joint.set("initial_position", val_str)
+    if exact_suffix is not None:
+        for joint in robot.findall("joint"):
+            name = joint.get("name", "")
+            if name == prefix or name.startswith(prefix_underscore):
+                if not name.endswith(exact_suffix):
+                    continue
+                joint.set("initial_position", val_str)
+    else:
+        for joint in robot.findall("joint"):
+            name = joint.get("name", "")
+            if name == prefix or name.startswith(prefix_underscore):
+                joint.set("initial_position", val_str)
 
 
 def _import_pinocchio() -> Any:
