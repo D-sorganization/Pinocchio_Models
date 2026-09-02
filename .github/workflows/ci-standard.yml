@@ -230,7 +230,7 @@ jobs:
   benchmarks:
     needs:
       - pick-runner
-    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
@@ -239,6 +239,7 @@ jobs:
           for PYTHON in python3.11 python3.12 python3.10 python; do
             if command -v "$PYTHON" &>/dev/null; then
               echo "Using $PYTHON ($($PYTHON --version))"
+              rm -rf "$RUNNER_TEMP/ci-venv"
               "$PYTHON" -m venv "$RUNNER_TEMP/ci-venv"
               "$RUNNER_TEMP/ci-venv/bin/pip" install --upgrade pip setuptools wheel --quiet
               echo "$RUNNER_TEMP/ci-venv/bin" >> $GITHUB_PATH
