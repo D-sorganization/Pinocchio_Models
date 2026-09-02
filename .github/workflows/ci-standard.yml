@@ -230,7 +230,7 @@ jobs:
   benchmarks:
     needs:
       - pick-runner
-    runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
+    runs-on: ${{ needs.pick-runner.outputs.runner }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
