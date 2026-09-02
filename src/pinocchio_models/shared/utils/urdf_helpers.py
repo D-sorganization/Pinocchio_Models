@@ -345,20 +345,21 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         append(f"<{tag}")
         if attrib:
             for k, v in attrib.items():
-                if "&" in v:
-                    v = v.replace("&", "&amp;")
-                if "<" in v:
-                    v = v.replace("<", "&lt;")
-                if ">" in v:
-                    v = v.replace(">", "&gt;")
-                if '"' in v:
-                    v = v.replace('"', "&quot;")
-                if "\n" in v:
-                    v = v.replace("\n", "&#10;")
-                if "\r" in v:
-                    v = v.replace("\r", "&#13;")
-                if "\t" in v:
-                    v = v.replace("\t", "&#9;")
+                if ("&" in v) or ("<" in v) or (">" in v) or ('"' in v) or ("\n" in v) or ("\r" in v) or ("\t" in v):
+                    if "&" in v:
+                        v = v.replace("&", "&amp;")
+                    if "<" in v:
+                        v = v.replace("<", "&lt;")
+                    if ">" in v:
+                        v = v.replace(">", "&gt;")
+                    if '"' in v:
+                        v = v.replace('"', "&quot;")
+                    if "\n" in v:
+                        v = v.replace("\n", "&#10;")
+                    if "\r" in v:
+                        v = v.replace("\r", "&#13;")
+                    if "\t" in v:
+                        v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
 
         if text:
@@ -444,9 +445,9 @@ def set_joint_default(
     if exact_suffix is not None:
         for joint in robot.findall("joint"):
             name = joint.get("name", "")
-            if name == prefix or name.startswith(prefix_underscore):
-                if not name.endswith(exact_suffix):
-                    continue
+            if (name == prefix or name.startswith(prefix_underscore)) and name.endswith(
+                exact_suffix
+            ):
                 joint.set("initial_position", val_str)
     else:
         for joint in robot.findall("joint"):
