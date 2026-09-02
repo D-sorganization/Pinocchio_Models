@@ -18,8 +18,8 @@
 | **Primary Language(s)** | Python 3.10+                                          |
 | **License**             | MIT                                                   |
 | **Current Version**     | 0.1.0                                                 |
-| **Spec Version**        | 1.0.41                                                |
-| **Last Spec Update**    | 2026-08-18                                            |
+| **Spec Version**        | 1.0.42                                                |
+| **Last Spec Update**    | 2026-09-02                                            |
 
 ## 2. Purpose & Mission
 
@@ -352,6 +352,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-08-09 | 1.0.39 | Optimized URDF serialization by pre-fetching Python built-ins like `type` and `len` into local variables in `_serialize` to avoid global namespace lookup overhead. |
 | 2026-08-12 | 1.0.40 | Optimized URDF tree parsing in `set_joint_default` by replacing manual child iteration with `ElementTree.findall()`. |
 | 2026-08-18 | 1.0.41 | Optimized ET.SubElement kwargs packing in URDF helpers by passing attribute dictionaries directly. |
+| 2026-09-02 | 1.0.42 | Added fast-path pre-checks for XML escaping in URDF serialization. |
 
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 
@@ -364,3 +365,7 @@ ET.SubElement attribute packing was optimized in `urdf_helpers.py` by providing 
 ## 2026-08-18 - Loop Unswitching in URDF Helpers
 
 Loop unswitching applied to `set_joint_default` in `urdf_helpers.py` to hoist invariant conditional checking out of the loop iteration.
+
+## 2026-09-02 - Fast-path pre-checks for XML escaping in URDF serialization
+
+Unified compound pre-checks for XML escaping character tests in `serialize_model` to skip unnecessary string replacement iterations during URDF model generation.

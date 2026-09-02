@@ -257,6 +257,10 @@
 **Learning:** When generating XML elements heavily with `xml.etree.ElementTree.SubElement`, passing keyword arguments (e.g. `ET.SubElement(parent, tag, key=value)`) introduces kwargs packing/unpacking overhead in python. Providing a single dictionary for attributes (e.g. `ET.SubElement(parent, tag, {"key": value})`) bypasses this overhead. While the per-call saving is small, it adds up over thousands of node generations in URDF creation, yielding a measurable performance improvement in operations per second.
 **Action:** When working with `ET.SubElement` in high-frequency generation loops, prefer dictionary literals for the `attrib` parameter rather than using keyword arguments.
 
-## 2024-08-18 - Loop Unswitching in URDF Helpers
-**Learning:** In performance-sensitive Python loops, invariant conditional checks (like checking if an optional parameter is `None`) incur redundant evaluation overhead during every iteration.
-**Action:** Apply 'loop unswitching' by hoisting the invariant check outside the loop.
+## 2024-05-20 - [Optimize XML Attribute Replacement for URDF Serialization]
+**Learning:** In Python string replacement for XML escaping (e.g., URDF string properties in `attrib`), redundant sequential `replace()` calls can introduce measurable function overhead. However, a single compound pre-check (`if "&" in v or "<" in v or ...`) avoids these lookups, providing a performance speedup without redundantly triggering multiple string replace conditions.
+**Action:** Always implement a unified compound pre-check conditional for XML escaping character tests to create a fast path that skips unneeded replace logic during high-frequency recursive string operations.
+
+## 2024-05-20 - [Combine nested if for readability and performance]
+**Learning:** Ruff rule SIM102 flags nested if statements and recommends combining them using the `and` operator. This slightly streamlines bytecodes and improves readability for traversal conditions in `urdf_helpers.py`.
+**Action:** When filtering ElementTree properties sequentially, combine logical checks with `and` instead of nested `if`s where applicable to respect linters and maintain clarity.
