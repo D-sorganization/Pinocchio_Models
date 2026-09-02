@@ -345,7 +345,15 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         append(f"<{tag}")
         if attrib:
             for k, v in attrib.items():
-                if ("&" in v) or ("<" in v) or (">" in v) or ('"' in v) or ("\n" in v) or ("\r" in v) or ("\t" in v):
+                if (
+                    ("&" in v)
+                    or ("<" in v)
+                    or (">" in v)
+                    or ('"' in v)
+                    or ("\n" in v)
+                    or ("\r" in v)
+                    or ("\t" in v)
+                ):
                     if "&" in v:
                         v = v.replace("&", "&amp;")
                     if "<" in v:
