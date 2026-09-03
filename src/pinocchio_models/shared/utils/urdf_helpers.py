@@ -345,29 +345,23 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         append(f"<{tag}")
         if attrib:
             for k, v in attrib.items():
-                if (
-                    ("&" in v)
-                    or ("<" in v)
-                    or (">" in v)
-                    or ('"' in v)
-                    or ("\n" in v)
-                    or ("\r" in v)
-                    or ("\t" in v)
-                ):
-                    if "&" in v:
-                        v = v.replace("&", "&amp;")
-                    if "<" in v:
-                        v = v.replace("<", "&lt;")
-                    if ">" in v:
-                        v = v.replace(">", "&gt;")
-                    if '"' in v:
-                        v = v.replace('"', "&quot;")
-                    if "\n" in v:
-                        v = v.replace("\n", "&#10;")
-                    if "\r" in v:
-                        v = v.replace("\r", "&#13;")
-                    if "\t" in v:
-                        v = v.replace("\t", "&#9;")
+                # ⚡ Bolt Optimization: Removed compound `or` pre-check for XML attribute escaping.
+                # Sequential independent `if` statements run faster in Python 3.12+ because `in`
+                # for strings is highly optimized in C and avoids the extra boolean logic parsing.
+                if "&" in v:
+                    v = v.replace("&", "&amp;")
+                if "<" in v:
+                    v = v.replace("<", "&lt;")
+                if ">" in v:
+                    v = v.replace(">", "&gt;")
+                if '"' in v:
+                    v = v.replace('"', "&quot;")
+                if "\n" in v:
+                    v = v.replace("\n", "&#10;")
+                if "\r" in v:
+                    v = v.replace("\r", "&#13;")
+                if "\t" in v:
+                    v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
 
         if text:

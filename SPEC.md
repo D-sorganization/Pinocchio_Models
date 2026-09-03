@@ -369,3 +369,6 @@ Loop unswitching applied to `set_joint_default` in `urdf_helpers.py` to hoist in
 ## 2026-09-02 - Fast-path pre-checks for XML escaping in URDF serialization
 
 Unified compound pre-checks for XML escaping character tests in `serialize_model` to skip unnecessary string replacement iterations during URDF model generation.
+## 2026-09-02 - Optimize attribute serialization in URDF builder
+
+Removed compound `or` pre-check for XML attribute escaping, replacing it with sequential independent `if` checks in `serialize_model`.
