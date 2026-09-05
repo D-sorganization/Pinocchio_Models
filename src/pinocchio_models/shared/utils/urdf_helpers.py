@@ -331,10 +331,6 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(tail)
             return
 
-        elem_len = len_fn(elem)
-        text = elem.text
-        attrib = elem.attrib
-
         # ⚡ Bolt Optimization: Avoiding intermediate list allocations or string concatenations
         # by directly collapsing multiple `append()` calls for opening tags and attributes into fewer concatenated writes
         # provides measurable latency reduction during URDF string generation.
@@ -343,6 +339,10 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         # Actually doing append in a loop and formatting directly is slightly faster.
 
         append(f"<{tag}")
+
+        # ⚡ Bolt Optimization: Delaying the lookup of `.text` and `len()` properties
+        # avoids overhead when checking properties of tags that may exit early or skip branches.
+        attrib = elem.attrib
         if attrib:
             for k, v in attrib.items():
                 # ⚡ Bolt Optimization: Removed compound `or` pre-check for XML attribute escaping.
@@ -363,6 +363,9 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 if "\t" in v:
                     v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
+
+        text = elem.text
+        elem_len = len_fn(elem)
 
         if text:
             if "&" in text or "<" in text or ">" in text:

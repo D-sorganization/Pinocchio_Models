@@ -267,3 +267,11 @@
 ## 2026-08-18 - [Optimize XML Attribute Replacement for URDF Serialization]
 **Learning:** In Python string replacement for XML escaping (e.g., URDF string properties in `attrib`), redundant sequential `replace()` calls can introduce measurable function overhead. However, a single compound pre-check (`if "&" in v or "<" in v or ...`) is slower than simply replacing all checks with independent `if` statements for attributes because attributes are short and have many special characters to check. The boolean logic overhead of the compound check in Python outweighs the cost of sequential `in` checks because most attributes do not contain these special characters, and `in` on short attribute strings is highly optimized in C.
 **Action:** When escaping XML/URDF strings for special characters in hot loops, use separate `if "char" in string:` checks instead of grouping them all into one large `if` condition with `or` operators, especially when checking many characters. This speeds up string validation by eliminating the compound evaluation overhead.
+
+## 2026-08-25 - Delay fetching ElementTree properties in recursive hot loops
+**Learning:** In recursive XML serialization functions iterating over `xml.etree.ElementTree` objects, fetching properties like `elem.attrib`, `elem.text`, and calling `len(elem)` at the very beginning of the function for every node incurs unnecessary overhead when processing elements that fall into early-exit paths (e.g., XML Comments where `type(tag) is not str`).
+**Action:** Delay the assignment of these properties (e.g., `text = elem.text` and `elem_len = len(elem)`) until immediately before they are needed in the control flow. This prevents unnecessary `LOAD_ATTR` operations and speeds up overall serialization.
+
+## 2026-08-25 - Avoid set membership tests for XML tag validation in hot loops
+**Learning:** When trying to optimize XML tag validation by checking membership in a set of known valid string tags (e.g., `if tag not in _VALID_TAGS`), the overhead of hashing the string for the set lookup is measurably slower than relying on Python's built-in, C-optimized identity check `type(tag) is not str`.
+**Action:** In high-frequency tag validation loops, stick to the `type(tag) is not str` check to identify XML Comments or ProcessingInstructions, rather than introducing custom set membership checks.
