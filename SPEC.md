@@ -372,3 +372,8 @@ Unified compound pre-checks for XML escaping character tests in `serialize_model
 ## 2026-09-02 - Optimize attribute serialization in URDF builder
 
 Removed compound `or` pre-check for XML attribute escaping, replacing it with sequential independent `if` checks in `serialize_model`.
+| 2026-09-05 | 1.0.43 | Optimized URDF serialization by delaying property accesses to avoid unnecessary evaluations in early-exit branches. |
+
+## 2026-09-05 - Optimize property fetching in URDF serialization
+
+Optimized URDF serialization in `_serialize` by moving `elem.text` and `len(elem)` fetching after the attributes have been formatted to avoid unnecessary operations for early exiting elements.
