@@ -37,31 +37,6 @@ def _parse_robot_root(xml_string: str) -> ET.Element:
     return root
 
 
-_VALID_TAGS = frozenset(
-    [
-        "robot",
-        "link",
-        "joint",
-        "origin",
-        "inertial",
-        "mass",
-        "inertia",
-        "visual",
-        "geometry",
-        "cylinder",
-        "box",
-        "sphere",
-        "collision",
-        "parent",
-        "child",
-        "axis",
-        "limit",
-        "color",
-        "material",
-    ]
-)
-
-
 def _collect_and_validate_nodes(root: ET.Element) -> tuple[set[str], list[ET.Element]]:
     """Iterate tree to collect links and joints while validating tags.
 
@@ -74,22 +49,17 @@ def _collect_and_validate_nodes(root: ET.Element) -> tuple[set[str], list[ET.Ele
 
     for el in root.iter():
         tag = el.tag
-        if tag in _VALID_TAGS:
-            if tag == "link":
-                name = el.get("name")
-                if name:
-                    link_names_add(name)
-            elif tag == "joint":
-                joints_append(el)
-        elif type(tag) is not str:
+        if type(tag) is not str:
             # ElementTree stores comments and processing instructions as
             # callables in the .tag field, so we skip them.
             continue
-        else:
-            raise URDFError(
-                f"Generated URDF is not well-formed XML: invalid tag '{tag}'",
-                error_code="PM204",
-            )
+
+        if tag == "link":
+            name = el.get("name")
+            if name:
+                link_names_add(name)
+        elif tag == "joint":
+            joints_append(el)
     return link_names, joints
 
 

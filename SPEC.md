@@ -377,3 +377,7 @@ Removed compound `or` pre-check for XML attribute escaping, replacing it with se
 ## 2026-09-05 - Optimize property fetching in URDF serialization
 
 Optimized URDF serialization in `_serialize` by moving `elem.text` and `len(elem)` fetching after the attributes have been formatted to avoid unnecessary operations for early exiting elements.
+
+## 2026-09-07 - Avoid set membership tests for XML tag validation in hot loops
+
+Optimized URDF validation by removing the `_VALID_TAGS` set membership check for XML tags inside `_collect_and_validate_nodes`, and instead relying on the faster `type(tag) is not str` check to skip comments. This avoids string hashing overhead and improves execution speed.
