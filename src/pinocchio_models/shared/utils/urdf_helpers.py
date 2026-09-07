@@ -312,12 +312,10 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     """
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
-    type_fn = type
-    len_fn = len
 
     def _serialize(elem: ET.Element) -> None:  # noqa: C901
         tag = elem.tag
-        if type_fn(tag) is not str:
+        if type(tag) is not str:
             append(f"<!--{elem.text}-->")
             tail = elem.tail
             if tail:
@@ -365,8 +363,6 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(f' {k}="{v}"')
 
         text = elem.text
-        elem_len = len_fn(elem)
-
         if text:
             if "&" in text or "<" in text or ">" in text:
                 if "&" in text:
@@ -375,20 +371,21 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     text = text.replace("<", "&lt;")
                 if ">" in text:
                     text = text.replace(">", "&gt;")
-            if elem_len == 0:
+            if not len(elem):
                 append(f">{text}</{tag}>")
             else:
                 append(f">{text}")
                 for child in elem:
                     _serialize(child)
                 append(f"</{tag}>")
-        elif elem_len == 0:
-            append(" />")
         else:
-            append(">")
-            for child in elem:
-                _serialize(child)
-            append(f"</{tag}>")
+            if not len(elem):
+                append(" />")
+            else:
+                append(">")
+                for child in elem:
+                    _serialize(child)
+                append(f"</{tag}>")
 
         tail = elem.tail
         if tail:

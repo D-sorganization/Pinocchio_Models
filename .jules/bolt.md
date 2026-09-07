@@ -275,3 +275,6 @@
 ## 2026-08-25 - Avoid set membership tests for XML tag validation in hot loops
 **Learning:** When trying to optimize XML tag validation by checking membership in a set of known valid string tags (e.g., `if tag not in _VALID_TAGS`), the overhead of hashing the string for the set lookup is measurably slower than relying on Python's built-in, C-optimized identity check `type(tag) is not str`.
 **Action:** In high-frequency tag validation loops, stick to the `type(tag) is not str` check to identify XML Comments or ProcessingInstructions, rather than introducing custom set membership checks.
+## 2026-08-25 - Avoid aliasing built-in functions in Python 3.12+
+**Learning:** Aliasing built-in functions like `type` and `len` into local variables (e.g., `type_fn = type`) does not speed up execution in Python 3.12+. Modern Python is highly optimized for built-in lookups, and aliasing them to a local scope variable actually degrades performance in recursive hot loops.
+**Action:** Do not alias `type` or `len` in performance-critical paths; use the built-ins directly.
