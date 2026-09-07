@@ -19,7 +19,7 @@
 | **License**             | MIT                                                   |
 | **Current Version**     | 0.1.0                                                 |
 | **Spec Version**        | 1.0.42                                                |
-| **Last Spec Update**    | 2026-09-02                                            |
+| **Last Spec Update**    | 2026-09-07                                            |
 
 ## 2. Purpose & Mission
 
@@ -352,7 +352,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-08-09 | 1.0.39 | Optimized URDF serialization by pre-fetching Python built-ins like `type` and `len` into local variables in `_serialize` to avoid global namespace lookup overhead. |
 | 2026-08-12 | 1.0.40 | Optimized URDF tree parsing in `set_joint_default` by replacing manual child iteration with `ElementTree.findall()`. |
 | 2026-08-18 | 1.0.41 | Optimized ET.SubElement kwargs packing in URDF helpers by passing attribute dictionaries directly. |
-| 2026-09-02 | 1.0.42 | Added fast-path pre-checks for XML escaping in URDF serialization. |
+| 2026-09-07 | 1.0.42 | Added fast-path pre-checks for XML escaping in URDF serialization. |
 
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 
@@ -366,10 +366,10 @@ ET.SubElement attribute packing was optimized in `urdf_helpers.py` by providing 
 
 Loop unswitching applied to `set_joint_default` in `urdf_helpers.py` to hoist invariant conditional checking out of the loop iteration.
 
-## 2026-09-02 - Fast-path pre-checks for XML escaping in URDF serialization
+## 2026-09-07 - Fast-path pre-checks for XML escaping in URDF serialization
 
 Unified compound pre-checks for XML escaping character tests in `serialize_model` to skip unnecessary string replacement iterations during URDF model generation.
-## 2026-09-02 - Optimize attribute serialization in URDF builder
+## 2026-09-07 - Optimize attribute serialization in URDF builder
 
 Removed compound `or` pre-check for XML attribute escaping, replacing it with sequential independent `if` checks in `serialize_model`.
 | 2026-09-05 | 1.0.43 | Optimized URDF serialization by delaying property accesses to avoid unnecessary evaluations in early-exit branches. |
@@ -377,3 +377,6 @@ Removed compound `or` pre-check for XML attribute escaping, replacing it with se
 ## 2026-09-05 - Optimize property fetching in URDF serialization
 
 Optimized URDF serialization in `_serialize` by moving `elem.text` and `len(elem)` fetching after the attributes have been formatted to avoid unnecessary operations for early exiting elements.
+
+### Performance Note (2026-09-07)
+Removed aliasing of Python built-in functions in hot loops (like `type` and `len`), as this is a pessimization in modern Python versions (3.12+).
