@@ -278,3 +278,6 @@
 ## 2026-08-25 - Avoid aliasing built-in functions in Python 3.12+
 **Learning:** Aliasing built-in functions like `type` and `len` into local variables (e.g., `type_fn = type`) does not speed up execution in Python 3.12+. Modern Python is highly optimized for built-in lookups, and aliasing them to a local scope variable actually degrades performance in recursive hot loops.
 **Action:** Do not alias `type` or `len` in performance-critical paths; use the built-ins directly.
+## 2025-01-20 - Fast-path before Membership Lookup in Hot Loops
+**Learning:** In XML tag validation loops, relying on set membership checks (e.g., `tag in _VALID_TAGS`) adds hashing overhead. Checking for specific expected strings (`tag == "link"`, `tag == "joint"`) and leveraging `type(tag) is not str` *before* the set membership lookup is a measurable micro-optimization because it avoids hash-map resolution for the vast majority of nodes (which are `link` or `joint` tags).
+**Action:** Order conditional branches in validation loops by hit-frequency, placing direct identity or string-equality checks for the most common elements *before* fall-through collection membership lookups.

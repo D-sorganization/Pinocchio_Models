@@ -380,3 +380,6 @@ Optimized URDF serialization in `_serialize` by moving `elem.text` and `len(elem
 
 ### Performance Note (2026-09-07)
 Removed aliasing of Python built-in functions in hot loops (like `type` and `len`), as this is a pessimization in modern Python versions (3.12+).
+
+### Performance Note
+Optimized tag validation in `_collect_and_validate_nodes` by deferring the `tag in _VALID_TAGS` membership check behind faster identity checks, improving generation OPS slightly.
