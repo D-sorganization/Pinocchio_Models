@@ -35,6 +35,7 @@ python -m pinocchio_models --exercise gait --export /tmp/gait.urdf
 
 ## Architecture
 
+- **C4 Architecture Map**: See [docs/architecture/C4.md](docs/architecture/C4.md) for system context, container boundaries, and feature mappings.
 - **URDF format** for all models (standard Pinocchio input)
 - **Z-up convention** (vertical is Z, forward is X)
 - **Winter (2009)** anthropometric proportions for body segments

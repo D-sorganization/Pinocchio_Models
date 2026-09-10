@@ -353,6 +353,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-08-12 | 1.0.40 | Optimized URDF tree parsing in `set_joint_default` by replacing manual child iteration with `ElementTree.findall()`. |
 | 2026-08-18 | 1.0.41 | Optimized ET.SubElement kwargs packing in URDF helpers by passing attribute dictionaries directly. |
 | 2026-09-07 | 1.0.42 | Added fast-path pre-checks for XML escaping in URDF serialization. |
+| 2026-09-10 | #1607 | Add maintainable Mermaid C4 architecture map contract and CI validation. |
 
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 
@@ -369,6 +370,7 @@ Loop unswitching applied to `set_joint_default` in `urdf_helpers.py` to hoist in
 ## 2026-09-07 - Fast-path pre-checks for XML escaping in URDF serialization
 
 Unified compound pre-checks for XML escaping character tests in `serialize_model` to skip unnecessary string replacement iterations during URDF model generation.
+
 ## 2026-09-07 - Optimize attribute serialization in URDF builder
 
 Removed compound `or` pre-check for XML attribute escaping, replacing it with sequential independent `if` checks in `serialize_model`.
@@ -379,7 +381,9 @@ Removed compound `or` pre-check for XML attribute escaping, replacing it with se
 Optimized URDF serialization in `_serialize` by moving `elem.text` and `len(elem)` fetching after the attributes have been formatted to avoid unnecessary operations for early exiting elements.
 
 ### Performance Note (2026-09-07)
+
 Removed aliasing of Python built-in functions in hot loops (like `type` and `len`), as this is a pessimization in modern Python versions (3.12+).
 
 ### Performance Note
+
 Optimized tag validation in `_collect_and_validate_nodes` by deferring the `tag in _VALID_TAGS` membership check behind faster identity checks, improving generation OPS slightly.
