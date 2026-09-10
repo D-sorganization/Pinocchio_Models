@@ -15,6 +15,7 @@
 
 ## Architecture
 
+- **C4 Architecture Map**: The maintainable visual and tabular architecture map is documented in `docs/architecture/C4.md` and enforced via `scripts/architecture_map_contract.py` and GitHub Actions.
 - **URDF format** for all models (standard for Pinocchio).
 - **Z-up convention**: vertical is Z, forward is X.
 - **Pinocchio loads URDF** and adds floating base via `pin.JointModelFreeFlyer()`.
@@ -134,7 +135,6 @@ for k in ['core', 'graphql']:
 
 <!-- END FLEET-MANAGED: network-api-hygiene -->
 
-
 ## Closing issues — non-negotiable rule
 
 NEVER close a feature or bug issue without one of:
@@ -145,6 +145,7 @@ NEVER close a feature or bug issue without one of:
 The **Verify-Issue-Closure** workflow will automatically reopen any issue closed without evidence. Do not work around it.
 
 When implementing an issue:
+
 - Write or update tests FIRST (TDD: red → green → refactor)
 - Add Design-by-Contract preconditions/postconditions where it clarifies invariants
 - Respect Law of Demeter — don’t reach through three layers
@@ -154,12 +155,12 @@ When implementing an issue:
 
 ### How to close issues properly
 
-| Method | Example |
-|--------|---------|
-| Closing keyword in PR body | `Closes #1234` or `Fixes #5678` |
-| Closing keyword in PR title | `fix: resolve login crash (#1234)` |
-| Exempt label | Apply `wontfix`, `roadmap`, `duplicate`, `invalid`, or `not-planned` |
-| Bot + auto-generated label | Only for auto-generated issues closed by bots |
+| Method                      | Example                                                              |
+| --------------------------- | -------------------------------------------------------------------- |
+| Closing keyword in PR body  | `Closes #1234` or `Fixes #5678`                                      |
+| Closing keyword in PR title | `fix: resolve login crash (#1234)`                                   |
+| Exempt label                | Apply `wontfix`, `roadmap`, `duplicate`, `invalid`, or `not-planned` |
+| Bot + auto-generated label  | Only for auto-generated issues closed by bots                        |
 
 The workflow checks the PR timeline for cross-referenced merged PRs with closing keywords. If none are found and no exempt label is present, the issue is reopened with an explanatory comment.
 

@@ -29,6 +29,7 @@ HYBRID_WORKFLOW_ALLOWLIST = {
     ".github/workflows/Jules-Redundant-PR-Closer.yml",
     ".github/workflows/Verify-Issue-Closure.yml",
     ".github/workflows/anti-phantom-merge.yml",
+    ".github/workflows/architecture-map-contract.yml",
     ".github/workflows/ci-standard.yml",
     ".github/workflows/lint-workflow-files.yml",
     ".github/workflows/spec-check.yml",
