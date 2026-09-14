@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - name: Dependency Review
         uses: actions/dependency-review-action@v5
         continue-on-error: true
@@ -64,7 +64,7 @@ jobs:
     runs-on: ${{ needs.pick-runner.outputs.runner }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Dependency Review
@@ -164,7 +164,7 @@ jobs:
           cyclonedx-py environment -o sbom.json --output-format JSON
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: sbom
           path: sbom.json
@@ -181,8 +181,8 @@ jobs:
       matrix:
         python: ["3.10", "3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
       - name: Set up Python venv
@@ -233,7 +233,7 @@ jobs:
     runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - name: Set up Python venv
         run: |
           for PYTHON in python3 python3.12 python3.11 python3.10 python /usr/bin/python3 /usr/local/bin/python3; do
@@ -268,7 +268,7 @@ jobs:
     runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
       - name: Set up Python venv
         run: |
           for PYTHON in python3.11 python3.12 python3.10 python; do
@@ -300,7 +300,7 @@ jobs:
             > profiling/model-generation-line-profiler.txt
 
       - name: Upload profiling reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: line-profiler-model-generation
           path: |

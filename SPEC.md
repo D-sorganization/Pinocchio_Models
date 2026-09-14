@@ -387,3 +387,7 @@ Removed aliasing of Python built-in functions in hot loops (like `type` and `len
 ### Performance Note
 
 Optimized tag validation in `_collect_and_validate_nodes` by deferring the `tag in _VALID_TAGS` membership check behind faster identity checks, improving generation OPS slightly.
+
+## 2026-09-14 - Restore CI Workflow Action Versions
+
+Downgraded `actions/checkout` from `@v7` to `@v4` and `actions/setup-python` from `@v6` to `@v5` across all workflows to restore valid Actions dependencies.
