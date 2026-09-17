@@ -242,6 +242,7 @@
 
 **Learning:** Manual Python loops over ElementTree children (e.g. `for child in robot: if child.tag == "joint":`) incur Python interpreter overhead for every node visit and comparison. Using `ElementTree.findall("joint")` delegates tag filtering directly to the C layer in cElementTree, yielding significant speedups during XML model building.
 **Action:** In XML tree manipulation functions operating on standard tags, prefer `elem.findall("tag")` over manual iteration and `if child.tag == "tag":` checks.
+
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 
 **Learning:** Unrolling string replacement compound conditions with duplicate `if` blocks for `tail` and `text` properties without `in` checks actually hurts performance by redundantly evaluating replacements, and that replacing them with a single compound `if "&" in x or "<" in x or ">" in x:` followed by individual `if` checks eliminates unnecessary function call overhead.
@@ -258,31 +259,46 @@
 **Action:** When working with `ET.SubElement` in high-frequency generation loops, prefer dictionary literals for the `attrib` parameter rather than using keyword arguments.
 
 ## 2024-05-20 - [Optimize XML Attribute Replacement for URDF Serialization]
+
 **Learning:** In Python string replacement for XML escaping (e.g., URDF string properties in `attrib`), redundant sequential `replace()` calls can introduce measurable function overhead. However, a single compound pre-check (`if "&" in v or "<" in v or ...`) avoids these lookups, providing a performance speedup without redundantly triggering multiple string replace conditions.
 **Action:** Always implement a unified compound pre-check conditional for XML escaping character tests to create a fast path that skips unneeded replace logic during high-frequency recursive string operations.
 
 ## 2024-05-20 - [Combine nested if for readability and performance]
+
 **Learning:** Ruff rule SIM102 flags nested if statements and recommends combining them using the `and` operator. This slightly streamlines bytecodes and improves readability for traversal conditions in `urdf_helpers.py`.
 **Action:** When filtering ElementTree properties sequentially, combine logical checks with `and` instead of nested `if`s where applicable to respect linters and maintain clarity.
+
 ## 2026-08-18 - [Optimize XML Attribute Replacement for URDF Serialization]
+
 **Learning:** In Python string replacement for XML escaping (e.g., URDF string properties in `attrib`), redundant sequential `replace()` calls can introduce measurable function overhead. However, a single compound pre-check (`if "&" in v or "<" in v or ...`) is slower than simply replacing all checks with independent `if` statements for attributes because attributes are short and have many special characters to check. The boolean logic overhead of the compound check in Python outweighs the cost of sequential `in` checks because most attributes do not contain these special characters, and `in` on short attribute strings is highly optimized in C.
 **Action:** When escaping XML/URDF strings for special characters in hot loops, use separate `if "char" in string:` checks instead of grouping them all into one large `if` condition with `or` operators, especially when checking many characters. This speeds up string validation by eliminating the compound evaluation overhead.
 
 ## 2026-08-25 - Delay fetching ElementTree properties in recursive hot loops
+
 **Learning:** In recursive XML serialization functions iterating over `xml.etree.ElementTree` objects, fetching properties like `elem.attrib`, `elem.text`, and calling `len(elem)` at the very beginning of the function for every node incurs unnecessary overhead when processing elements that fall into early-exit paths (e.g., XML Comments where `type(tag) is not str`).
 **Action:** Delay the assignment of these properties (e.g., `text = elem.text` and `elem_len = len(elem)`) until immediately before they are needed in the control flow. This prevents unnecessary `LOAD_ATTR` operations and speeds up overall serialization.
 
 ## 2026-08-25 - Avoid set membership tests for XML tag validation in hot loops
+
 **Learning:** When trying to optimize XML tag validation by checking membership in a set of known valid string tags (e.g., `if tag not in _VALID_TAGS`), the overhead of hashing the string for the set lookup is measurably slower than relying on Python's built-in, C-optimized identity check `type(tag) is not str`.
 **Action:** In high-frequency tag validation loops, stick to the `type(tag) is not str` check to identify XML Comments or ProcessingInstructions, rather than introducing custom set membership checks.
+
 ## 2026-08-25 - Avoid aliasing built-in functions in Python 3.12+
+
 **Learning:** Aliasing built-in functions like `type` and `len` into local variables (e.g., `type_fn = type`) does not speed up execution in Python 3.12+. Modern Python is highly optimized for built-in lookups, and aliasing them to a local scope variable actually degrades performance in recursive hot loops.
 **Action:** Do not alias `type` or `len` in performance-critical paths; use the built-ins directly.
+
 ## 2025-01-20 - Fast-path before Membership Lookup in Hot Loops
-**Learning:** In XML tag validation loops, relying on set membership checks (e.g., `tag in _VALID_TAGS`) adds hashing overhead. Checking for specific expected strings (`tag == "link"`, `tag == "joint"`) and leveraging `type(tag) is not str` *before* the set membership lookup is a measurable micro-optimization because it avoids hash-map resolution for the vast majority of nodes (which are `link` or `joint` tags).
-**Action:** Order conditional branches in validation loops by hit-frequency, placing direct identity or string-equality checks for the most common elements *before* fall-through collection membership lookups.
+
+**Learning:** In XML tag validation loops, relying on set membership checks (e.g., `tag in _VALID_TAGS`) adds hashing overhead. Checking for specific expected strings (`tag == "link"`, `tag == "joint"`) and leveraging `type(tag) is not str` _before_ the set membership lookup is a measurable micro-optimization because it avoids hash-map resolution for the vast majority of nodes (which are `link` or `joint` tags).
+**Action:** Order conditional branches in validation loops by hit-frequency, placing direct identity or string-equality checks for the most common elements _before_ fall-through collection membership lookups.
 
 ## 2024-05-20 - Fast-path foot collision attachment using reverse iteration
 
 **Learning:** During full-body URDF generation in `src/pinocchio_models/shared/body/body_model.py`, appending the foot collision geometries (`_add_foot_collision`) at the very end of the tree assembly process required searching the entire generated `robot` tree for the `foot_l` and `foot_r` links using `robot.iter("link")`. Because the feet are generated last in the limb generation stage, this required scanning the entire XML tree unnecessarily. Iterating backwards `reversed(robot)` immediately yields the target links since they are near the tail end of the appended elements list, providing a measurable performance gain.
 **Action:** When locating recently added elements at the end of an `xml.etree.ElementTree` build process, use `reversed(parent)` instead of full forward traversal methods like `.iter()` or `.findall()` to achieve near O(1) lookups instead of O(N) full tree scans.
+
+## 2026-09-16 - Do not copy-paste code for micro-optimizations
+
+**Learning:** Restructuring `if/else` control flow to cache properties like `len(elem)` and avoiding code duplication is not always possible without reducing code readability. For example, restructuring an `if text:` block that encapsulates XML character escaping logic into a layout that avoids double length checking may require duplicating the entire escaping block into both branches. This significantly degrades maintainability and violates the DRY principle, outweighing any micro-optimization benefits.
+**Action:** Always prioritize readability and the DRY principle over minor control-flow micro-optimizations. If a micro-optimization requires duplicating logic blocks, reject it.
