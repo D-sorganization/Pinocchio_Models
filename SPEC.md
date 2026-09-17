@@ -392,3 +392,4 @@ Optimized tag validation in `_collect_and_validate_nodes` by deferring the `tag 
 
 Downgraded `actions/checkout` from `@v7` to `@v4` and `actions/setup-python` from `@v6` to `@v5` across all workflows to restore valid Actions dependencies.
 - 2026-09-14: Removed invalid pip cache from redundant closer workflows (#387).
+| 2026-09-17 | 1.0.44 | Optimized foot collision link search in body model by replacing forward iter traversal with reverse iteration. |
