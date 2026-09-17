@@ -257,8 +257,8 @@ def _add_foot_collision(
     """
     target_name = f"foot_{side}"
     foot_link = None
-    for link in robot.iter("link"):
-        if link.get("name") == target_name:
+    for link in reversed(robot):
+        if link.tag == "link" and link.get("name") == target_name:
             foot_link = link
             break
 

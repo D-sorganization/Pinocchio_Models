@@ -281,3 +281,8 @@
 ## 2025-01-20 - Fast-path before Membership Lookup in Hot Loops
 **Learning:** In XML tag validation loops, relying on set membership checks (e.g., `tag in _VALID_TAGS`) adds hashing overhead. Checking for specific expected strings (`tag == "link"`, `tag == "joint"`) and leveraging `type(tag) is not str` *before* the set membership lookup is a measurable micro-optimization because it avoids hash-map resolution for the vast majority of nodes (which are `link` or `joint` tags).
 **Action:** Order conditional branches in validation loops by hit-frequency, placing direct identity or string-equality checks for the most common elements *before* fall-through collection membership lookups.
+
+## 2024-05-20 - Fast-path foot collision attachment using reverse iteration
+
+**Learning:** During full-body URDF generation in `src/pinocchio_models/shared/body/body_model.py`, appending the foot collision geometries (`_add_foot_collision`) at the very end of the tree assembly process required searching the entire generated `robot` tree for the `foot_l` and `foot_r` links using `robot.iter("link")`. Because the feet are generated last in the limb generation stage, this required scanning the entire XML tree unnecessarily. Iterating backwards `reversed(robot)` immediately yields the target links since they are near the tail end of the appended elements list, providing a measurable performance gain.
+**Action:** When locating recently added elements at the end of an `xml.etree.ElementTree` build process, use `reversed(parent)` instead of full forward traversal methods like `.iter()` or `.findall()` to achieve near O(1) lookups instead of O(N) full tree scans.
