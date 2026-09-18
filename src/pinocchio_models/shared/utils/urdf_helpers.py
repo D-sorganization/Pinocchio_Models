@@ -319,13 +319,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             append(f"<!--{elem.text}-->")
             tail = elem.tail
             if tail:
-                if "&" in tail or "<" in tail or ">" in tail:
-                    if "&" in tail:
-                        tail = tail.replace("&", "&amp;")
-                    if "<" in tail:
-                        tail = tail.replace("<", "&lt;")
-                    if ">" in tail:
-                        tail = tail.replace(">", "&gt;")
+                if "&" in tail:
+                    tail = tail.replace("&", "&amp;")
+                if "<" in tail:
+                    tail = tail.replace("<", "&lt;")
+                if ">" in tail:
+                    tail = tail.replace(">", "&gt;")
                 append(tail)
             return
 
@@ -362,40 +361,42 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     v = v.replace("\t", "&#9;")
                 append(f' {k}="{v}"')
 
+        # ⚡ Bolt Optimization: Cache len(elem) into a local variable before conditionally accessing
+        # it multiple times. Also removed compound 'or' pre-checks for text/tail escaping
+        # as sequential independent 'if' statements are faster.
+        elem_len = len(elem)
         text = elem.text
         if text:
-            if "&" in text or "<" in text or ">" in text:
-                if "&" in text:
-                    text = text.replace("&", "&amp;")
-                if "<" in text:
-                    text = text.replace("<", "&lt;")
-                if ">" in text:
-                    text = text.replace(">", "&gt;")
-            if not len(elem):
-                append(f">{text}</{tag}>")
-            else:
+            if "&" in text:
+                text = text.replace("&", "&amp;")
+            if "<" in text:
+                text = text.replace("<", "&lt;")
+            if ">" in text:
+                text = text.replace(">", "&gt;")
+            if elem_len:
                 append(f">{text}")
                 for child in elem:
                     _serialize(child)
                 append(f"</{tag}>")
-        else:
-            if not len(elem):
-                append(" />")
             else:
+                append(f">{text}</{tag}>")
+        else:
+            if elem_len:
                 append(">")
                 for child in elem:
                     _serialize(child)
                 append(f"</{tag}>")
+            else:
+                append(" />")
 
         tail = elem.tail
         if tail:
-            if "&" in tail or "<" in tail or ">" in tail:
-                if "&" in tail:
-                    tail = tail.replace("&", "&amp;")
-                if "<" in tail:
-                    tail = tail.replace("<", "&lt;")
-                if ">" in tail:
-                    tail = tail.replace(">", "&gt;")
+            if "&" in tail:
+                tail = tail.replace("&", "&amp;")
+            if "<" in tail:
+                tail = tail.replace("<", "&lt;")
+            if ">" in tail:
+                tail = tail.replace(">", "&gt;")
             append(tail)
 
     _serialize(root)
