@@ -34,6 +34,7 @@ from __future__ import annotations
 import logging
 import math
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 from functools import lru_cache
 from typing import Any
 
@@ -315,7 +316,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
 
     # ⚡ Bolt Optimization: Aliasing the `len` built-in as a local default argument (`_len=len`)
     # avoids global lookup overhead in this highly recursive hot loop.
-    def _serialize(elem: ET.Element, _len=len) -> None:  # noqa: C901
+    def _serialize(elem: ET.Element, _len: Callable[[Any], int] = len) -> None:  # noqa: C901
         tag = elem.tag
         if type(tag) is not str:
             append(f"<!--{elem.text}-->")
