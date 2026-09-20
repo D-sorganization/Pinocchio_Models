@@ -302,3 +302,7 @@
 
 **Learning:** Restructuring `if/else` control flow to cache properties like `len(elem)` and avoiding code duplication is not always possible without reducing code readability. For example, restructuring an `if text:` block that encapsulates XML character escaping logic into a layout that avoids double length checking may require duplicating the entire escaping block into both branches. This significantly degrades maintainability and violates the DRY principle, outweighing any micro-optimization benefits.
 **Action:** Always prioritize readability and the DRY principle over minor control-flow micro-optimizations. If a micro-optimization requires duplicating logic blocks, reject it.
+
+## 2026-09-20 - Built-in aliasing optimization for hot loops
+**Learning:** In extremely hot loops, aliasing built-in Python functions can provide a marginal speedup only if defined locally within the innermost function (or passed as default arguments like `def func(_type=type):`). Defining them in an outer function creates closure variables (`LOAD_DEREF`), which are slower than `LOAD_GLOBAL` built-ins in Python 3.11+.
+**Action:** When micro-optimizing recursive functions in hot paths, consider aliasing frequently used built-ins (like `len`) as local default arguments, but always verify the performance gain with profiling and ensure it is documented.

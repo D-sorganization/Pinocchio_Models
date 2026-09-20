@@ -313,7 +313,9 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
 
-    def _serialize(elem: ET.Element) -> None:  # noqa: C901
+    # ⚡ Bolt Optimization: Aliasing the `len` built-in as a local default argument (`_len=len`)
+    # avoids global lookup overhead in this highly recursive hot loop.
+    def _serialize(elem: ET.Element, _len=len) -> None:  # noqa: C901
         tag = elem.tag
         if type(tag) is not str:
             append(f"<!--{elem.text}-->")
@@ -371,7 +373,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     text = text.replace("<", "&lt;")
                 if ">" in text:
                     text = text.replace(">", "&gt;")
-            if not len(elem):
+            if not _len(elem):
                 append(f">{text}</{tag}>")
             else:
                 append(f">{text}")
@@ -379,7 +381,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     _serialize(child)
                 append(f"</{tag}>")
         else:
-            if not len(elem):
+            if not _len(elem):
                 append(" />")
             else:
                 append(">")
