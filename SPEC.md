@@ -399,3 +399,4 @@ Downgraded `actions/checkout` from `@v7` to `@v4` and `actions/setup-python` fro
 
 ## 2024-09-22: Serialization Opts
 - Removed compound `or` checks and collapsed `append` operations in `_serialize` to optimize XML URDF generation performance.
+| 2026-09-22 | 1.0.46 | Optimized `parallel_axis_shift` by unpacking arrays to avoid numpy creation overhead. |
