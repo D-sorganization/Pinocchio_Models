@@ -304,16 +304,21 @@
 **Action:** Always prioritize readability and the DRY principle over minor control-flow micro-optimizations. If a micro-optimization requires duplicating logic blocks, reject it.
 
 ## 2026-09-20 - Built-in aliasing optimization for hot loops
+
 **Learning:** In extremely hot loops, aliasing built-in Python functions can provide a marginal speedup only if defined locally within the innermost function (or passed as default arguments like `def func(_type=type):`). Defining them in an outer function creates closure variables (`LOAD_DEREF`), which are slower than `LOAD_GLOBAL` built-ins in Python 3.11+.
 **Action:** When micro-optimizing recursive functions in hot paths, consider aliasing frequently used built-ins (like `len`) as local default arguments, but always verify the performance gain with profiling and ensure it is documented.
+
 ## 2024-09-22 - [Avoid compound 'or' pre-checks for string escaping]
+
 **Learning:** In Python string replacement for XML escaping, avoid compound `or` pre-checks (e.g., `if '&' in x or '<' in x:`), even for a small number of characters like 3. Sequential independent `if` statements evaluate faster on the happy path (due to optimized C-level `in` checks) and avoid double-evaluation overhead when special characters are present.
 **Action:** Remove the `if '&' in text or '<' in text or '>' in text:` wrapper around sequential string replacements.
 
 ## 2024-09-22 - [Optimizing XML tree generation with fast array methods]
+
 **Learning:** Adding the items explicitly to list (`append(x); append(y)`) is slower than joining elements via a generator or string concatenation if done carefully.
 **Action:** Look for `append` sequence that can be simplified.
 
 ## 2026-10-25 - Avoid numpy overhead in parallel_axis_shift
+
 **Learning:** In high-frequency mathematical operations on small 3D vectors (e.g. `parallel_axis_shift` called multiple times per limb segment during body construction), using `np.asarray` and array method properties (like `np.dot` or boolean array checks) introduces significant Python-to-C and object creation overhead. Manual tuple unpacking and scalar arithmetic evaluate orders of magnitude faster.
 **Action:** When working with 3D coordinate transformations or simple vector maths inside a tight loop or heavily called library function, typecast using tuples and perform manual arithmetic (`x*x + y*y + z*z`) instead of relying on generic numpy helpers that penalize small arrays.
