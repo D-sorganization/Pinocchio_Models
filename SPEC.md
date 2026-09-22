@@ -396,3 +396,6 @@ Downgraded `actions/checkout` from `@v7` to `@v4` and `actions/setup-python` fro
   | 2026-09-17 | 1.0.44 | Optimized foot collision link search in body model by replacing forward iter traversal with reverse iteration. |
   | 2026-09-17 | 1.0.45 | Fast-path for non-string tags in XML validation by checking common tags before type inspection. |
 | 2026-09-20 | 1.0.44 | Aliased `len` built-in for URDF serialization speedup. |
+
+## 2024-09-22: Serialization Opts
+- Removed compound `or` checks and collapsed `append` operations in `_serialize` to optimize XML URDF generation performance.
