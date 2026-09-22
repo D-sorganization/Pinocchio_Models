@@ -337,7 +337,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-07-28 | 1.0.38 | Optimized URDF validation loops by unrolling tuple/list creation for inertia assertions. |
 | 2026-07-28 | 1.0.30 | Optimized `serialize_model` string generation by prefetching python builtins and bypassing unnecessary `.replace` calls. |
 | 2026-07-28 | 1.0.37 | Optimized `serialize_model` string generation by prefetching python builtins and bypassing unnecessary `.replace` calls. |
-| **Last Spec Update**    | 2026-09-20                                            |
+| **Last Spec Update** | 2026-09-20 |
 | 2026-06-14 | 1.0.24 | Optimized URDF tree validation with `iter()`, array finity checking with `.all()`, and XML tag serialization via direct string concatenation. |
 | 2026-06-14 | 1.0.25 | Removed undeclared pytest-asyncio configuration from the strict pytest contract so CI jobs do not fail before collection. |
 | 2026-06-14 | 1.0.26 | Split URDF tree postcondition validation into focused helpers so the CI complexity gate passes while preserving `PM201`/`PM202` validation behavior. |
@@ -346,7 +346,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-06-25 | 1.0.28 | Optimized contract validations by moving local imports to global scope in `preconditions.py` and `postconditions.py`. |
 | 2026-07-27 | 1.0.29 | Optimized postconditions checks by inlining tree validation helper methods to eliminate function call overhead. |
 | 2026-07-28 | 1.0.30 | Optimized URDF helpers by using dictionary attribute packing for ET.SubElement and loop unswitching. |
-| **Last Spec Update**    | 2026-09-20                                            |
+| **Last Spec Update** | 2026-09-20 |
 | 2026-07-28 | 1.0.37 | Optimized URDF validation loops by unrolling tuple/list creation for inertia assertions. |
 | 2026-07-29 | 1.0.38 | Optimized XML text escaping by conditionally invoking individual string replacements instead of chained unconditional replace calls. |
 | 2026-08-09 | 1.0.39 | Optimized URDF serialization by pre-fetching Python built-ins like `type` and `len` into local variables in `_serialize` to avoid global namespace lookup overhead. |
@@ -395,7 +395,9 @@ Downgraded `actions/checkout` from `@v7` to `@v4` and `actions/setup-python` fro
 - 2026-09-14: Removed invalid pip cache from redundant closer workflows (#387).
   | 2026-09-17 | 1.0.44 | Optimized foot collision link search in body model by replacing forward iter traversal with reverse iteration. |
   | 2026-09-17 | 1.0.45 | Fast-path for non-string tags in XML validation by checking common tags before type inspection. |
-| 2026-09-20 | 1.0.44 | Aliased `len` built-in for URDF serialization speedup. |
+  | 2026-09-20 | 1.0.44 | Aliased `len` built-in for URDF serialization speedup. |
 
 ## 2024-09-22: Serialization Opts
+
 - Removed compound `or` checks and collapsed `append` operations in `_serialize` to optimize XML URDF generation performance.
+  | 2026-09-22 | 1.0.46 | Optimized `parallel_axis_shift` by unpacking arrays to avoid numpy creation overhead. |
