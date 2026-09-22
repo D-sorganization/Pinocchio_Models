@@ -322,13 +322,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
             append(f"<!--{elem.text}-->")
             tail = elem.tail
             if tail:
-                if "&" in tail or "<" in tail or ">" in tail:
-                    if "&" in tail:
-                        tail = tail.replace("&", "&amp;")
-                    if "<" in tail:
-                        tail = tail.replace("<", "&lt;")
-                    if ">" in tail:
-                        tail = tail.replace(">", "&gt;")
+                if "&" in tail:
+                    tail = tail.replace("&", "&amp;")
+                if "<" in tail:
+                    tail = tail.replace("<", "&lt;")
+                if ">" in tail:
+                    tail = tail.replace(">", "&gt;")
                 append(tail)
             return
 
@@ -339,16 +338,14 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
         # than calling `append` with parts because python strings are immutable.
         # Actually doing append in a loop and formatting directly is slightly faster.
 
-        append(f"<{tag}")
-
         # ⚡ Bolt Optimization: Delaying the lookup of `.text` and `len()` properties
         # avoids overhead when checking properties of tags that may exit early or skip branches.
         attrib = elem.attrib
         if attrib:
+            # ⚡ Bolt Optimization: Appending a single string instead of calling append multiple times is faster.
+            # Building an attribute string via list comprehension and joining it is faster.
+            attr_parts = []
             for k, v in attrib.items():
-                # ⚡ Bolt Optimization: Removed compound `or` pre-check for XML attribute escaping.
-                # Sequential independent `if` statements run faster in Python 3.12+ because `in`
-                # for strings is highly optimized in C and avoids the extra boolean logic parsing.
                 if "&" in v:
                     v = v.replace("&", "&amp;")
                 if "<" in v:
@@ -363,17 +360,20 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     v = v.replace("\r", "&#13;")
                 if "\t" in v:
                     v = v.replace("\t", "&#9;")
-                append(f' {k}="{v}"')
+                attr_parts.append(f' {k}="{v}"')
+            attr_str = "".join(attr_parts)
+            append(f"<{tag}{attr_str}")
+        else:
+            append(f"<{tag}")
 
         text = elem.text
         if text:
-            if "&" in text or "<" in text or ">" in text:
-                if "&" in text:
-                    text = text.replace("&", "&amp;")
-                if "<" in text:
-                    text = text.replace("<", "&lt;")
-                if ">" in text:
-                    text = text.replace(">", "&gt;")
+            if "&" in text:
+                text = text.replace("&", "&amp;")
+            if "<" in text:
+                text = text.replace("<", "&lt;")
+            if ">" in text:
+                text = text.replace(">", "&gt;")
             if not _len(elem):
                 append(f">{text}</{tag}>")
             else:
@@ -392,13 +392,12 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
 
         tail = elem.tail
         if tail:
-            if "&" in tail or "<" in tail or ">" in tail:
-                if "&" in tail:
-                    tail = tail.replace("&", "&amp;")
-                if "<" in tail:
-                    tail = tail.replace("<", "&lt;")
-                if ">" in tail:
-                    tail = tail.replace(">", "&gt;")
+            if "&" in tail:
+                tail = tail.replace("&", "&amp;")
+            if "<" in tail:
+                tail = tail.replace("<", "&lt;")
+            if ">" in tail:
+                tail = tail.replace(">", "&gt;")
             append(tail)
 
     _serialize(root)
