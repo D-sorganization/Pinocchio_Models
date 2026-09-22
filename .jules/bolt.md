@@ -313,3 +313,7 @@
 ## 2024-09-22 - [Optimizing XML tree generation with fast array methods]
 **Learning:** Adding the items explicitly to list (`append(x); append(y)`) is slower than joining elements via a generator or string concatenation if done carefully.
 **Action:** Look for `append` sequence that can be simplified.
+
+## 2026-10-25 - Avoid numpy overhead in parallel_axis_shift
+**Learning:** In high-frequency mathematical operations on small 3D vectors (e.g. `parallel_axis_shift` called multiple times per limb segment during body construction), using `np.asarray` and array method properties (like `np.dot` or boolean array checks) introduces significant Python-to-C and object creation overhead. Manual tuple unpacking and scalar arithmetic evaluate orders of magnitude faster.
+**Action:** When working with 3D coordinate transformations or simple vector maths inside a tight loop or heavily called library function, typecast using tuples and perform manual arithmetic (`x*x + y*y + z*z`) instead of relying on generic numpy helpers that penalize small arrays.
