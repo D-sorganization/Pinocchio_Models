@@ -34,7 +34,6 @@ from __future__ import annotations
 import logging
 import math
 import xml.etree.ElementTree as ET
-from collections.abc import Callable
 from functools import lru_cache
 from typing import Any
 
@@ -314,9 +313,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
     chunks = ['<?xml version="1.0" encoding="utf-8"?>\n']
     append = chunks.append
 
-    # ⚡ Bolt Optimization: Aliasing the `len` built-in as a local default argument (`_len=len`)
-    # avoids global lookup overhead in this highly recursive hot loop.
-    def _serialize(elem: ET.Element, _len: Callable[[Any], int] = len) -> None:  # noqa: C901
+    def _serialize(elem: ET.Element) -> None:  # noqa: C901
         tag = elem.tag
         if type(tag) is not str:
             append(f"<!--{elem.text}-->")
@@ -331,42 +328,35 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 append(tail)
             return
 
-        # ⚡ Bolt Optimization: Avoiding intermediate list allocations or string concatenations
-        # by directly collapsing multiple `append()` calls for opening tags and attributes into fewer concatenated writes
-        # provides measurable latency reduction during URDF string generation.
-        # Direct append using f-strings and joining strings in attributes is slightly slower
-        # than calling `append` with parts because python strings are immutable.
-        # Actually doing append in a loop and formatting directly is slightly faster.
+        # ⚡ Bolt Optimization: Avoid intermediate list/string accumulation overhead.
+        # We append directly instead of using intermediate list `.join()`.
+        # Fast-path for elements without attributes (if not attrib) was removed because
+        # almost all URDF elements contain attributes; removing the fast-path check
+        # avoids unnecessary overhead.
+        attrib = elem.attrib
+        append(f"<{tag}")
+        for k, v in attrib.items():
+            if "&" in v:
+                v = v.replace("&", "&amp;")
+            if "<" in v:
+                v = v.replace("<", "&lt;")
+            if ">" in v:
+                v = v.replace(">", "&gt;")
+            if '"' in v:
+                v = v.replace('"', "&quot;")
+            if "\n" in v:
+                v = v.replace("\n", "&#10;")
+            if "\r" in v:
+                v = v.replace("\r", "&#13;")
+            if "\t" in v:
+                v = v.replace("\t", "&#9;")
+            append(f' {k}="{v}"')
 
         # ⚡ Bolt Optimization: Delaying the lookup of `.text` and `len()` properties
         # avoids overhead when checking properties of tags that may exit early or skip branches.
-        attrib = elem.attrib
-        if attrib:
-            # ⚡ Bolt Optimization: Appending a single string instead of calling append multiple times is faster.
-            # Building an attribute string via list comprehension and joining it is faster.
-            attr_parts = []
-            for k, v in attrib.items():
-                if "&" in v:
-                    v = v.replace("&", "&amp;")
-                if "<" in v:
-                    v = v.replace("<", "&lt;")
-                if ">" in v:
-                    v = v.replace(">", "&gt;")
-                if '"' in v:
-                    v = v.replace('"', "&quot;")
-                if "\n" in v:
-                    v = v.replace("\n", "&#10;")
-                if "\r" in v:
-                    v = v.replace("\r", "&#13;")
-                if "\t" in v:
-                    v = v.replace("\t", "&#9;")
-                attr_parts.append(f' {k}="{v}"')
-            attr_str = "".join(attr_parts)
-            append(f"<{tag}{attr_str}")
-        else:
-            append(f"<{tag}")
-
+        # We also cache len(elem) to avoid redundant built-in invocation overhead.
         text = elem.text
+        elem_len = len(elem)
         if text:
             if "&" in text:
                 text = text.replace("&", "&amp;")
@@ -374,7 +364,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                 text = text.replace("<", "&lt;")
             if ">" in text:
                 text = text.replace(">", "&gt;")
-            if not _len(elem):
+            if not elem_len:
                 append(f">{text}</{tag}>")
             else:
                 append(f">{text}")
@@ -382,7 +372,7 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
                     _serialize(child)
                 append(f"</{tag}>")
         else:
-            if not _len(elem):
+            if not elem_len:
                 append(" />")
             else:
                 append(">")
