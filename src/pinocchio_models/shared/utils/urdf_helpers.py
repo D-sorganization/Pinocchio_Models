@@ -330,27 +330,28 @@ def serialize_model(root: ET.Element) -> str:  # noqa: C901
 
         # ⚡ Bolt Optimization: Avoid intermediate list/string accumulation overhead.
         # We append directly instead of using intermediate list `.join()`.
-        # Fast-path for elements without attributes (if not attrib) was removed because
-        # almost all URDF elements contain attributes; removing the fast-path check
-        # avoids unnecessary overhead.
+        # Fast-path for elements without attributes (if attrib) is used because
+        # many structural URDF elements (like inertial, visual, collision) have no
+        # attributes, avoiding unnecessary dictionary items() overhead.
         attrib = elem.attrib
         append(f"<{tag}")
-        for k, v in attrib.items():
-            if "&" in v:
-                v = v.replace("&", "&amp;")
-            if "<" in v:
-                v = v.replace("<", "&lt;")
-            if ">" in v:
-                v = v.replace(">", "&gt;")
-            if '"' in v:
-                v = v.replace('"', "&quot;")
-            if "\n" in v:
-                v = v.replace("\n", "&#10;")
-            if "\r" in v:
-                v = v.replace("\r", "&#13;")
-            if "\t" in v:
-                v = v.replace("\t", "&#9;")
-            append(f' {k}="{v}"')
+        if attrib:
+            for k, v in attrib.items():
+                if "&" in v:
+                    v = v.replace("&", "&amp;")
+                if "<" in v:
+                    v = v.replace("<", "&lt;")
+                if ">" in v:
+                    v = v.replace(">", "&gt;")
+                if '"' in v:
+                    v = v.replace('"', "&quot;")
+                if "\n" in v:
+                    v = v.replace("\n", "&#10;")
+                if "\r" in v:
+                    v = v.replace("\r", "&#13;")
+                if "\t" in v:
+                    v = v.replace("\t", "&#9;")
+                append(f' {k}="{v}"')
 
         # ⚡ Bolt Optimization: Delaying the lookup of `.text` and `len()` properties
         # avoids overhead when checking properties of tags that may exit early or skip branches.
