@@ -402,3 +402,4 @@ Downgraded `actions/checkout` from `@v7` to `@v4` and `actions/setup-python` fro
 - Removed compound `or` checks and collapsed `append` operations in `_serialize` to optimize XML URDF generation performance.
   | 2026-09-22 | 1.0.46 | Optimized `parallel_axis_shift` by unpacking arrays to avoid numpy creation overhead. |
   | 2026-09-23 | 1.0.47 | Optimized URDF serialization attribute appending and eliminated intermediate list joins (#402). |
+  | 2026-10-25 | 1.0.48 | Added `if attrib:` fast-path to URDF serialization to avoid empty dictionary items generator overhead. |
