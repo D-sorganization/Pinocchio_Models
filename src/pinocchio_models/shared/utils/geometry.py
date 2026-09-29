@@ -36,9 +36,10 @@ def cylinder_inertia(
     require_positive(length, "length")
 
     # Axial (about Z)
-    izz = 0.5 * mass * radius**2
+    r_sq = radius * radius
+    izz = 0.5 * mass * r_sq
     # Transverse (about X and Y)
-    ixx = iyy = (1.0 / 12.0) * mass * (3.0 * radius**2 + length**2)
+    ixx = iyy = (1.0 / 12.0) * mass * (3.0 * r_sq + length * length)
 
     ensure_positive_definite_inertia(ixx, iyy, izz, "cylinder")
     return (ixx, iyy, izz)
@@ -69,9 +70,9 @@ def hollow_cylinder_inertia(
             f"inner_radius ({inner_radius:.4f}) must be less than "
             f"outer_radius ({outer_radius:.4f})"
         )
-    r_sq_sum = inner_radius**2 + outer_radius**2
+    r_sq_sum = inner_radius * inner_radius + outer_radius * outer_radius
     izz = 0.5 * mass * r_sq_sum  # axial
-    ixx = iyy = (1.0 / 12.0) * mass * (3.0 * r_sq_sum + length**2)  # transverse
+    ixx = iyy = (1.0 / 12.0) * mass * (3.0 * r_sq_sum + length * length)  # transverse
 
     ensure_positive_definite_inertia(ixx, iyy, izz, "hollow_cylinder")
     return ixx, iyy, izz
@@ -89,9 +90,13 @@ def rectangular_prism_inertia(
     require_positive(height, "height")
     require_positive(depth, "depth")
 
-    ixx = (1.0 / 12.0) * mass * (depth**2 + height**2)
-    iyy = (1.0 / 12.0) * mass * (width**2 + height**2)
-    izz = (1.0 / 12.0) * mass * (width**2 + depth**2)
+    w2 = width * width
+    h2 = height * height
+    d2 = depth * depth
+
+    ixx = (1.0 / 12.0) * mass * (d2 + h2)
+    iyy = (1.0 / 12.0) * mass * (w2 + h2)
+    izz = (1.0 / 12.0) * mass * (w2 + d2)
 
     ensure_positive_definite_inertia(ixx, iyy, izz, "rectangular_prism")
     return (ixx, iyy, izz)
@@ -102,7 +107,7 @@ def sphere_inertia(mass: float, radius: float) -> tuple[float, float, float]:
     require_positive(mass, "mass")
     require_positive(radius, "radius")
 
-    i = (2.0 / 5.0) * mass * radius**2
+    i = (2.0 / 5.0) * mass * (radius * radius)
     ensure_positive_definite_inertia(i, i, i, "sphere")
     return (i, i, i)
 
