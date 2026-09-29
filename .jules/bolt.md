@@ -326,3 +326,8 @@
 
 **Learning:** During URDF string generation, using string concatenation (`+=`) or accumulating XML attribute formatting inside intermediate lists and then calling `"".join()` incurs unnecessary list-allocation and string joining overhead. Because string generation runs in a tight recursive loop for thousands of nodes per robot model, this overhead accumulates. Removing the `if attrib:` fast-path check and instead directly formatting into `append(f' {k}="{v}"')` inside the dictionary items loop avoids an intermediate string join and is faster than creating an attribute string list first.
 **Action:** Always directly append formatted XML substrings into the primary `chunks` accumulator via `append()` instead of creating intermediate collections, and do not use `if attrib:` if it adds branch overhead without preventing execution on the empty condition anyway.
+
+## 2024-11-13 - [Avoid temporary scratchpad scripts in the codebase]
+
+**Learning:** Creating scratchpad scripts (`scratch.py`, `get_lines.py`, etc.) for debugging, testing, or profiling in the repository root without deleting them pollutes the codebase. This causes safety and CI checks to flag the PR as dirty and unmergable.
+**Action:** Always delete any temporary scratchpad, profiling, or benchmarking scripts created during the exploration process before committing or submitting a PR.
