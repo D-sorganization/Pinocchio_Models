@@ -322,15 +322,13 @@
 
 **Learning:** In high-frequency mathematical operations on small 3D vectors (e.g. `parallel_axis_shift` called multiple times per limb segment during body construction), using `np.asarray` and array method properties (like `np.dot` or boolean array checks) introduces significant Python-to-C and object creation overhead. Manual tuple unpacking and scalar arithmetic evaluate orders of magnitude faster.
 **Action:** When working with 3D coordinate transformations or simple vector maths inside a tight loop or heavily called library function, typecast using tuples and perform manual arithmetic (`x*x + y*y + z*z`) instead of relying on generic numpy helpers that penalize small arrays.
+
 ## 2026-10-25 - Avoid array joining accumulation overhead
 
 **Learning:** During URDF string generation, using string concatenation (`+=`) or accumulating XML attribute formatting inside intermediate lists and then calling `"".join()` incurs unnecessary list-allocation and string joining overhead. Because string generation runs in a tight recursive loop for thousands of nodes per robot model, this overhead accumulates. Removing the `if attrib:` fast-path check and instead directly formatting into `append(f' {k}="{v}"')` inside the dictionary items loop avoids an intermediate string join and is faster than creating an attribute string list first.
 **Action:** Always directly append formatted XML substrings into the primary `chunks` accumulator via `append()` instead of creating intermediate collections, and do not use `if attrib:` if it adds branch overhead without preventing execution on the empty condition anyway.
-## 2026-11-01 - Avoid tuple creation in hot loops for type checks
 
-**Learning:** In hot validation loops like `require_finite`, checking multiple primitive types using `in (float, int, np.float64, np.int64)` creates a new tuple object on every single function call. This allocation overhead completely negates any theoretical benefit over sequential `is` checks. A short-circuiting `or` chain of `is` comparisons (e.g. `type(arr) is float or type(arr) is int...`) avoids object creation entirely and is significantly faster in Python.
-**Action:** When validating primitive types in high-frequency functions, use sequential `is` checks connected by `or` rather than using `in` against a dynamically constructed tuple.
-## 2026-11-01 - Avoid exponentiation overhead in Python math
+## 2026-09-29 - Avoid exponentiation overhead in Python math
 
 **Learning:** In Python, replacing exponentiation (`x**2`) with direct multiplication (`x * x`) yields a measurable performance improvement in high-frequency mathematical operations (e.g. geometric inertia calculations). Direct multiplication uses the fast `BINARY_OP` bytecode, while the `**` operator invokes the more complex and overhead-heavy generalized `pow()` C function.
 **Action:** When working on tight loop or frequently executed mathematical functions in Python, manually unroll small powers (like squares and cubes) into direct multiplication to avoid bytecode execution overhead.
