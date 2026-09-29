@@ -338,3 +338,32 @@ class TestSerializeModel:
         xml_str = serialize_model(root)
         assert "<?xml" in xml_str
         assert "<robot" in xml_str
+
+    def test_serialize_elements_with_and_without_attributes(self) -> None:
+        """Prove elements with empty attrib and with attrib serialize identically to expected URDF."""
+        root = ET.Element("robot", name="test_robot")
+        link = ET.SubElement(root, "link", name="base_link")
+        # Empty attrib element with children
+        inertial = ET.SubElement(link, "inertial")
+        # Element with attributes
+        ET.SubElement(inertial, "mass", value="1.0")
+        # Element with empty attrib and text
+        custom = ET.SubElement(link, "custom")
+        custom.text = "content"
+        # Leaf element with empty attrib
+        ET.SubElement(link, "tag_no_attrib")
+
+        xml_str = serialize_model(root)
+        expected = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<robot name="test_robot">'
+            '<link name="base_link">'
+            "<inertial>"
+            '<mass value="1.0" />'
+            "</inertial>"
+            "<custom>content</custom>"
+            "<tag_no_attrib />"
+            "</link>"
+            "</robot>"
+        )
+        assert xml_str == expected
