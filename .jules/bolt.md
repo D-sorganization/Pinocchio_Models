@@ -322,7 +322,13 @@
 
 **Learning:** In high-frequency mathematical operations on small 3D vectors (e.g. `parallel_axis_shift` called multiple times per limb segment during body construction), using `np.asarray` and array method properties (like `np.dot` or boolean array checks) introduces significant Python-to-C and object creation overhead. Manual tuple unpacking and scalar arithmetic evaluate orders of magnitude faster.
 **Action:** When working with 3D coordinate transformations or simple vector maths inside a tight loop or heavily called library function, typecast using tuples and perform manual arithmetic (`x*x + y*y + z*z`) instead of relying on generic numpy helpers that penalize small arrays.
+
 ## 2026-10-25 - Avoid array joining accumulation overhead
 
 **Learning:** During URDF string generation, using string concatenation (`+=`) or accumulating XML attribute formatting inside intermediate lists and then calling `"".join()` incurs unnecessary list-allocation and string joining overhead. Because string generation runs in a tight recursive loop for thousands of nodes per robot model, this overhead accumulates. Furthermore, adding an `if attrib:` fast-path check before iterating over `.items()` provides a measurable performance boost because many structural tags (like `inertial`, `visual`, and `collision`) lack attributes, and skipping the `.items()` generator avoids unnecessary dictionary overhead.
 **Action:** Always directly append formatted XML substrings into the primary `chunks` accumulator via `append()` instead of creating intermediate collections. Always use `if attrib:` before iterating over dictionary properties to create a fast-path for attribute-less structural nodes.
+
+## 2026-09-29 - Avoid exponentiation overhead in Python math
+
+**Learning:** In Python, replacing exponentiation (`x**2`) with direct multiplication (`x * x`) yields a measurable performance improvement in high-frequency mathematical operations (e.g. geometric inertia calculations). Direct multiplication uses the fast `BINARY_OP` bytecode, while the `**` operator invokes the more complex and overhead-heavy generalized `pow()` C function.
+**Action:** When working on tight loop or frequently executed mathematical functions in Python, manually unroll small powers (like squares and cubes) into direct multiplication to avoid bytecode execution overhead.
