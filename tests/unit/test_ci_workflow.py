@@ -65,6 +65,17 @@ def test_ci_workflow_profiles_on_schedule_or_manual_only() -> None:
     )
 
 
+def test_ci_workflow_runs_in_merge_queue() -> None:
+    """Required checks must report on merge-queue commits (RM#1890)."""
+    import yaml  # noqa: PLC0415
+
+    text = _CI_WORKFLOW.read_text(encoding="utf-8")
+    result = yaml.safe_load(text)
+    triggers = result.get("on", result.get(True, {}))
+
+    assert "merge_group" in triggers, "CI workflow is missing merge_group trigger"
+
+
 def test_ci_workflow_uploads_line_profiler_report() -> None:
     """Profiling job must produce and upload line_profiler report artifacts."""
     import yaml  # noqa: PLC0415

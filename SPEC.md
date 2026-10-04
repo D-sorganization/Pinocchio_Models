@@ -354,6 +354,7 @@ The repository is in active maintenance. Shared model generation is established,
 | 2026-08-18 | 1.0.41 | Optimized ET.SubElement kwargs packing in URDF helpers by passing attribute dictionaries directly. |
 | 2026-09-20 | 1.0.43 | Added fast-path pre-checks for XML escaping in URDF serialization. |
 | 2026-09-10 | #1607 | Add maintainable Mermaid C4 architecture map contract and CI validation. |
+| 2026-10-04 | #417 | Run the required CI checks on `merge_group` events so PRs can merge through the GitHub merge queue (Repository_Management#1890). |
 
 ## 2026-08-14 - Fix redundant string replacements in URDF generation
 
