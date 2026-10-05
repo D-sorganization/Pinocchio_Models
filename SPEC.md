@@ -314,6 +314,7 @@ edited here and `tests/parity/` verifies their hashes against `MANIFEST.json`.
 
 | Date       | Version | Changes                                                                                                                                                                                  |
 | ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-05 | #423 | Re-vendor the fleet parity bundle (Repository_Management#2012/#2014/#2015); the deadlift `phase_count` ledger entry is scoped to `deadlift` so it cannot hide a phase-count regression in another exercise. Conformance tests reconcile per exercise and check staleness with `reconcile_all`. |
 | 2026-10-05 | #423 | Generated URDF now loads in Pinocchio (bilateral parent resolution no longer suffixes pelvis/torso); constants derived from the fleet parity bundle; gait and sit_to_stand default to the standard 80 kg body (were 70 kg); real-engine parity conformance against the fleet standard. |
 | 2026-04-06 | 1.0.0   | Initial repository specification for Pinocchio_Models.                                                                                                                                   |
 | 2026-04-11 | 1.0.1   | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved.                                                                                     |

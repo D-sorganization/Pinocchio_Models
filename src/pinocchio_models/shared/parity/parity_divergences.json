@@ -43,7 +43,10 @@
     },
     "phase_count": {
       "issue": "#423",
-      "reason": "Deadlift objective defines 4 phases (optimization/objectives/deadlift.py); the standard requires 5. Adding a phase changes optimiser behaviour and is out of scope for the parity fix."
+      "reason": "Deadlift objective defines 4 phases (optimization/objectives/deadlift.py); the standard requires 5. Adding a phase changes optimiser behaviour and is out of scope for the parity fix.",
+      "exercises": [
+        "deadlift"
+      ]
     }
   }
 }
