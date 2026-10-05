@@ -49,10 +49,8 @@ def _link_of(joint: ET.Element, tag: str) -> str:
     return "" if node is None else node.get("link", "")
 
 
-def _strip_fixed_subtrees(urdf: str) -> str:
-    """Return *urdf* without fixed joints and the links hanging below them."""
-    root = ET.fromstring(urdf)
-    joints = root.findall("joint")
+def _fixed_subtree_links(joints: list[ET.Element]) -> set[str]:
+    """Return every link at or below a fixed joint's child."""
     doomed: set[str] = set()
     frontier = [_link_of(j, "child") for j in joints if j.get("type") == "fixed"]
     while frontier:
@@ -61,6 +59,14 @@ def _strip_fixed_subtrees(urdf: str) -> str:
         frontier += [
             _link_of(j, "child") for j in joints if _link_of(j, "parent") == link
         ]
+    return doomed
+
+
+def _strip_fixed_subtrees(urdf: str) -> str:
+    """Return *urdf* without fixed joints and the links hanging below them."""
+    root = ET.fromstring(urdf)
+    joints = root.findall("joint")
+    doomed = _fixed_subtree_links(joints)
     for j in joints:
         if j.get("type") == "fixed" or _link_of(j, "child") in doomed:
             root.remove(j)
