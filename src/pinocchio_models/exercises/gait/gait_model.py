@@ -74,7 +74,7 @@ def build_gait_model(
 ) -> str:
     """Convenience function to build a gait model URDF string.
 
-    Default: 70 kg person, 1.75 m tall, no external load.
+    Default: the parity-standard 80 kg, 1.75 m person, no external load.
     The plate_mass_per_side parameter is accepted for CLI compatibility
     but ignored (gait has no barbell).
     """
