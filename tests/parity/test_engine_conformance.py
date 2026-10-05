@@ -61,15 +61,17 @@ def _divergences(exercise: str) -> list[conformance.Divergence]:
 def test_fingerprint_conforms_to_standard(exercise: str) -> None:
     """Every divergence of an exercise must be in the issue-tracked ledger."""
     ledger = conformance.load_ledger(LEDGER)
-    unexpected, _ = conformance.reconcile(_divergences(exercise), ledger)
+    unexpected, _ = conformance.reconcile(
+        _divergences(exercise), ledger, exercise=exercise
+    )
     assert not unexpected, [(d.key, d.message) for d in unexpected]
 
 
 def test_ledger_has_no_stale_entries() -> None:
-    """Ledger keys are not exercise-scoped, so staleness is judged fleet-wide
-    across all exercises: an entry no exercise still diverges on must go."""
-    divs = [d for ex in EXERCISES for d in _divergences(ex)]
-    _, stale = conformance.reconcile(divs, conformance.load_ledger(LEDGER))
+    """An entry (or a scoped exercise of one) no exercise still diverges on
+    is stale and must go."""
+    by_exercise = {ex: _divergences(ex) for ex in EXERCISES}
+    _, stale = conformance.reconcile_all(by_exercise, conformance.load_ledger(LEDGER))
     assert not stale, f"stale ledger entries (delete them): {stale}"
 
 
