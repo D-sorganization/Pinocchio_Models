@@ -290,10 +290,31 @@ The repository is in active maintenance. Shared model generation is established,
 - Optional addons require external packages to be installed.
 - Pinocchio-specific loading and gravity setup remain the responsibility of downstream runtime code.
 
+## Engine Parity Contract
+
+Cross-engine parameters come from the fleet parity standard vendored at
+`src/pinocchio_models/shared/parity/_canonical/` (`biomech_parity_standard.json`,
+`conformance.py`, `assemble.py`, `MANIFEST.json`). The canonical source is
+`Repository_Management/shared_scripts/model_parity/`; vendored files are never
+edited here and `tests/parity/` verifies their hashes against `MANIFEST.json`.
+
+- `shared/parity/standard.py` and the body segment table are computed from the
+  bundle; no constants are duplicated.
+- `shared/parity/fingerprint.py` loads every exercise's generated URDF model in
+  the real pinocchio engine and reports a `model-fingerprint/v1`
+  (`python -m pinocchio_models.shared.parity.fingerprint --all --out DIR`).
+- `tests/parity/test_engine_conformance.py` runs in default CI with the engine
+  installed and fails on any divergence from the standard that is not listed,
+  with an issue reference, in `shared/parity/parity_divergences.json`. Ledger
+  entries that no longer diverge fail as stale, so the ledger only shrinks.
+- `model_pack.yaml` declares honest `capabilities` levels (`none`, `partial`,
+  `full`); `full` requires a public API and a real-engine test as evidence.
+
 ## 12. Change Log
 
 | Date       | Version | Changes                                                                                                                                                                                  |
 | ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-05 | #423 | Generated URDF now loads in Pinocchio (bilateral parent resolution no longer suffixes pelvis/torso); constants derived from the fleet parity bundle; real-engine parity conformance against the fleet standard. |
 | 2026-04-06 | 1.0.0   | Initial repository specification for Pinocchio_Models.                                                                                                                                   |
 | 2026-04-11 | 1.0.1   | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved.                                                                                     |
 | 2026-04-11 | 1.0.2   | Split top-2 monolithic addon scripts (#129): `optimal_control.py` and `ik_solver.py` now delegate to focused builder/task/config submodules. Public API and module attributes preserved. |
