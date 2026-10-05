@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
 )
+from pinocchio_models.shared.parity._canonical.conformance import load_standard
 from pinocchio_models.shared.utils.geometry import (
     cylinder_inertia,
 )
@@ -49,25 +50,21 @@ class BodyModelSpec:
         require_positive(self.height, "height")
 
 
-# Winter (2009) segment mass fractions and length fractions of total height.
+# Winter (2009) segment fractions, derived from the vendored parity standard
+# (single source of truth shared with ``shared/parity/standard.py``).
+_STD_SEGMENTS: dict[str, dict[str, float | bool]] = load_standard()["anthropometrics"][
+    "segments"
+]
 _SEGMENT_TABLE: dict[str, dict[str, float]] = {
-    "pelvis": {"mass_frac": 0.142, "length_frac": 0.100, "radius_frac": 0.085},
-    "torso": {"mass_frac": 0.355, "length_frac": 0.288, "radius_frac": 0.080},
-    "head": {"mass_frac": 0.081, "length_frac": 0.130, "radius_frac": 0.060},
-    "upper_arm": {"mass_frac": 0.028, "length_frac": 0.186, "radius_frac": 0.023},
-    "forearm": {"mass_frac": 0.016, "length_frac": 0.146, "radius_frac": 0.018},
-    "hand": {"mass_frac": 0.006, "length_frac": 0.050, "radius_frac": 0.020},
-    "thigh": {"mass_frac": 0.100, "length_frac": 0.245, "radius_frac": 0.037},
-    "shank": {"mass_frac": 0.047, "length_frac": 0.246, "radius_frac": 0.025},
-    "foot": {"mass_frac": 0.014, "length_frac": 0.040, "radius_frac": 0.025},
+    name: {k: float(seg[k]) for k in ("mass_frac", "length_frac", "radius_frac")}
+    for name, seg in _STD_SEGMENTS.items()
 }
-
 
 # Segments that are duplicated bilaterally (_l and _r suffixes).
 # Central segments (pelvis, torso, head) are NOT bilateral and must
 # NOT be resolved with a side suffix.
 _BILATERAL_SEGMENTS: frozenset[str] = frozenset(
-    {"upper_arm", "forearm", "hand", "thigh", "shank", "foot"}
+    name for name, seg in _STD_SEGMENTS.items() if seg["bilateral"]
 )
 
 
@@ -195,11 +192,7 @@ def _add_bilateral_ndof(
 
     for side, sign in [("l", -1.0), ("r", 1.0)]:
         body_name = f"{seg_name}_{side}"
-        parent_full = (
-            f"{parent_name}_{side}" if parent_name in _SEGMENT_TABLE else parent_name
-        )
-
-        current_parent = parent_full
+        current_parent = _resolve_bilateral_parent(parent_name, side)
 
         for i, (jname, jaxis, jmin, jmax) in enumerate(joints):
             is_last = i == len(joints) - 1
