@@ -314,7 +314,7 @@ edited here and `tests/parity/` verifies their hashes against `MANIFEST.json`.
 
 | Date       | Version | Changes                                                                                                                                                                                  |
 | ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-10-05 | #423 | Generated URDF now loads in Pinocchio (bilateral parent resolution no longer suffixes pelvis/torso); constants derived from the fleet parity bundle; real-engine parity conformance against the fleet standard. |
+| 2026-10-05 | #423 | Generated URDF now loads in Pinocchio (bilateral parent resolution no longer suffixes pelvis/torso); constants derived from the fleet parity bundle; gait and sit_to_stand default to the standard 80 kg body (were 70 kg); real-engine parity conformance against the fleet standard. |
 | 2026-04-06 | 1.0.0   | Initial repository specification for Pinocchio_Models.                                                                                                                                   |
 | 2026-04-11 | 1.0.1   | Decomposed five oversized functions (#128) into single-purpose private helpers; behaviour preserved.                                                                                     |
 | 2026-04-11 | 1.0.2   | Split top-2 monolithic addon scripts (#129): `optimal_control.py` and `ik_solver.py` now delegate to focused builder/task/config submodules. Public API and module attributes preserved. |

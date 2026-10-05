@@ -21,6 +21,10 @@ from pinocchio_models.shared.constants import (
     STS_HIP_ANGLE,
     STS_KNEE_ANGLE,
 )
+from pinocchio_models.shared.parity.standard import (
+    STANDARD_BODY_MASS,
+    STANDARD_HEIGHT,
+)
 from pinocchio_models.shared.utils.urdf_helpers import (
     add_fixed_joint,
     add_link,
@@ -91,8 +95,8 @@ class SitToStandModelBuilder(ExerciseModelBuilder):
 
 
 def build_sit_to_stand_model(
-    body_mass: float = 70.0,
-    height: float = 1.75,
+    body_mass: float = STANDARD_BODY_MASS,
+    height: float = STANDARD_HEIGHT,
     plate_mass_per_side: float = 0.0,
 ) -> str:
     """Convenience function to build a sit-to-stand model URDF string.
