@@ -18,16 +18,12 @@ Engine notes:
 
 from __future__ import annotations
 
-import argparse
-import json
 import logging
-import math
 import xml.etree.ElementTree as ET
-from pathlib import Path
 from typing import Any
 
 from pinocchio_models.model_pack import list_exercises, manifest
-from pinocchio_models.shared.parity._canonical import conformance
+from pinocchio_models.shared.parity._canonical import assemble, conformance
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +41,6 @@ SEGMENT_ALIASES: dict[str, str] = {}
 
 # Registry ids of the optimisation objectives that differ from manifest ids.
 _OBJECTIVE_IDS: dict[str, str] = {"squat": "back_squat"}
-
-
-def _canon_segment_names(std: dict[str, Any]) -> set[str]:
-    return set(conformance.expected_segments(std))
 
 
 def _link_of(joint: ET.Element, tag: str) -> str:
@@ -98,57 +90,41 @@ def load_model(urdf: str, std: dict[str, Any] | None = None) -> Any:
     return model
 
 
-def _human_segments(
+def _measure(
     urdf: str, std: dict[str, Any]
-) -> tuple[dict[str, dict[str, float]], dict[str, list[float]]]:
-    """Masses and neutral origins of the human segments, read from the engine."""
+) -> tuple[dict[str, float], dict[str, list[float]]]:
+    """Raw per-body masses and neutral world origins (engine frame).
+
+    Read from a model with fixed-joint subtrees removed, because Pinocchio
+    merges those bodies into their parent joint's inertia.
+    """
     import pinocchio as pin
 
     model = load_model(_strip_fixed_subtrees(urdf), std)
     data = model.createData()
     pin.forwardKinematics(model, data, pin.neutral(model))
     pin.updateFramePlacements(model, data)
-    wanted = _canon_segment_names(std)
-    masses: dict[str, dict[str, float]] = {}
+    masses: dict[str, float] = {}
     origins: dict[str, list[float]] = {}
     for fid, frame in enumerate(model.frames):
-        name = SEGMENT_ALIASES.get(frame.name, frame.name)
-        if frame.type != pin.FrameType.BODY or name not in wanted:
-            continue
-        masses[name] = {"mass_kg": float(model.inertias[frame.parentJoint].mass)}
-        origins[name] = [float(v) for v in data.oMf[fid].translation]
-    pelvis = origins["pelvis"]
-    rel = {
-        seg: list(
-            conformance.to_canonical(
-                std, ENGINE, [p - q for p, q in zip(pos, pelvis, strict=True)]
-            )
-        )
-        for seg, pos in origins.items()
-    }
-    return masses, rel
+        if frame.type == pin.FrameType.BODY:
+            masses[frame.name] = float(model.inertias[frame.parentJoint].mass)
+            origins[frame.name] = [float(v) for v in data.oMf[fid].translation]
+    return masses, origins
 
 
-def _coordinates(model: Any) -> dict[str, dict[str, list[float]]]:
-    out: dict[str, dict[str, list[float]]] = {}
+def _limits(model: Any) -> dict[str, tuple[float, float]]:
+    """Raw 1-DOF joint limits keyed by engine joint name."""
+    out: dict[str, tuple[float, float]] = {}
     for jid in range(2, model.njoints):  # 0 = universe, 1 = free-flyer root
         joint = model.joints[jid]
-        if joint.nq != 1:
-            continue
-        name = COORDINATE_ALIASES.get(model.names[jid], model.names[jid])
-        q = joint.idx_q
-        out[name] = {
-            "limits_rad": [
+        if joint.nq == 1:
+            q = joint.idx_q
+            out[model.names[jid]] = (
                 float(model.lowerPositionLimit[q]),
                 float(model.upperPositionLimit[q]),
-            ]
-        }
+            )
     return out
-
-
-def _capabilities() -> dict[str, str]:
-    block = manifest().get("capabilities", {})
-    return {key: str(entry["level"]) for key, entry in block.items()}
 
 
 def _phase_count(exercise: str) -> int | None:
@@ -161,62 +137,37 @@ def _phase_count(exercise: str) -> int | None:
 def fingerprint(exercise: str) -> dict[str, Any]:
     """Build *exercise*, load it in Pinocchio and return its fingerprint."""
     std = conformance.load_standard()
-    fp: dict[str, Any] = {
-        "schema": conformance.FINGERPRINT_SCHEMA,
-        "engine": ENGINE,
-        "engine_version": None,
-        "exercise": exercise,
-        "standard_sha256": conformance.standard_sha256(),
-        "loaded_in_engine": False,
-        "load_error": None,
-        "capabilities": _capabilities(),
-    }
+    version = ""
     try:
         import pinocchio as pin
 
-        fp["engine_version"] = str(pin.__version__)
+        version = str(pin.__version__)
         urdf = build_urdf(exercise)
         model = load_model(urdf, std)
-        segments, origins = _human_segments(urdf, std)
+        masses, origins = _measure(urdf, std)
     except Exception as exc:  # noqa: BLE001 - any load failure is reported
         logger.warning("%s failed to load in %s: %s", exercise, ENGINE, exc)
-        fp["load_error"] = str(exc)
-        return fp
-    fp.update(
-        loaded_in_engine=True,
+        return assemble.failed_fingerprint(ENGINE, version, exercise, exc)
+    return assemble.assemble_fingerprint(
+        engine=ENGINE,
+        engine_version=version,
+        exercise=exercise,
+        std=std,
         root_joint="free" if model.joints[1].nq == 7 else "fixed",
-        gravity_canonical=list(
-            conformance.to_canonical(
-                std, ENGINE, [float(v) for v in model.gravity.linear]
-            )
-        ),
-        body_mass_kg=sum(s["mass_kg"] for s in segments.values()),
-        segments=segments,
-        coordinates=_coordinates(model),
-        segment_origins_neutral_m=origins,
+        gravity_engine=[float(v) for v in model.gravity.linear],
+        segment_masses_kg=masses,
+        coordinate_limits_rad=_limits(model),
+        segment_origins_engine_m=origins,
+        capabilities=assemble.capabilities_from_manifest(manifest(), std),
+        coordinate_aliases=COORDINATE_ALIASES,
+        segment_aliases=SEGMENT_ALIASES,
+        phase_count=_phase_count(exercise),
     )
-    phases = _phase_count(exercise)
-    if phases is not None:
-        fp["phase_count"] = phases
-    if not all(math.isfinite(s["mass_kg"]) for s in segments.values()):
-        raise ValueError("fingerprint contains non-finite segment mass")
-    return fp
 
 
 def main(argv: list[str] | None = None) -> int:
     """CLI: write fingerprint JSON for one exercise or all of them."""
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--exercise", choices=list_exercises())
-    group.add_argument("--all", action="store_true")
-    parser.add_argument("--out", type=Path, default=Path("."))
-    args = parser.parse_args(argv)
-    args.out.mkdir(parents=True, exist_ok=True)
-    for exercise in list_exercises() if args.all else [args.exercise]:
-        path = args.out / f"{ENGINE}_{exercise}.json"
-        path.write_text(json.dumps(fingerprint(exercise), indent=2) + "\n")
-        logger.info("wrote %s", path)
-    return 0
+    return assemble.run_fingerprint_cli(argv, fingerprint, list_exercises(), ENGINE)
 
 
 if __name__ == "__main__":  # pragma: no cover

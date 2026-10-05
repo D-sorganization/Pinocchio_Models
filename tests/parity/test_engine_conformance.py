@@ -114,8 +114,8 @@ def test_capabilities_block_matches_standard() -> None:
 def test_vendored_bundle_matches_manifest_hashes() -> None:
     canon = resources.files("pinocchio_models.shared.parity._canonical")
     sums = json.loads((canon / "MANIFEST.json").read_text(encoding="utf-8"))
-    files = sums.get("files", sums)
-    assert files
+    files = sums["files"]
+    assert {"assemble.py", "conformance.py"} <= set(files)
     for name, expected in files.items():
         digest = hashlib.sha256((canon / name).read_bytes()).hexdigest()
         assert digest == (
