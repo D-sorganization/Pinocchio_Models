@@ -1,0 +1,49 @@
+{
+  "schema": "parity-divergences/v1",
+  "divergences": {
+    "coordinate.ankle_l_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-50, 20] deg (ANKLE_FLEXION_*) vs standard [-20, 50] deg: sign-flipped. Joint is about +Y with a foot link hanging down at zero pose, so the sign convention is ambiguous, and objectives disagree (squat uses +25/+35 deg, gait uses -25..-5 deg); flipping would put gait targets out of range. Needs an ankle zero-pose/sign decision."
+    },
+    "coordinate.ankle_r_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-50, 20] deg (ANKLE_FLEXION_*) vs standard [-20, 50] deg: sign-flipped. Joint is about +Y with a foot link hanging down at zero pose, so the sign convention is ambiguous, and objectives disagree (squat uses +25/+35 deg, gait uses -25..-5 deg); flipping would put gait targets out of range. Needs an ankle zero-pose/sign decision."
+    },
+    "coordinate.lumbar_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-25, 60] deg vs standard [-30, 45] deg. Upper bound 60 deg is intentional (floor pulls need >45 deg, fixes #63). constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.lumbar_lateral.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-20, 20] deg vs standard [-30, 30] deg (Kapandji 2008 ~20 deg). constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.lumbar_rotate.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-10, 10] deg vs standard [-30, 30] deg (Kapandji 2008 ~5-10 deg). constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.neck_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-60, 70] deg vs standard [-30, 30] deg (Winter 2009 ~60 deg extension / 50-70 deg flexion). constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.shoulder_l_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-30, 180] deg (SHOULDER_FLEXION_MIN) vs standard [-60, 180] deg: extension range 30 deg narrower. constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.shoulder_r_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-30, 180] deg (SHOULDER_FLEXION_MIN) vs standard [-60, 180] deg: extension range 30 deg narrower. constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.wrist_l_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-80, 70] deg (WRIST_FLEXION_MIN) vs standard [-70, 70] deg: extension range 10 deg wider. constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "coordinate.wrist_r_flex.limits_rad": {
+      "issue": "#423",
+      "reason": "Model [-80, 70] deg (WRIST_FLEXION_MIN) vs standard [-70, 70] deg: extension range 10 deg wider. constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
+    },
+    "phase_count": {
+      "issue": "#423",
+      "reason": "Deadlift objective defines 4 phases (optimization/objectives/deadlift.py); the standard requires 5. Adding a phase changes optimiser behaviour and is out of scope for the parity fix."
+    }
+  }
+}
