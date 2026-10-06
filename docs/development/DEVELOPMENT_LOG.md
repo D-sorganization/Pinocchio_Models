@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#435 · Canonical Topology: Left at Plus Y and Standard Joint Axes
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #435
+- **Branch:** fix/issue-435-canonical-topology
+- **PR:** #444
+- **Paths:** see #444
+- **Started:** 2026-10-06
+- **Last verified:** 2026-10-06 (`00ee8d8e`; collated from changes/435-canonical-topology.md)
+- **Summary:** Migrate the model to the standard v2 topology: left segments at +Y, canonical joint axes and joint origins read from the vendored standard (hip and shoulder widths, shoulder height), supine bench press on a bench root link, barbell left sleeve at +Y; the fingerprint measures axes, pelvis rotation and test-pose origins in the real engine, with zero axis, side, origin and pose divergences.
+- **Next step:** Merge the PR.
+
 ### DL-#1607 · Adopt Mermaid C4 Architecture Map Contract
 
 - **Issue:** #1607 (https://github.com/D-sorganization/Repository_Management/issues/1607)
