@@ -307,6 +307,22 @@ edited here and `tests/parity/` verifies their hashes against `MANIFEST.json`.
   installed and fails on any divergence from the standard that is not listed,
   with an issue reference, in `shared/parity/parity_divergences.json`. Ledger
   entries that no longer diverge fail as stale, so the ledger only shrinks.
+- Canonical topology (#435): the model uses the standard's frame (Z-up, X
+  forward, Y left). Left segments sit at +Y, right at -Y; every joint frame is
+  aligned with the world at q=0 so each `<axis>` literal is the coordinate's
+  canonical axis (limb flexion about -Y, trunk flexion about +Y, adduction about
+  +X on the right and -X on the left, rotation about +Z right and -Z left).
+  Axes and joint origins (hip and shoulder widths, shoulder height, limb
+  chains) are read from the vendored standard by
+  `shared/body/canonical_topology.py`, never written as literals. Positive
+  hip/shoulder rotation is internal, positive adduction is toward the midline,
+  knee flexion is negative, positive ankle flexion is dorsiflexion. The barbell
+  lies along Y with its left sleeve at +Y; `bench_press` hangs the pelvis from a
+  `bench` root link pitched -90 degrees about Y (chest toward +Z).
+- `shared/parity/axes_probe.py` measures coordinate axes, the pelvis rotation
+  and segment origins at the standard test poses with Pinocchio forward
+  kinematics; conformance reports no `axis.*`, `side.*`, `origin.*` or `pose.*`
+  divergence for any exercise.
 - `model_pack.yaml` declares honest `capabilities` levels (`none`, `partial`,
   `full`); `full` requires a public API and a real-engine test as evidence.
 

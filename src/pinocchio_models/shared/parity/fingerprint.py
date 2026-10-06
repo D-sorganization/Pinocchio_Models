@@ -13,7 +13,8 @@ Engine notes:
 * Barbell and fixture bodies are fixed-joint children that Pinocchio merges
   into their parent joint's inertia; human segment masses are therefore read
   from a second engine model built from the URDF with every fixed-joint
-  subtree removed.
+  subtree removed (except the bench_press pelvis weld, which supports the
+  supine lifter and must stay).
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import xml.etree.ElementTree as ET
 from typing import Any
 
 from pinocchio_models.model_pack import list_exercises, manifest
+from pinocchio_models.shared.parity import axes_probe
 from pinocchio_models.shared.parity._canonical import assemble, conformance
 
 logger = logging.getLogger(__name__)
@@ -49,10 +51,15 @@ def _link_of(joint: ET.Element, tag: str) -> str:
     return "" if node is None else node.get("link", "")
 
 
+def _is_fixture(joint: ET.Element) -> bool:
+    """A fixed joint that attaches a barbell or fixture (not the supine pelvis)."""
+    return joint.get("type") == "fixed" and _link_of(joint, "child") != "pelvis"
+
+
 def _fixed_subtree_links(joints: list[ET.Element]) -> set[str]:
-    """Return every link at or below a fixed joint's child."""
+    """Return every link at or below a fixture joint's child."""
     doomed: set[str] = set()
-    frontier = [_link_of(j, "child") for j in joints if j.get("type") == "fixed"]
+    frontier = [_link_of(j, "child") for j in joints if _is_fixture(j)]
     while frontier:
         link = frontier.pop()
         doomed.add(link)
@@ -68,7 +75,7 @@ def _strip_fixed_subtrees(urdf: str) -> str:
     joints = root.findall("joint")
     doomed = _fixed_subtree_links(joints)
     for j in joints:
-        if j.get("type") == "fixed" or _link_of(j, "child") in doomed:
+        if _is_fixture(j) or _link_of(j, "child") in doomed:
             root.remove(j)
     for link_el in root.findall("link"):
         if link_el.get("name") in doomed:
@@ -168,6 +175,13 @@ def fingerprint(exercise: str) -> dict[str, Any]:
         coordinate_aliases=COORDINATE_ALIASES,
         segment_aliases=SEGMENT_ALIASES,
         phase_count=_phase_count(exercise),
+        coordinate_axes_engine=axes_probe.coordinate_axes(
+            model, std, COORDINATE_ALIASES
+        ),
+        pelvis_rotation_engine=axes_probe.pelvis_rotation(model),
+        segment_origins_test_poses_engine_m=axes_probe.pose_origins(
+            model, std, COORDINATE_ALIASES
+        ),
     )
 
 

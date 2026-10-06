@@ -12,23 +12,24 @@ Segments (bilateral where noted):
 
 Multi-DOF joints (compound revolute joints via virtual links):
   pelvis is the root link (Pinocchio adds FreeFlyer programmatically),
-  lumbar — 3-DOF: flex (X), lateral (Z), rotate (Y)
-  neck (revolute — 1-DOF flexion about Y)
-  shoulder_{l,r} — 3-DOF: flex (X), adduct (Z), rotate (Y)
-  elbow_{l,r} (revolute — 1-DOF flexion about Y)
-  wrist_{l,r} — 2-DOF: flex (Y), deviate (Z)
-  hip_{l,r} — 3-DOF: flex (X), adduct (Z), rotate (Y)
-  knee_{l,r} (revolute — 1-DOF flexion about Y)
-  ankle_{l,r} — 2-DOF: flex (Y), invert (X)
+  lumbar — 3-DOF: flex, lateral, rotate
+  neck (revolute — 1-DOF flexion)
+  shoulder_{l,r} — 3-DOF: flex, adduct, rotate
+  elbow_{l,r} (revolute — 1-DOF flexion)
+  wrist_{l,r} — 2-DOF: flex, deviate
+  hip_{l,r} — 3-DOF: flex, adduct, rotate
+  knee_{l,r} (revolute — 1-DOF flexion)
+  ankle_{l,r} — 2-DOF: flex, invert
 
-Convention: Z-up (vertical), X-forward. Pinocchio adds the floating
-base programmatically via pin.JointModelFreeFlyer().
+Convention (issue #435): the cross-repo parity standard's canonical frame,
+Z-up, X forward, Y LEFT (left segments at +Y, right at -Y). Every joint frame
+is aligned with the world at q=0, so each ``<axis>`` literal is the canonical
+axis of its coordinate (flexion about -Y, adduction about +X on the right and
+-X on the left, ...). Axes and joint origins are read from the vendored
+standard (``canonical_topology``), never written as literals. Pinocchio adds
+the floating base programmatically via pin.JointModelFreeFlyer().
 
-Joint axis convention note (issue #65):
-  Simple revolute joints (knee, elbow, ankle) use **Y-axis** for
-  sagittal-plane flexion.  Drake and MuJoCo often use **X-axis** for
-  the same motion.  See ``docs/joint_axis_convention.md`` for the full
-  mapping and porting guidance.
+See ``docs/joint_axis_convention.md`` for the mapping and porting guidance.
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ from pinocchio_models.shared.body.body_anthropometrics import (
     _add_bilateral_ndof,
     _seg,
 )
+from pinocchio_models.shared.body.canonical_topology import joint_axis, joint_offset
 from pinocchio_models.shared.constants import (
     ANKLE_FLEXION_MAX,
     ANKLE_FLEXION_MIN,
@@ -54,7 +56,6 @@ from pinocchio_models.shared.constants import (
     HIP_ADDUCTION_MIN,
     HIP_FLEXION_MAX,
     HIP_FLEXION_MIN,
-    HIP_LATERAL_FRAC_OF_HEIGHT,
     HIP_ROTATION_MAX,
     HIP_ROTATION_MIN,
     KNEE_FLEXION_MAX,
@@ -71,8 +72,6 @@ from pinocchio_models.shared.constants import (
     SHOULDER_ADDUCTION_MIN,
     SHOULDER_FLEXION_MAX,
     SHOULDER_FLEXION_MIN,
-    SHOULDER_HEIGHT_FRAC,
-    SHOULDER_LATERAL_FRAC_OF_HEIGHT,
     SHOULDER_ROTATION_MAX,
     SHOULDER_ROTATION_MIN,
     WRIST_DEVIATION_MAX,
@@ -98,11 +97,8 @@ def _build_axial_chain(
     robot: ET.Element,
     spec: BodyModelSpec,
     links: dict[str, ET.Element],
-) -> tuple[float, float]:
-    """Stage 1: Build pelvis, torso (3-DOF lumbar), and head.
-
-    Returns (pelvis_length, torso_length) needed by downstream stages.
-    """
+) -> None:
+    """Stage 1: Build pelvis, torso (3-DOF lumbar), and head."""
     # --- Pelvis (root link -- Pinocchio adds FreeFlyer) ---
     p_mass, p_len, p_rad = _seg(spec, "pelvis")
     p_inertia = rectangular_prism_inertia(p_mass, p_rad * 2, p_len, p_rad * 2)
@@ -126,8 +122,8 @@ def _build_axial_chain(
         name="lumbar_flex",
         parent="pelvis",
         child="lumbar_virtual_1",
-        origin_xyz=(0, 0, p_len / 2.0),
-        axis=(1, 0, 0),
+        origin_xyz=joint_offset("torso", spec.height),
+        axis=joint_axis("lumbar_flex"),
         lower=LUMBAR_FLEXION_MIN,
         upper=LUMBAR_FLEXION_MAX,
     )
@@ -139,7 +135,7 @@ def _build_axial_chain(
         parent="lumbar_virtual_1",
         child="lumbar_virtual_2",
         origin_xyz=(0, 0, 0),
-        axis=(0, 0, 1),
+        axis=joint_axis("lumbar_lateral"),
         lower=LUMBAR_LATERAL_MIN,
         upper=LUMBAR_LATERAL_MAX,
     )
@@ -159,7 +155,7 @@ def _build_axial_chain(
         parent="lumbar_virtual_2",
         child="torso",
         origin_xyz=(0, 0, 0),
-        axis=(0, 1, 0),
+        axis=joint_axis("lumbar_rotate"),
         lower=LUMBAR_ROTATION_MIN,
         upper=LUMBAR_ROTATION_MAX,
     )
@@ -181,64 +177,86 @@ def _build_axial_chain(
         name="neck",
         parent="torso",
         child="head",
-        origin_xyz=(0, 0, t_len),
-        axis=(0, 1, 0),
+        origin_xyz=joint_offset("head", spec.height),
+        axis=joint_axis("neck_flex"),
         lower=NECK_FLEXION_MIN,
         upper=NECK_FLEXION_MAX,
     )
 
-    return p_len, t_len
 
-
-def _build_upper_limbs(
+def _add_limb_chain(
     robot: ET.Element,
     spec: BodyModelSpec,
-    torso_length: float,
+    *,
+    seg_name: str,
+    parent_name: str,
+    coord_prefix: str,
+    joints: list[tuple[str, float, float]] | None = None,
+    limits: tuple[float, float] = (0.0, 0.0),
 ) -> None:
-    """Stage 2: Build bilateral arms -- shoulder, elbow, wrist."""
-    shoulder_z = torso_length * SHOULDER_HEIGHT_FRAC
-    shoulder_y = spec.height * SHOULDER_LATERAL_FRAC_OF_HEIGHT
+    """Add one bilateral segment at its standard joint origin.
 
+    The origin comes from the parity standard (left = +Y); *joints* gives the
+    (suffix, min, max) of an N-DOF compound joint, otherwise a single flexion
+    joint with *limits* is used.
+    """
+    _x, lateral, vertical = joint_offset(f"{seg_name}_l", spec.height)
+    if joints is None:
+        _add_bilateral_limb_simple(
+            robot,
+            spec,
+            seg_name=seg_name,
+            parent_name=parent_name,
+            parent_offset_z=vertical,
+            parent_lateral_y=lateral,
+            coord_prefix=coord_prefix,
+            range_min=limits[0],
+            range_max=limits[1],
+        )
+        return
     _add_bilateral_ndof(
+        robot,
+        spec,
+        seg_name=seg_name,
+        parent_name=parent_name,
+        parent_offset_z=vertical,
+        parent_lateral_y=lateral,
+        coord_prefix=coord_prefix,
+        joints=joints,
+    )
+
+
+def _build_upper_limbs(robot: ET.Element, spec: BodyModelSpec) -> None:
+    """Stage 2: Build bilateral arms -- shoulder, elbow, wrist."""
+    _add_limb_chain(
         robot,
         spec,
         seg_name="upper_arm",
         parent_name="torso",
-        parent_offset_z=shoulder_z,
-        parent_lateral_y=shoulder_y,
         coord_prefix="shoulder",
         joints=[
-            ("flex", (1, 0, 0), SHOULDER_FLEXION_MIN, SHOULDER_FLEXION_MAX),
-            ("adduct", (0, 0, 1), SHOULDER_ADDUCTION_MIN, SHOULDER_ADDUCTION_MAX),
-            ("rotate", (0, 1, 0), SHOULDER_ROTATION_MIN, SHOULDER_ROTATION_MAX),
+            ("flex", SHOULDER_FLEXION_MIN, SHOULDER_FLEXION_MAX),
+            ("adduct", SHOULDER_ADDUCTION_MIN, SHOULDER_ADDUCTION_MAX),
+            ("rotate", SHOULDER_ROTATION_MIN, SHOULDER_ROTATION_MAX),
         ],
     )
-
-    _ua_mass, ua_len, _ua_rad = _seg(spec, "upper_arm")
-    _add_bilateral_limb_simple(
+    _add_limb_chain(
         robot,
         spec,
         seg_name="forearm",
         parent_name="upper_arm",
-        parent_offset_z=-ua_len,
-        parent_lateral_y=0,
         coord_prefix="elbow",
-        range_min=ELBOW_FLEXION_MIN,
-        range_max=ELBOW_FLEXION_MAX,
+        limits=(ELBOW_FLEXION_MIN, ELBOW_FLEXION_MAX),
     )
-
-    _fa_mass, fa_len, _fa_rad = _seg(spec, "forearm")
-    _add_bilateral_ndof(
+    _add_limb_chain(
         robot,
         spec,
         seg_name="hand",
         parent_name="forearm",
-        parent_offset_z=-fa_len,
-        parent_lateral_y=0,
         coord_prefix="wrist",
         joints=[
-            ("flex", (0, 1, 0), WRIST_FLEXION_MIN, WRIST_FLEXION_MAX),
-            ("deviate", (0, 0, 1), WRIST_DEVIATION_MIN, WRIST_DEVIATION_MAX),
+            ("flex", WRIST_FLEXION_MIN, WRIST_FLEXION_MAX),
+            ("deviate", WRIST_DEVIATION_MIN, WRIST_DEVIATION_MAX),
         ],
     )
 
@@ -268,54 +286,37 @@ def _add_foot_collision(
         collision.append(make_box_geometry(*dims))
 
 
-def _build_lower_limbs(
-    robot: ET.Element,
-    spec: BodyModelSpec,
-    pelvis_length: float,
-) -> None:
+def _build_lower_limbs(robot: ET.Element, spec: BodyModelSpec) -> None:
     """Stage 3: Build bilateral legs -- hip, knee, ankle, foot collision."""
-    hip_y = spec.height * HIP_LATERAL_FRAC_OF_HEIGHT
-
-    _add_bilateral_ndof(
+    _add_limb_chain(
         robot,
         spec,
         seg_name="thigh",
         parent_name="pelvis",
-        parent_offset_z=-pelvis_length / 2.0,
-        parent_lateral_y=hip_y,
         coord_prefix="hip",
         joints=[
-            ("flex", (1, 0, 0), HIP_FLEXION_MIN, HIP_FLEXION_MAX),
-            ("adduct", (0, 0, 1), HIP_ADDUCTION_MIN, HIP_ADDUCTION_MAX),
-            ("rotate", (0, 1, 0), HIP_ROTATION_MIN, HIP_ROTATION_MAX),
+            ("flex", HIP_FLEXION_MIN, HIP_FLEXION_MAX),
+            ("adduct", HIP_ADDUCTION_MIN, HIP_ADDUCTION_MAX),
+            ("rotate", HIP_ROTATION_MIN, HIP_ROTATION_MAX),
         ],
     )
-
-    _th_mass, th_len, _th_rad = _seg(spec, "thigh")
-    _add_bilateral_limb_simple(
+    _add_limb_chain(
         robot,
         spec,
         seg_name="shank",
         parent_name="thigh",
-        parent_offset_z=-th_len,
-        parent_lateral_y=0,
         coord_prefix="knee",
-        range_min=KNEE_FLEXION_MIN,
-        range_max=KNEE_FLEXION_MAX,
+        limits=(KNEE_FLEXION_MIN, KNEE_FLEXION_MAX),
     )
-
-    _sh_mass, sh_len, _sh_rad = _seg(spec, "shank")
-    _add_bilateral_ndof(
+    _add_limb_chain(
         robot,
         spec,
         seg_name="foot",
         parent_name="shank",
-        parent_offset_z=-sh_len,
-        parent_lateral_y=0,
         coord_prefix="ankle",
         joints=[
-            ("flex", (0, 1, 0), ANKLE_FLEXION_MIN, ANKLE_FLEXION_MAX),
-            ("invert", (1, 0, 0), ANKLE_INVERSION_MIN, ANKLE_INVERSION_MAX),
+            ("flex", ANKLE_FLEXION_MIN, ANKLE_FLEXION_MAX),
+            ("invert", ANKLE_INVERSION_MIN, ANKLE_INVERSION_MAX),
         ],
     )
 
@@ -348,8 +349,8 @@ def create_full_body(
 
     links: dict[str, ET.Element] = {}
 
-    pelvis_length, torso_length = _build_axial_chain(robot, spec, links)
-    _build_upper_limbs(robot, spec, torso_length)
-    _build_lower_limbs(robot, spec, pelvis_length)
+    _build_axial_chain(robot, spec, links)
+    _build_upper_limbs(robot, spec)
+    _build_lower_limbs(robot, spec)
 
     return links

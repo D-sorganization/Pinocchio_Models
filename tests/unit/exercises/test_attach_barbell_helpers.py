@@ -56,12 +56,12 @@ def test_attach_shaft_to_left_hand_creates_single_fixed_joint() -> None:
     origin = j.find("origin")
     assert origin is not None
     xyz = origin.get("xyz", "").split()
-    # y offset equals -grip_offset (left side is at -y)
-    assert float(xyz[1]) < 0
+    # The left hand is at +y, so the shaft centre is -grip_offset from it.
+    assert float(xyz[1]) == pytest.approx(-0.3)
 
 
 def test_attach_virtual_grip_right_creates_link_and_joint() -> None:
-    """Right-hand anchor is a zero-mass link fixed to the shaft at +2*grip_offset."""
+    """Right-hand anchor is a zero-mass link fixed to the shaft at -grip_offset (right = -y)."""
     robot = ET.Element("robot")
     ExerciseModelBuilder._attach_virtual_grip_right(robot, grip_offset=0.3)
     # One new link and one new joint
@@ -75,6 +75,8 @@ def test_attach_virtual_grip_right_creates_link_and_joint() -> None:
     assert j.get("name") == "barbell_to_hand_r"
     assert j.find("parent").get("link") == "barbell_shaft"  # type: ignore[union-attr]
     assert j.find("child").get("link") == "barbell_grip_r"  # type: ignore[union-attr]
+    xyz = j.find("origin").get("xyz", "").split()  # type: ignore[union-attr]
+    assert float(xyz[1]) == pytest.approx(-0.3)
 
 
 def test_attach_barbell_orchestrates_both_helpers() -> None:
