@@ -99,6 +99,9 @@ class ExerciseModelBuilder(ABC):
     def _attach_shaft_to_left_hand(robot: ET.Element, grip_offset: float) -> None:
         """Weld ``barbell_shaft`` as a child of ``hand_l`` at ``-grip_offset``.
 
+        The left hand is at +Y (canonical frame), so the shaft centre sits
+        ``grip_offset`` toward the midline (-Y) of the left grip point.
+
         URDF requires each link to have exactly one parent joint; attaching
         barbell_shaft to hand_l only (and mirroring the right-hand grip via
         a virtual link) keeps the topology a valid tree.
@@ -117,7 +120,8 @@ class ExerciseModelBuilder(ABC):
 
         hand_r already has ``wrist_r`` as its URDF parent, so adding a second
         parent would be invalid.  We hang ``barbell_grip_r`` off
-        ``barbell_shaft`` at the symmetric grip position, producing the valid
+        ``barbell_shaft`` at the right grip position (-``grip_offset``, the
+        right hand being at -Y), producing the valid
         tree ``hand_l -> barbell_shaft -> barbell_grip_r``.
         """
         add_link(
@@ -134,7 +138,7 @@ class ExerciseModelBuilder(ABC):
             name="barbell_to_hand_r",
             parent="barbell_shaft",
             child="barbell_grip_r",
-            origin_xyz=(0, 2 * grip_offset, 0),
+            origin_xyz=(0, -grip_offset, 0),
         )
 
     def attach_barbell(

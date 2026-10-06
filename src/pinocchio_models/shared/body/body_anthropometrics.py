@@ -20,6 +20,7 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
+from pinocchio_models.shared.body.canonical_topology import SIDE_SIGN, joint_axis
 from pinocchio_models.shared.contracts.preconditions import (
     require_positive,
 )
@@ -125,7 +126,7 @@ def _add_limb_side_simple(
         parent=_resolve_bilateral_parent(parent_name, side),
         child=body_name,
         origin_xyz=(0, sign * parent_lateral_y, parent_offset_z),
-        axis=(0, 1, 0),
+        axis=joint_axis(f"{coord_prefix}_{side}_flex"),
         lower=range_min,
         upper=range_max,
     )
@@ -146,13 +147,13 @@ def _add_bilateral_limb_simple(
     """Add left and right limb segments with a single revolute joint each.
 
     Used for simple 1-DOF joints (elbow, knee).
-    Z-up convention: vertical offset is in Z, lateral is in Y.
-    Joint axis is Y (sagittal-plane flexion/extension).
+    Z-up convention: vertical offset is in Z, lateral is in Y (left = +Y).
+    The joint axis is the standard's canonical flexion axis.
     """
     mass, length, radius = _seg(spec, seg_name)
     inertia = cylinder_inertia(mass, radius, length)
 
-    for side, sign in (("l", -1.0), ("r", 1.0)):
+    for side, sign in SIDE_SIGN.items():
         _add_limb_side_simple(
             robot,
             side=side,
@@ -180,21 +181,22 @@ def _add_bilateral_ndof(
     parent_offset_z: float,
     parent_lateral_y: float,
     coord_prefix: str,
-    joints: list[tuple[str, tuple[float, float, float], float, float]],
+    joints: list[tuple[str, float, float]],
 ) -> None:
     """Add bilateral N-DOF compound joint with N-1 virtual links per side.
 
+    Each joint's axis is the standard's canonical axis of its coordinate.
     Creates the chain:
         parent -> [joint 1] -> virtual_1 -> [joint 2] -> ... -> real body link
     """
     mass, length, radius = _seg(spec, seg_name)
     inertia = cylinder_inertia(mass, radius, length)
 
-    for side, sign in [("l", -1.0), ("r", 1.0)]:
+    for side, sign in SIDE_SIGN.items():
         body_name = f"{seg_name}_{side}"
         current_parent = _resolve_bilateral_parent(parent_name, side)
 
-        for i, (jname, jaxis, jmin, jmax) in enumerate(joints):
+        for i, (jname, jmin, jmax) in enumerate(joints):
             is_last = i == len(joints) - 1
 
             if not is_last:
@@ -220,13 +222,14 @@ def _add_bilateral_ndof(
                 (0, sign * parent_lateral_y, parent_offset_z) if i == 0 else (0, 0, 0)
             )
 
+            coord = f"{coord_prefix}_{side}_{jname}"
             add_revolute_joint(
                 robot,
-                name=f"{coord_prefix}_{side}_{jname}",
+                name=coord,
                 parent=current_parent,
                 child=child_name,
                 origin_xyz=origin_xyz,
-                axis=jaxis,
+                axis=joint_axis(coord),
                 lower=jmin,
                 upper=jmax,
             )

@@ -134,7 +134,8 @@ def create_barbell_links(
     Returns dict of created link elements keyed by name.
 
     The barbell shaft center is at the local origin. Sleeves extend
-    symmetrically along the Y-axis (left = -Y, right = +Y).
+    symmetrically along the Y-axis (left = +Y, right = -Y), the canonical
+    frame of the parity standard.
     Z-up convention: barbell lies horizontally in the Y-axis.
     """
     # cylinder_inertia() assumes the cylinder axis is Z.
@@ -222,7 +223,7 @@ def create_barbell_links(
         name=f"{prefix}_left_weld",
         parent=shaft_name,
         child=left_name,
-        origin_xyz=(0, -(half_shaft + half_sleeve), 0),
+        origin_xyz=(0, half_shaft + half_sleeve, 0),
     )
 
     add_fixed_joint(
@@ -230,7 +231,7 @@ def create_barbell_links(
         name=f"{prefix}_right_weld",
         parent=shaft_name,
         child=right_name,
-        origin_xyz=(0, (half_shaft + half_sleeve), 0),
+        origin_xyz=(0, -(half_shaft + half_sleeve), 0),
     )
 
     return {

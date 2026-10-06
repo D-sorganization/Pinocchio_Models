@@ -43,7 +43,7 @@ def test_add_limb_side_simple_emits_link_and_joint() -> None:
     _add_limb_side_simple(
         robot,
         side="l",
-        sign=-1.0,
+        sign=1.0,
         seg_name="shank",
         parent_name="thigh",
         mass=mass,
@@ -65,9 +65,9 @@ def test_add_limb_side_simple_emits_link_and_joint() -> None:
     j = joints[0]
     assert j.get("name") == "knee_l"
     assert j.find("parent").get("link") == "thigh_l"  # type: ignore[union-attr]
-    # Left side: y offset is negative.
+    # Left side (canonical +Y): y offset is positive.
     xyz = j.find("origin").get("xyz", "").split()  # type: ignore[union-attr]
-    assert float(xyz[1]) < 0
+    assert float(xyz[1]) > 0
 
 
 def test_add_bilateral_limb_simple_creates_both_sides() -> None:
@@ -91,7 +91,7 @@ def test_add_bilateral_limb_simple_creates_both_sides() -> None:
 
 
 def test_add_bilateral_limb_simple_symmetric_y_offset() -> None:
-    """Left joint has negative y origin; right joint has positive y origin."""
+    """Left joint has positive y origin (canonical +Y); right has negative."""
     robot = ET.Element("robot")
     _add_bilateral_limb_simple(
         robot,
@@ -109,4 +109,5 @@ def test_add_bilateral_limb_simple_symmetric_y_offset() -> None:
     assert left is not None and right is not None
     lxyz = left.find("origin").get("xyz", "").split()  # type: ignore[union-attr]
     rxyz = right.find("origin").get("xyz", "").split()  # type: ignore[union-attr]
-    assert float(lxyz[1]) == pytest.approx(-float(rxyz[1]))
+    assert float(lxyz[1]) == pytest.approx(0.05)
+    assert float(rxyz[1]) == pytest.approx(-0.05)
