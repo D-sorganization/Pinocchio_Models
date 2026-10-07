@@ -332,6 +332,7 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-07 | #447 | SECURITY: guard fork PRs off the self-hosted fleet (RM#1989); vendor fork_pr_runner_guard and wire into CI |
 | 2026-10-06 | #444 | Migrate the model to the standard v2 topology: left segments at +Y, canonical joint axes and joint origins read from the vendored standard (hip and shoulder widths, shoulder height), supine bench press on a bench root link, barbell left sleeve at +Y; the fingerprint measures axes, pelvis rotation and test-pose origins in the real engine, with zero axis, side, origin and pose divergences. |
 | 2026-10-05 | #441 | wire collate-changes workflow and check_spec_freshness into spec-check |
 | 2026-10-05 | #440 | vendor RM-5 change-fragment tooling and test suite |
