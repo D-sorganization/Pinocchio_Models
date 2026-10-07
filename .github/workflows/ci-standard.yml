@@ -27,7 +27,7 @@ permissions:
 jobs:
   dependency-review:
     if: github.event_name == 'pull_request'
-    runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
+    runs-on: ${{ github.event.pull_request && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
@@ -38,7 +38,7 @@ jobs:
           fail-on-severity: moderate
 
   pick-runner:
-    runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
+    runs-on: ${{ github.event.pull_request && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
     timeout-minutes: 1
     outputs:
       runner: ${{ steps.check.outputs.runner }}
@@ -63,7 +63,7 @@ jobs:
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
           echo "Selected $runner ($mode)"
   lint:
-    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    runs-on: ${{ github.event.pull_request && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || needs.pick-runner.outputs.runner }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -176,7 +176,7 @@ jobs:
   tests:
     needs:
       - pick-runner
-    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    runs-on: ${{ github.event.pull_request && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || needs.pick-runner.outputs.runner }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -232,6 +232,9 @@ jobs:
             -v
 
   benchmarks:
+    if: >-
+      (!github.event.pull_request ||
+      github.event.pull_request.head.repo.full_name == github.repository)
     needs:
       - pick-runner
     runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
@@ -266,7 +269,10 @@ jobs:
             -v
 
   profiling:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: >-
+      (!github.event.pull_request ||
+      github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     needs:
       - pick-runner
     runs-on: [self-hosted, Linux, X64, d-sorg-fleet]
@@ -322,7 +328,7 @@ jobs:
   quality-gate:
     needs: [pick-runner, lint, tests]
     if: always()
-    runs-on: ${{ needs.pick-runner.outputs.runner }}
+    runs-on: ${{ github.event.pull_request && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || needs.pick-runner.outputs.runner }}
     timeout-minutes: 5
     steps:
       - name: Require every gated job to succeed

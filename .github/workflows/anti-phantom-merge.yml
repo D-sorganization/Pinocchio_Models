@@ -18,17 +18,26 @@ concurrency:
 jobs:
   guard:
     timeout-minutes: 60
-    runs-on: ${{ !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
+    runs-on: ${{ github.event.pull_request && github.event.pull_request.head.repo.full_name != github.repository && 'ubuntu-latest' || !github.event.repository.private && vars.CI_RUNNER_MODE != 'local' && 'ubuntu-latest' || 'd-sorg-fleet' }}
     if: >-
       github.event.pull_request.base.ref == 'main' &&
       (github.event_name == 'pull_request' ||
        github.event.label.name == 'phantom-guard-override') || github.event.pull_request.base.ref == 'master'
     steps:
       - name: Checkout PR head with full history
+        if: github.event_name == 'pull_request'
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+
+      # pull_request_target runs with base-repo privileges: never check out PR
+      # head code there (RM#1989). Label events only need the override check.
+      - name: Checkout base with full history
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Anti-phantom guard
         env:

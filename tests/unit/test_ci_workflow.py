@@ -59,9 +59,11 @@ def test_ci_workflow_profiles_on_schedule_or_manual_only() -> None:
 
     assert "schedule" in triggers, "CI workflow is missing a scheduled trigger"
     assert "workflow_dispatch" in triggers, "CI workflow is missing manual trigger"
-    assert (
-        profiling["if"]
-        == "github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'"
+    # Fork PR guard (RM#1989) is ANDed in front of the original condition.
+    assert profiling["if"] == (
+        "(!github.event.pull_request || "
+        "github.event.pull_request.head.repo.full_name == github.repository) && "
+        "(github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')"
     )
 
 
@@ -116,7 +118,12 @@ def test_lightweight_ci_is_hosted_eligible_but_heavy_jobs_stay_local() -> None:
 
     jobs = yaml.safe_load(_CI_WORKFLOW.read_text(encoding="utf-8"))["jobs"]
 
-    assert jobs["tests"]["runs-on"] == "${{ needs.pick-runner.outputs.runner }}"
+    # Fork PRs are routed to a hosted runner first (RM#1989).
+    assert jobs["tests"]["runs-on"] == (
+        "${{ github.event.pull_request && "
+        "github.event.pull_request.head.repo.full_name != github.repository && "
+        "'ubuntu-latest' || needs.pick-runner.outputs.runner }}"
+    )
     assert jobs["tests"]["strategy"]["max-parallel"] == 3
     for job_name in ("benchmarks", "profiling"):
         assert "d-sorg-fleet" in jobs[job_name]["runs-on"]

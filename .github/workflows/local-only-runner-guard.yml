@@ -10,10 +10,13 @@ on:
   pull_request:
     paths:
       - ".github/workflows/**"
+      - "scripts/fork_pr_*.py"
+  merge_group:
   push:
     branches: [main]
     paths:
       - ".github/workflows/**"
+      - "scripts/fork_pr_*.py"
   workflow_dispatch:
 
 concurrency:
@@ -143,3 +146,6 @@ jobs:
               sys.exit(1)
 
           print("All workflows route to d-sorg-fleet.")
+
+      - name: Verify no job runs fork PR code on the self-hosted fleet
+        run: python3 scripts/fork_pr_runner_guard.py
