@@ -46,6 +46,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#446 · SECURITY: Guard Fork PRs Off the Self-Hosted Fleet (RM#1989); Vendor Fork_Pr_Runner_Guard and Wire Into CI
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #446
+- **Branch:** merged via #447
+- **PR:** #447
+- **Paths:** see #447
+- **Started:** 2026-10-07
+- **Last verified:** 2026-10-07 (`f9f5b076`; collated from changes/446-security-guard-fork-prs-off-the-self-hos.md)
+- **Summary:** SECURITY: guard fork PRs off the self-hosted fleet (RM#1989); vendor fork_pr_runner_guard and wire into CI
+- **Next step:** Shipped in PR #447.
+
 ### DL-#2019 · Vendor RM-5 Change-Fragment Tooling and Test Suite
 
 - **State:** shipped
