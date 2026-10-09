@@ -42,6 +42,11 @@ class TestConvenienceImports:
         assert callable(build_snatch_model)
         assert callable(build_squat_model)
 
+    def test_import_inverse_dynamics(self) -> None:
+        from pinocchio_models import inverse_dynamics
+
+        assert callable(inverse_dynamics)
+
     def test_import_specs(self) -> None:
         from pinocchio_models import BarbellSpec, BodyModelSpec, ExerciseConfig
 

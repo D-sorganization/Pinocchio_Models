@@ -1,5 +1,6 @@
 """Pinocchio multibody models for classical barbell exercises."""
 
+from pinocchio_models.dynamics import inverse_dynamics
 from pinocchio_models.exceptions import GeometryError, PinocchioModelsError, URDFError
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
 from pinocchio_models.exercises.bench_press.bench_press_model import (
@@ -55,4 +56,5 @@ __all__ = [
     "build_sit_to_stand_model",
     "build_snatch_model",
     "build_squat_model",
+    "inverse_dynamics",
 ]

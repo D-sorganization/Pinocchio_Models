@@ -118,6 +118,28 @@ The project uses Z-up, X-forward coordinates. See
 [joint_axis_convention.md](joint_axis_convention.md) before porting joint
 states to simulators with different body-frame conventions.
 
+## Inverse Dynamics (RNEA)
+
+`pinocchio_models.inverse_dynamics(exercise, q, v, a)` wraps `pinocchio.rnea`
+on the free-flyer exercise model (standard gravity) and returns the generalized
+forces `tau`:
+
+```python
+import numpy as np
+import pinocchio as pin
+from pinocchio_models import inverse_dynamics
+from pinocchio_models.shared.parity.fingerprint import build_urdf, load_model
+
+model = load_model(build_urdf("squat"))
+q, v, a = pin.neutral(model), np.zeros(model.nv), np.zeros(model.nv)
+tau = inverse_dynamics("squat", q, v, a)  # or inverse_dynamics(model, q, v, a)
+```
+
+`exercise` is a manifest exercise id or a ready `pinocchio.Model`. `q` must have
+shape `(model.nq,)`, `v` and `a` shape `(model.nv,)`, all finite; violations
+raise `ValueError`. In a static pose (`v = a = 0`) the root vertical force
+`tau[2]` equals total mass times gravity.
+
 ## Initial Pose Metadata
 
 Exercise builders write `initial_position` attributes onto URDF joints to record
