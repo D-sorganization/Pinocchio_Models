@@ -118,6 +118,28 @@ The project uses Z-up, X-forward coordinates. See
 [joint_axis_convention.md](joint_axis_convention.md) before porting joint
 states to simulators with different body-frame conventions.
 
+## Forward Kinematics
+
+`pinocchio_models.forward_kinematics(exercise, q)` computes frame and segment
+poses for an exercise model using `pinocchio.forwardKinematics` and
+`pinocchio.updateFramePlacements`:
+
+```python
+import pinocchio as pin
+from pinocchio_models import forward_kinematics
+from pinocchio_models.shared.parity.fingerprint import build_urdf, load_model
+
+model = load_model(build_urdf("squat"))
+q = pin.neutral(model)
+poses = forward_kinematics("squat", q)  # or forward_kinematics(model, q)
+pelvis_pose = poses["pelvis"]
+```
+
+`exercise` is a manifest exercise id or a ready `pinocchio.Model`. `q` must have
+shape `(model.nq,)` and contain only finite values; violations raise `ValueError`
+(or `TypeError` if `exercise` is invalid). Returns a dictionary mapping every
+frame and segment name to its `pinocchio.SE3` pose in the world coordinate frame.
+
 ## Inverse Dynamics (RNEA)
 
 `pinocchio_models.inverse_dynamics(exercise, q, v, a)` wraps `pinocchio.rnea`
