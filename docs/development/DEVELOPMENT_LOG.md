@@ -46,6 +46,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#428 · Add Public Forward_Kinematics API With Real-Pinocchio Test
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #428
+- **Branch:** merged via #454
+- **PR:** #454
+- **Paths:** see #454
+- **Started:** 2026-10-09
+- **Last verified:** 2026-10-09 (`66aa7fbc`; collated from changes/428-add-public-forward-kinematics-api-with-r.md)
+- **Summary:** Add public forward_kinematics API with real-Pinocchio test
+- **Next step:** Shipped in PR #454.
+
 ### DL-#431 · Add Public Rnea Inverse_Dynamics API With Real-Pinocchio Test
 
 - **State:** shipped
