@@ -10,7 +10,7 @@ capabilities:
   forward_kinematics: {level: partial, evidence: null}
   inverse_kinematics: {level: partial, evidence: null}
   forward_dynamics: {level: partial, evidence: null}
-  inverse_dynamics: {level: partial, evidence: null}
+  inverse_dynamics: {level: full, evidence: tests/parity/test_inverse_dynamics.py}
   contact_grf: {level: none, evidence: null}
   urdf_import: {level: none, evidence: null}
   urdf_export: {level: full, evidence: tests/parity/test_engine_conformance.py}
