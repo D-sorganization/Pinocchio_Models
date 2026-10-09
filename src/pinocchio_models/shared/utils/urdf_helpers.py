@@ -15,18 +15,18 @@ intended starting configuration for human readers and downstream tooling.
 
 To apply an initial pose at runtime use :func:`get_initial_configuration`,
 which reads those attributes back and returns a numpy array compatible with
-``pin.forwardKinematics`` / ``pin.computeJointJacobians``, etc.  Example::
+``forward_kinematics`` / ``pin.computeJointJacobians``, etc.  Example::
 
     import pinocchio as pin
+    from pinocchio_models import forward_kinematics
     from pinocchio_models.exercises.squat.squat_model import build_squat_model
     from pinocchio_models.shared.utils.urdf_helpers import get_initial_configuration
 
     urdf_str = build_squat_model()
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
-    data = model.createData()
 
     q0 = get_initial_configuration(model, urdf_str)
-    pin.forwardKinematics(model, data, q0)
+    poses = forward_kinematics(model, q0)
 """
 
 from __future__ import annotations

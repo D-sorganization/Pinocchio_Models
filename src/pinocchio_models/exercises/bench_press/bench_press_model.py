@@ -98,7 +98,7 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
         Pinocchio does not read them at load time.  Use
         ``get_initial_configuration(model, urdf_str)`` from
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
-        numpy configuration vector for use with ``pin.forwardKinematics``.
+        numpy configuration vector for use with ``forward_kinematics``.
         """
         set_joint_default(
             robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE, exact_suffix="_flex"

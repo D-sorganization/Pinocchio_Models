@@ -31,6 +31,7 @@ from pinocchio_models.exercises.squat.squat_model import (
     SquatModelBuilder,
     build_squat_model,
 )
+from pinocchio_models.kinematics import forward_kinematics
 from pinocchio_models.shared.barbell import BarbellSpec
 from pinocchio_models.shared.body import BodyModelSpec
 
@@ -56,5 +57,6 @@ __all__ = [
     "build_sit_to_stand_model",
     "build_snatch_model",
     "build_squat_model",
+    "forward_kinematics",
     "inverse_dynamics",
 ]

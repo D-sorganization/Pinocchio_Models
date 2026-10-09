@@ -51,7 +51,7 @@ class SnatchModelBuilder(ExerciseModelBuilder):
         Pinocchio does not read them at load time.  Use
         ``get_initial_configuration(model, urdf_str)`` from
         ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
-        numpy configuration vector for use with ``pin.forwardKinematics``.
+        numpy configuration vector for use with ``forward_kinematics``.
         """
         set_joint_default(robot, "hip", SNATCH_HIP_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
