@@ -46,6 +46,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#431 · Add Public Rnea Inverse_Dynamics API With Real-Pinocchio Test
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #431
+- **Branch:** merged via #452
+- **PR:** #452
+- **Paths:** see #452
+- **Started:** 2026-10-09
+- **Last verified:** 2026-10-09 (`d1dbfe5f`; collated from changes/431-add-public-rnea-inverse-dynamics-api-wit.md)
+- **Summary:** Add public rnea inverse_dynamics API with real-Pinocchio test
+- **Next step:** Shipped in PR #452.
+
 ### DL-#446 · SECURITY: Guard Fork PRs Off the Self-Hosted Fleet (RM#1989); Vendor Fork_Pr_Runner_Guard and Wire Into CI
 
 - **State:** shipped
