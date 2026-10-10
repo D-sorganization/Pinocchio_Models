@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#443 · Grip Geometry: Shoulder Abduction Closes the Barbell Loop
+
+- **State:** in_review
+- **Owner:** claude
+- **Issue:** #443
+- **Branch:** claude/grip-geometry-443
+- **PR:** #458
+- **Paths:** src/pinocchio_models/shared/body/canonical_topology.py, src/pinocchio_models/exercises/base.py, tests/parity/test_grip_geometry.py
+- **Started:** 2026-10-10
+- **Last verified:** 2026-10-10 (`6eaded00`; collated from changes/443-derive-grip-width-from-shoulder-abductio.md)
+- **Summary:** Derive grip width from shoulder abduction so both hands reach the barbell at the midline
+- **Next step:** Merge the PR.
+
 ### DL-#435 · Canonical Topology: Left at Plus Y and Standard Joint Axes
 
 - **State:** in_review
