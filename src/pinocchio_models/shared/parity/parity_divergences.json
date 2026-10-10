@@ -33,6 +33,14 @@
       "issue": "#423",
       "reason": "Model [-30, 180] deg (SHOULDER_FLEXION_MIN) vs standard [-60, 180] deg: extension range 30 deg narrower. constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."
     },
+    "coordinate.shoulder_l_adduct.limits_rad": {
+      "issue": "#459",
+      "reason": "Model [-180, 30] deg (SHOULDER_ADDUCTION_MIN/MAX) vs standard [-30, 180] deg. The model's constants had MIN/MAX swapped relative to the coordinate's real sign (positive = toward midline, confirmed with real-Pinocchio FK): abduction was capped at 30 deg even though the snatch's wide grip needs ~46.6 deg of it (#443). Fixed to the anatomical convention (abduction ~180 deg, adduction ~30 deg across the body; Kapandji 2008). The standard's own limits_deg for this coordinate carries the same pre-fix defect (see MuJoCo_Models#438); that is vendored and hash-pinned, out of scope here."
+    },
+    "coordinate.shoulder_r_adduct.limits_rad": {
+      "issue": "#459",
+      "reason": "Model [-180, 30] deg (SHOULDER_ADDUCTION_MIN/MAX) vs standard [-30, 180] deg. The model's constants had MIN/MAX swapped relative to the coordinate's real sign (positive = toward midline, confirmed with real-Pinocchio FK): abduction was capped at 30 deg even though the snatch's wide grip needs ~46.6 deg of it (#443). Fixed to the anatomical convention (abduction ~180 deg, adduction ~30 deg across the body; Kapandji 2008). The standard's own limits_deg for this coordinate carries the same pre-fix defect (see MuJoCo_Models#438); that is vendored and hash-pinned, out of scope here."
+    },
     "coordinate.wrist_l_flex.limits_rad": {
       "issue": "#423",
       "reason": "Model [-80, 70] deg (WRIST_FLEXION_MIN) vs standard [-70, 70] deg: extension range 10 deg wider. constants.py keeps literature ranges; aligning needs an owner decision on joint conventions."

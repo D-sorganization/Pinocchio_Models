@@ -42,10 +42,19 @@ NECK_FLEXION_MAX: float = math.radians(70)  # Flexion ~70 deg
 SHOULDER_FLEXION_MIN: float = math.radians(-30)  # Extension
 SHOULDER_FLEXION_MAX: float = math.radians(180)  # Full flexion
 
-# Shoulder adduction/abduction (frontal plane, about Z-axis)
-# Kapandji (2008): adduction ~30 deg, abduction ~180 deg
-SHOULDER_ADDUCTION_MIN: float = math.radians(-30)  # Adduction past midline
-SHOULDER_ADDUCTION_MAX: float = math.radians(180)  # Full abduction
+# Shoulder adduction/abduction (frontal plane, about the mirrored local
+# X-axis). The coordinate's positive direction is "toward the midline"
+# (adduction; see the vendored parity standard and
+# ``canonical_topology.solve_grip_abduction``), confirmed with real
+# Pinocchio FK (issue #459): a positive ``shoulder_l_adduct`` moves
+# ``hand_l`` toward y=0, a negative one moves it away. MIN must therefore
+# hold the (negative) abduction bound and MAX the (positive) adduction
+# bound -- the two were swapped, which left abduction capped at only
+# 30 deg even though the snatch's wide grip needs ~46.6 deg of it (#443).
+# AAOS / Kapandji (2008) / Norkin & White: abduction ~180 deg, adduction
+# (across the body) ~30 deg.
+SHOULDER_ADDUCTION_MIN: float = math.radians(-180)  # Full abduction
+SHOULDER_ADDUCTION_MAX: float = math.radians(30)  # Adduction past midline
 
 # Shoulder internal/external rotation (about Y-axis, long axis of humerus)
 # Kapandji (2008): ~90 deg internal, ~90 deg external
