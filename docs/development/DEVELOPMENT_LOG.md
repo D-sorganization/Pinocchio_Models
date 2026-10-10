@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#459 · Fix Shoulder Adduction/Abduction Joint-Limit Sign Convention so the Snatch's Wide-Grip Start Pose Is Within Limits
+
+- **State:** in_review
+- **Owner:** claude
+- **Issue:** #459
+- **Branch:** claude/shoulder-rom-459
+- **PR:** #461
+- **Paths:** see #461
+- **Started:** 2026-10-10
+- **Last verified:** 2026-10-10 (`c35aa381`; collated from changes/459-fix-shoulder-adduction-abduction-joint-l.md)
+- **Summary:** Fix shoulder adduction/abduction joint-limit sign convention so the snatch's wide-grip start pose is within limits
+- **Next step:** Open PR for review
+
 ### DL-#443 · Grip Geometry: Shoulder Abduction Closes the Barbell Loop
 
 - **State:** in_review
