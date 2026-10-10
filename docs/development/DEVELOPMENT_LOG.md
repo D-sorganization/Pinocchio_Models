@@ -46,6 +46,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#439 · Remove Stray Pr251.Json From Repo Root
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #439
+- **Branch:** merged via #456
+- **PR:** #456
+- **Paths:** see #456
+- **Started:** 2026-10-10
+- **Last verified:** 2026-10-10 (`140b8b85`; collated from changes/439-remove-stray-pr251-json-from-repo-root.md)
+- **Summary:** Remove stray pr251.json from repo root
+- **Next step:** Shipped in PR #456.
+
 ### DL-#428 · Add Public Forward_Kinematics API With Real-Pinocchio Test
 
 - **State:** shipped

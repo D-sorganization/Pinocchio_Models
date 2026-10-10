@@ -332,6 +332,7 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-10 | #456 | Remove stray pr251.json from repo root |
 | 2026-10-09 | #454 | Add public forward_kinematics API with real-Pinocchio test |
 | 2026-10-09 | #452 | Add public rnea inverse_dynamics API with real-Pinocchio test |
 | 2026-10-07 | #447 | SECURITY: guard fork PRs off the self-hosted fleet (RM#1989); vendor fork_pr_runner_guard and wire into CI |
