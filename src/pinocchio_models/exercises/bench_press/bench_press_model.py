@@ -62,6 +62,16 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
     def grip_offset_fraction(self) -> float:
         return BENCH_PRESS_GRIP_FRACTION
 
+    @property
+    def upper_body_tilt_rad(self) -> float:
+        """Supine pitch and shoulder flexion both rotate about Y (issue #443).
+
+        They cancel exactly at lockout (-90 deg supine + 90 deg shoulder
+        flexion = 0), but are summed here rather than hardcoded so the
+        barbell weld stays correct if either constant changes.
+        """
+        return _SUPINE_PITCH_RAD + BENCH_PRESS_SHOULDER_ANGLE
+
     def attach_barbell(
         self,
         robot: ET.Element,
@@ -102,6 +112,9 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
         """
         set_joint_default(
             robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE, exact_suffix="_flex"
+        )
+        set_joint_default(
+            robot, "shoulder", self._grip_abduction_rad, exact_suffix="_adduct"
         )
         set_joint_default(robot, "elbow", BENCH_PRESS_ELBOW_ANGLE)
         set_joint_default(robot, "hip", BENCH_PRESS_HIP_ANGLE, exact_suffix="_flex")

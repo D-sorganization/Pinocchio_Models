@@ -42,6 +42,11 @@ class DeadliftModelBuilder(ExerciseModelBuilder):
     def grip_offset_fraction(self) -> float:
         return DEADLIFT_GRIP_FRACTION
 
+    @property
+    def upper_body_tilt_rad(self) -> float:
+        """Lumbar flexion rotates the arm chain about Y (issue #443)."""
+        return DEADLIFT_LUMBAR_ANGLE
+
     def set_initial_pose(self, robot: ET.Element) -> None:
         """Set starting position: hip-hinged, bar on ground.
 
@@ -57,6 +62,9 @@ class DeadliftModelBuilder(ExerciseModelBuilder):
         set_joint_default(robot, "knee", DEADLIFT_KNEE_ANGLE)
         set_joint_default(robot, "lumbar", DEADLIFT_LUMBAR_ANGLE, exact_suffix="_flex")
         set_joint_default(robot, "ankle", DEADLIFT_ANKLE_ANGLE, exact_suffix="_flex")
+        set_joint_default(
+            robot, "shoulder", self._grip_abduction_rad, exact_suffix="_adduct"
+        )
 
 
 def build_deadlift_model(

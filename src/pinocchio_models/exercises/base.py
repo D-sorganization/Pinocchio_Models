@@ -12,16 +12,19 @@ through their public APIs, never reaching into internal segment tables.
 from __future__ import annotations
 
 import logging
+import math
 import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from pinocchio_models.shared.barbell import BarbellSpec, create_barbell_links
 from pinocchio_models.shared.body import BodyModelSpec, create_full_body
+from pinocchio_models.shared.body.canonical_topology import solve_grip_abduction
 from pinocchio_models.shared.contracts.postconditions import ensure_valid_urdf_tree
 from pinocchio_models.shared.utils.urdf_helpers import (
     add_fixed_joint,
     add_link,
+    add_virtual_link,
     serialize_model,
 )
 
@@ -95,23 +98,73 @@ class ExerciseModelBuilder(ABC):
         """
         return 0.3
 
-    @staticmethod
-    def _attach_shaft_to_left_hand(robot: ET.Element, grip_offset: float) -> None:
-        """Weld ``barbell_shaft`` as a child of ``hand_l`` at ``-grip_offset``.
+    @property
+    def upper_body_tilt_rad(self) -> float:
+        """Net rotation about the shared Y axis, upstream of the grip joint.
 
-        The left hand is at +Y (canonical frame), so the shaft centre sits
-        ``grip_offset`` toward the midline (-Y) of the left grip point.
+        Lumbar and shoulder flexion (and, for bench press, the supine pitch)
+        rotate the torso/arm chain about the world Y axis. That rotation
+        never moves the hand's lateral (grip) position -- see
+        :func:`~pinocchio_models.shared.body.canonical_topology.solve_grip_abduction`
+        -- but it does rotate the hand's frame, so the barbell weld must
+        cancel it to keep the bar level (issue #443). Zero by default;
+        override in subclasses whose ``set_initial_pose`` sets a nonzero
+        lumbar or shoulder flexion angle.
+        """
+        return 0.0
+
+    @property
+    def _grip_offset_m(self) -> float:
+        """Distance from the barbell shaft centre to each grip point."""
+        return self.barbell_spec.shaft_length * self.grip_offset_fraction
+
+    @property
+    def _grip_abduction_rad(self) -> float:
+        """Shoulder-adduction angle placing each hand at ``_grip_offset_m``."""
+        return solve_grip_abduction(self._grip_offset_m, self.body_spec.height)
+
+    @staticmethod
+    def _attach_shaft_to_left_hand(
+        robot: ET.Element,
+        grip_offset: float,
+        abduction_rad: float = 0.0,
+        tilt_rad: float = 0.0,
+    ) -> None:
+        """Weld ``barbell_shaft`` to ``hand_l`` and level it to the world frame.
+
+        The left hand's own orientation is rotated away from the world frame
+        by the pose's shoulder-abduction angle (``abduction_rad``, about the
+        mirrored local X axis) and any upstream lumbar/shoulder flexion
+        (``tilt_rad``, about the shared Y axis). A virtual link inverts
+        exactly those two rotations -- roll by ``abduction_rad``, then pitch
+        by ``-tilt_rad`` -- so the shaft ends up level (world-aligned) with
+        its centre offset from ``hand_l`` by a pure world-Y vector of length
+        ``grip_offset`` (issue #443). With both angles zero this reduces to
+        the previous single fixed-offset weld.
 
         URDF requires each link to have exactly one parent joint; attaching
         barbell_shaft to hand_l only (and mirroring the right-hand grip via
         a virtual link) keeps the topology a valid tree.
         """
+        add_virtual_link(robot, name="barbell_hand_l_pivot")
         add_fixed_joint(
             robot,
             name="barbell_to_hand_l",
             parent="hand_l",
+            child="barbell_hand_l_pivot",
+            origin_xyz=(
+                0.0,
+                -grip_offset * math.cos(abduction_rad),
+                -grip_offset * math.sin(abduction_rad),
+            ),
+            origin_rpy=(abduction_rad, 0.0, 0.0),
+        )
+        add_fixed_joint(
+            robot,
+            name="barbell_hand_l_pivot_to_shaft",
+            parent="barbell_hand_l_pivot",
             child="barbell_shaft",
-            origin_xyz=(0, -grip_offset, 0),
+            origin_rpy=(0.0, -tilt_rad, 0.0),
         )
 
     @staticmethod
@@ -153,8 +206,10 @@ class ExerciseModelBuilder(ABC):
         snatch, and clean-and-jerk. The squat overrides this entirely
         because the barbell sits on the torso, not in the hands.
         """
-        grip_offset = self.barbell_spec.shaft_length * self.grip_offset_fraction
-        self._attach_shaft_to_left_hand(robot, grip_offset)
+        grip_offset = self._grip_offset_m
+        self._attach_shaft_to_left_hand(
+            robot, grip_offset, self._grip_abduction_rad, self.upper_body_tilt_rad
+        )
         self._attach_virtual_grip_right(robot, grip_offset)
 
     @abstractmethod
