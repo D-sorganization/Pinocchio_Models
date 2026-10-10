@@ -42,6 +42,11 @@ class CleanAndJerkModelBuilder(ExerciseModelBuilder):
     def grip_offset_fraction(self) -> float:
         return CLEAN_AND_JERK_GRIP_FRACTION
 
+    @property
+    def upper_body_tilt_rad(self) -> float:
+        """Lumbar flexion rotates the arm chain about Y (issue #443)."""
+        return CLEAN_AND_JERK_LUMBAR_ANGLE
+
     def set_initial_pose(self, robot: ET.Element) -> None:
         """Set starting position: crouched over bar.
 
@@ -60,6 +65,9 @@ class CleanAndJerkModelBuilder(ExerciseModelBuilder):
         )
         set_joint_default(
             robot, "ankle", CLEAN_AND_JERK_ANKLE_ANGLE, exact_suffix="_flex"
+        )
+        set_joint_default(
+            robot, "shoulder", self._grip_abduction_rad, exact_suffix="_adduct"
         )
 
 

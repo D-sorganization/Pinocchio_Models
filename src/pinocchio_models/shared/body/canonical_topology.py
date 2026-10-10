@@ -9,8 +9,10 @@ its canonical axis. Left bilateral segments sit at +Y, right at -Y.
 
 from __future__ import annotations
 
+import math
 from functools import lru_cache
 
+from pinocchio_models.exceptions import GeometryError
 from pinocchio_models.shared.parity._canonical import conformance, kinematics, topology
 
 Vec3 = tuple[float, float, float]
@@ -53,3 +55,37 @@ def joint_offset(segment: str, height: float) -> Vec3:
     scale = height / float(_STD["anthropometrics"]["height_m"])
     x, y, z = _offsets()[segment]
     return (x * scale, y * scale, z * scale)
+
+
+def solve_grip_abduction(grip_half_width: float, height: float) -> float:
+    """Shoulder-adduction angle (rad) that places the hand at *grip_half_width*.
+
+    With the elbow extended, flexion of the lumbar spine or the shoulder is a
+    rotation about the shared Y axis and therefore never moves the hand's
+    lateral (Y) position (issue #443): only the shoulder's adduction
+    coordinate does. Because the standard's convention is "positive toward
+    the midline" (mirrored per side), a *negative* result abducts both arms
+    outward symmetrically when applied to ``shoulder_l_adduct`` and
+    ``shoulder_r_adduct`` with the same raw value.
+
+    Precondition: ``grip_half_width > 0`` and reachable with the elbow
+    extended, i.e. ``|shoulder_lateral_offset - grip_half_width| <= arm_length``.
+
+    Raises:
+        ValueError: If *grip_half_width* is not positive.
+        GeometryError: If the grip is not reachable with the elbow extended.
+    """
+    if grip_half_width <= 0.0:
+        raise ValueError(f"grip_half_width must be positive, got {grip_half_width}")
+    shoulder_y = joint_offset("upper_arm_l", height)[1]
+    arm_length = (
+        -joint_offset("forearm_l", height)[2] - joint_offset("hand_l", height)[2]
+    )
+    sin_theta = (shoulder_y - grip_half_width) / arm_length
+    if abs(sin_theta) > 1.0:
+        raise GeometryError(
+            f"grip_half_width={grip_half_width:.4f} m is unreachable with the "
+            f"elbow extended (shoulder offset {shoulder_y:.4f} m, arm length "
+            f"{arm_length:.4f} m)"
+        )
+    return math.asin(sin_theta)
