@@ -140,11 +140,12 @@ def _limits(model: Any) -> dict[str, tuple[float, float]]:
     return out
 
 
-def _phase_count(exercise: str) -> int | None:
+def _phase_names(exercise: str) -> list[str] | None:
+    """Ordered phase names of the repo's objective (None if it has none)."""
     from pinocchio_models.optimization.objectives.registry import EXERCISE_OBJECTIVES
 
     objective = EXERCISE_OBJECTIVES.get(_OBJECTIVE_IDS.get(exercise, exercise))
-    return None if objective is None else len(objective.phases)
+    return None if objective is None else [p.name for p in objective.phases]
 
 
 def fingerprint(exercise: str) -> dict[str, Any]:
@@ -161,12 +162,13 @@ def fingerprint(exercise: str) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001 - any load failure is reported
         logger.warning("%s failed to load in %s: %s", exercise, ENGINE, exc)
         return assemble.failed_fingerprint(ENGINE, version, exercise, exc)
+    names = _phase_names(exercise)
     return assemble.assemble_fingerprint(
         engine=ENGINE,
         engine_version=version,
         exercise=exercise,
         std=std,
-        root_joint="free" if model.joints[1].nq == 7 else "fixed",
+        root_joint="free" if model.joints[1].nq == 7 else "weld",
         gravity_engine=[float(v) for v in model.gravity.linear],
         segment_masses_kg=masses,
         coordinate_limits_rad=_limits(model),
@@ -174,7 +176,9 @@ def fingerprint(exercise: str) -> dict[str, Any]:
         capabilities=assemble.capabilities_from_manifest(manifest(), std),
         coordinate_aliases=COORDINATE_ALIASES,
         segment_aliases=SEGMENT_ALIASES,
-        phase_count=_phase_count(exercise),
+        phase_count=None if names is None else len(names),
+        # Standard v2.0 conformance criterion 3: the ordered phase names.
+        extras={} if names is None else {"phase_names": names},
         coordinate_axes_engine=axes_probe.coordinate_axes(
             model, std, COORDINATE_ALIASES
         ),
