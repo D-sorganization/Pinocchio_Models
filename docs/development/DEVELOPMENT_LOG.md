@@ -72,6 +72,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#434 · Lift Objectives Consume the Standard V2.0 Exercise Spec (Phase Names, Timing, Start/Catch/Lockout Via-Poses); Deadlift Now Has the Spec's 5 Phases (LIFT-2, UpstreamDrift#11742)
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #434
+- **Branch:** claude/lift-2-standard-v2
+- **PR:** #468
+- **Paths:** see #468
+- **Started:** 2026-10-11
+- **Last verified:** 2026-10-11 (`8b4d2198`; collated from changes/434-lift-objectives-consume-the-standard-v2.md)
+- **Summary:** Lift objectives consume the standard v2.0 exercise spec (phase names, timing, start/catch/lockout via-poses); deadlift now has the spec's 5 phases (LIFT-2, UpstreamDrift#11742)
+- **Next step:** Shipped in PR #468.
+
 ### DL-#1917 · Sync the Agent-Identity Managed Block: The Owner's Personal Token Is an Approved Agent Identity
 
 - **State:** shipped
