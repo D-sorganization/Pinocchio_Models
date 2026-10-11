@@ -112,6 +112,9 @@ def _interpolate_keyframes(
     denom = phase_fracs[next_indices] - phase_fracs[indices]
     safe_denom = np.where(denom == 0.0, 1.0, denom)
     alpha = np.where(denom == 0.0, 0.0, (fractions - phase_fracs[indices]) / safe_denom)
+    # Hold the last phase's targets after it starts (a phase fraction is its
+    # start time, standard v2.0 ``t_frac`` < 1); never extrapolate past it.
+    alpha = np.clip(alpha, 0.0, 1.0)
 
     # Vectorised interpolation: v0 + alpha * (v1 - v0)
     v0 = phase_angles[indices]  # (n_frames, n_joints)
