@@ -21,6 +21,7 @@ from pinocchio_models.shared.utils.urdf_helpers import (
     make_sphere_geometry,
     serialize_model,
     set_joint_default,
+    set_root_default,
     vec3_str,
 )
 
@@ -250,6 +251,27 @@ class TestSetJointDefault:
         assert adduct_joint.get("initial_position") is None
 
 
+class TestSetRootDefault:
+    def test_stamps_root_placement_on_the_robot(self) -> None:
+        robot = ET.Element("robot")
+        set_root_default(robot, (0.1, 0.0, 0.8), (0.0, 1.2, 0.0))
+        assert robot.get("initial_root_xyz") == "0.100000 0 0.800000"
+        assert robot.get("initial_root_rpy") == "0 1.200000 0"
+
+    @pytest.mark.parametrize(
+        "xyz,rpy", [((0.0, 0.0), (0.0, 0.0, 0.0)), ((0.0, 0.0, 0.0), (0.0,))]
+    )
+    def test_rejects_non_3_vectors(
+        self, xyz: tuple[float, ...], rpy: tuple[float, ...]
+    ) -> None:
+        with pytest.raises(ValueError, match="3"):
+            set_root_default(ET.Element("robot"), xyz, rpy)  # type: ignore[arg-type]
+
+    def test_rejects_non_finite_values(self) -> None:
+        with pytest.raises(ValueError, match="finite"):
+            set_root_default(ET.Element("robot"), (float("nan"), 0, 0), (0, 0, 0))
+
+
 class TestGetInitialConfiguration:
     """Tests for get_initial_configuration (requires pinocchio)."""
 
@@ -306,6 +328,7 @@ class TestGetInitialConfiguration:
         if not hasattr(pin, "buildModelFromXML"):
             pytest.skip("pinocchio module is installed but missing buildModelFromXML")
 
+        from pinocchio_models.exercises.spec_lift import SpecStart
         from pinocchio_models.exercises.squat.squat_model import build_squat_model
         from pinocchio_models.shared.utils.urdf_helpers import (
             get_initial_configuration,
@@ -316,8 +339,28 @@ class TestGetInitialConfiguration:
         q0 = get_initial_configuration(model, urdf_str)
 
         assert q0.shape == (model.nq,)
-        # Neutral FreeFlyer quaternion: w=1 at index 6
-        assert q0[6] == pytest.approx(1.0)
+        # The free-flyer carries the spec start root (LIFT-3, #450).
+        xyz, rpy = SpecStart("squat", 1.75).root()
+        placement = pin.XYZQUATToSE3(q0[:7])
+        assert placement.translation == pytest.approx(list(xyz))
+        assert placement.rotation == pytest.approx(pin.rpy.rpyToMatrix(*rpy))
+
+    def test_root_metadata_is_ignored_without_a_free_flyer(self) -> None:
+        """A fixed-base load has no root q to seed; joints still get theirs."""
+        pytest.importorskip("pinocchio")
+        import pinocchio as pin
+
+        from pinocchio_models.exercises.squat.squat_model import build_squat_model
+        from pinocchio_models.shared.utils.urdf_helpers import (
+            get_initial_configuration,
+        )
+
+        urdf_str = build_squat_model()
+        model = pin.buildModelFromXML(urdf_str)
+        q0 = get_initial_configuration(model, urdf_str)
+        assert q0.shape == (model.nq,)
+        knee = model.joints[model.getJointId("knee_l")].idx_q
+        assert q0[knee] == pytest.approx(-0.05)
 
     def test_raises_without_pinocchio(self) -> None:
         """get_initial_configuration raises ImportError if pin missing."""

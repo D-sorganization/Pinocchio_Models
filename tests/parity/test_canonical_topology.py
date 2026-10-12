@@ -73,8 +73,16 @@ def test_hip_flexion_moves_the_knee_forward_not_sideways() -> None:
 
 
 def test_bench_press_lifter_is_supine() -> None:
+    """The pelvis sits at the spec root, whose pitch is supine (-pi/2).
+
+    The spec stores the pitch to 4 decimals (-1.5708), so the engine is held
+    to the spec rotation exactly and the spec to -pi/2 at its own precision.
+    """
+    root = STD["exercises"]["bench_press"]["via_poses"]["start"]["root"]
+    assert root["orientation_rpy_rad"][1] == pytest.approx(-np.pi / 2, abs=5e-5)
     model = load_model(_BUILDERS["bench_press"](), STD)
     data = model.createData()
     pin.framesForwardKinematics(model, data, pin.neutral(model))
     rot = data.oMf[model.getFrameId("pelvis")].rotation
-    assert rot @ np.array([1.0, 0.0, 0.0]) == pytest.approx([0.0, 0.0, 1.0], abs=1e-6)
+    want = np.array(topology.rpy_matrix(root["orientation_rpy_rad"]))
+    assert rot @ np.array([1.0, 0.0, 0.0]) == pytest.approx(want[:, 0], abs=1e-6)

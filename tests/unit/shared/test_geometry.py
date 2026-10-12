@@ -13,6 +13,7 @@ from pinocchio_models.shared.utils.geometry import (
     rotation_matrix_x,
     rotation_matrix_y,
     rotation_matrix_z,
+    rpy_from_matrix,
     sphere_inertia,
 )
 
@@ -141,3 +142,28 @@ class TestRotationMatrices:
         for func in [rotation_matrix_x, rotation_matrix_y, rotation_matrix_z]:
             r = func(angle)
             assert np.linalg.det(r) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize(
+    "rpy",
+    [
+        (0.0, 0.0, 0.0),
+        (0.3, -0.7, 2.1),
+        (-2.9, 1.2, -0.4),
+        (0.4, math.pi / 2, 0.0),  # gimbal lock, pitch +90 deg
+        (-1.1, -math.pi / 2, 0.0),  # gimbal lock, pitch -90 deg (supine)
+    ],
+)
+def test_rpy_from_matrix_round_trips_urdf_rpy(rpy: tuple[float, float, float]) -> None:
+    """URDF rpy is Rz(yaw) Ry(pitch) Rx(roll); extraction must invert it."""
+    roll, pitch, yaw = rpy
+    rot = rotation_matrix_z(yaw) @ rotation_matrix_y(pitch) @ rotation_matrix_x(roll)
+    back = rpy_from_matrix(rot.tolist())
+    r2, p2, y2 = back
+    again = rotation_matrix_z(y2) @ rotation_matrix_y(p2) @ rotation_matrix_x(r2)
+    assert np.abs(again - rot).max() < 1e-12
+
+
+def test_rpy_from_matrix_rejects_non_3x3() -> None:
+    with pytest.raises(ValueError, match="3x3"):
+        rpy_from_matrix([[1.0, 0.0], [0.0, 1.0]])
