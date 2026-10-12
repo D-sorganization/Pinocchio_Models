@@ -86,19 +86,22 @@ Keep these invariants intact when changing builders or helpers:
 
 ## Adding or Changing an Exercise
 
-Start from `ExerciseModelBuilder` in `src/pinocchio_models/exercises/base.py`.
-A typical exercise builder should:
+Start from `ExerciseModelBuilder` in `src/pinocchio_models/exercises/base.py`;
+a barbell lift with a spec `start` via-pose subclasses `SpecLiftBuilder`
+(`exercises/spec_lift.py`), which takes the start pose, root placement, grip
+width and bar weld from the vendored parity standard. A typical exercise
+builder should:
 
-1. Define a stable `exercise_name`.
-2. Override `grip_offset_fraction` when the default shoulder-width grip is not
-   correct.
-3. Override `uses_barbell` only for bodyweight or fixture-based models.
-4. Override `attach_barbell` when the default hand attachment is wrong.
-5. Implement `set_initial_pose` with `set_joint_default`.
-6. Add a package-level convenience function that accepts `body_mass`, `height`,
+1. Define a stable `exercise_name` (and `spec_exercise` for a spec lift).
+2. Override `uses_barbell` only for bodyweight or fixture-based models.
+3. Implement `attach_barbell` (a spec lift inherits the hand weld at the spec
+   start; the squat welds to the torso instead).
+4. Implement `set_initial_pose` with `set_joint_default` (a spec lift inherits
+   it); never write pose literals for a lift the spec poses.
+5. Add a package-level convenience function that accepts `body_mass`, `height`,
    and `plate_mass_per_side`.
-7. Export the builder and function from `pinocchio_models.__init__`.
-8. Add focused tests under `tests/unit/exercises/` and include integration
+6. Export the builder and function from `pinocchio_models.__init__`.
+7. Add focused tests under `tests/unit/exercises/` and include integration
    coverage in `tests/integration/test_all_exercises_build.py`.
 
 Avoid direct edits to the body segment table from exercise modules. If a new

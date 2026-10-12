@@ -96,8 +96,11 @@ urdf = builder.build()
 5. Stamp exercise defaults through `set_initial_pose`.
 6. Validate the URDF tree before serialization.
 
-Subclasses usually override only `exercise_name`, `grip_offset_fraction`,
-`uses_barbell`, `attach_barbell`, and `set_initial_pose`.
+Subclasses implement `exercise_name`, `attach_barbell` and `set_initial_pose`
+and may override `uses_barbell`. The barbell lifts subclass `SpecLiftBuilder`
+(`exercises/spec_lift.py`), which implements both hooks from the spec `start`
+via-pose; they define `spec_exercise` (and the squat and bench press override
+`attach_barbell` for the torso weld and the bench support).
 
 ## Loading URDF in Pinocchio
 
@@ -165,8 +168,11 @@ raise `ValueError`. In a static pose (`v = a = 0`) the root vertical force
 ## Initial Pose Metadata
 
 Exercise builders write `initial_position` attributes onto URDF joints to record
-intended start poses. Pinocchio ignores unknown URDF attributes, so callers must
-apply those values explicitly:
+intended start poses; the barbell lifts also record the pelvis start placement
+as `initial_root_xyz` / `initial_root_rpy` on `<robot>` (the spec `start`
+via-pose, LIFT-3). Pinocchio ignores unknown URDF attributes, so callers must
+apply those values explicitly (`get_initial_configuration` seeds the
+free-flyer from the root placement):
 
 ```python
 import pinocchio as pin
