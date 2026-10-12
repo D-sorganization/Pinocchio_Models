@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from pinocchio_models.exceptions import GeometryError
+from pinocchio_models.shared.body.foot_sole import sole_depth_m
 from pinocchio_models.shared.constants import VALID_EXERCISE_NAMES
 
 logger = logging.getLogger(__name__)
@@ -73,12 +74,13 @@ class ContactSpec:
 def _foot_corner_contacts(frame_name: str) -> list[ContactPoint]:
     """Return four corner contact points for a foot sole rectangle.
 
-    Points are at the corners of a 0.26 x 0.10 m rectangle offset
-    -0.01 m below the foot frame origin (bottom of sole).
+    Points are at the corners of a 0.26 x 0.10 m rectangle placed
+    ``foot.length`` below the foot frame origin (the ankle), per the
+    parity standard's ``pose_frame`` (#471).
     """
     half_length = _SOLE_LENGTH / 2.0
     half_width = _SOLE_WIDTH / 2.0
-    z_offset = -_SOLE_THICKNESS / 2.0  # Bottom of the sole box
+    z_offset = -sole_depth_m()  # Bottom of the sole
 
     corners = [
         ("heel_med", (-half_length, -half_width, z_offset)),

@@ -39,6 +39,7 @@ from pinocchio_models.exercises.squat.squat_model import SquatModelBuilder
 from pinocchio_models.shared.barbell import BarbellSpec
 from pinocchio_models.shared.barbell.barbell_model import PLATE_OUTER_RADIUS_M
 from pinocchio_models.shared.body import BodyModelSpec
+from pinocchio_models.shared.contact.contact_model import get_exercise_contacts
 from pinocchio_models.shared.parity._canonical import conformance, spec, topology
 from pinocchio_models.shared.parity.fingerprint import COORDINATE_ALIASES, load_model
 from pinocchio_models.shared.utils.urdf_helpers import get_initial_configuration
@@ -244,3 +245,38 @@ def test_combined_centre_of_mass_is_over_mid_foot(exercise: str) -> None:
         f"{exercise}: combined CoM {com.round(4).tolist()} is {offset:.4f} m "
         "from mid-foot"
     )
+
+
+@pytest.mark.parametrize("exercise", LIFTS)
+def test_foot_contacts_and_collision_sole_on_floor_at_start_pose(
+    exercise: str,
+) -> None:
+    """Foot contact points and sole collision bottom rest on z = 0 at start pose."""
+    posed = _posed(exercise)
+    contacts = get_exercise_contacts(exercise)
+    assert contacts.foot_contacts, f"{exercise}: no foot contacts defined"
+
+    for cp in contacts.foot_contacts:
+        p_world = posed.frame(cp.frame_name).act(np.array(cp.local_position))
+        assert abs(p_world[2]) <= TOL["cross_engine_position_abs_m"], (
+            f"{exercise} {cp.frame_name} contact z={p_world[2]:.4f} m (want 0)"
+        )
+
+    root = ET.fromstring(posed.urdf)
+    for side in ("l", "r"):
+        collision = root.find(f".//link[@name='foot_{side}']/collision")
+        assert collision is not None, f"foot_{side} collision missing"
+        origin = collision.find("origin")
+        assert origin is not None, f"foot_{side} collision origin missing"
+        box = collision.find("geometry/box")
+        assert box is not None, f"foot_{side} collision box missing"
+
+        origin_xyz = [float(v) for v in origin.get("xyz", "0 0 0").split()]
+        size_xyz = [float(v) for v in box.get("size", "0 0 0").split()]
+        bottom_local = np.array(
+            [origin_xyz[0], origin_xyz[1], origin_xyz[2] - size_xyz[2] / 2.0]
+        )
+        bottom_world = posed.frame(f"foot_{side}").act(bottom_local)
+        assert abs(bottom_world[2]) <= TOL["cross_engine_position_abs_m"], (
+            f"{exercise} foot_{side} collision bottom z={bottom_world[2]:.4f} m (want 0)"
+        )
