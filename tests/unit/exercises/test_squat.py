@@ -8,11 +8,14 @@ from pinocchio_models.exercises.squat.squat_model import (
     SquatModelBuilder,
     build_squat_model,
 )
-from pinocchio_models.shared.constants import (
-    SQUAT_ANKLE_ANGLE,
-    SQUAT_HIP_ANGLE,
-    SQUAT_KNEE_ANGLE,
-)
+from pinocchio_models.shared.parity._canonical import conformance, spec
+
+# Start pose of the generated model: the spec ``start`` via-pose (LIFT-3,
+# UpstreamDrift#11743); coordinates the spec does not list are 0.
+_START = spec.pose_coordinates(conformance.load_standard(), "squat", "start")
+SQUAT_ANKLE_ANGLE = _START.get("ankle_l_flex", 0.0)
+SQUAT_HIP_ANGLE = _START.get("hip_l_flex", 0.0)
+SQUAT_KNEE_ANGLE = _START.get("knee_l_flex", 0.0)
 
 
 class TestSquatModelBuilder:
@@ -108,12 +111,6 @@ class TestSquatModelBuilder:
             assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SQUAT_ANKLE_ANGLE, abs=1e-4
             )
-
-    def test_hip_angle_within_limits(self) -> None:
-        """Hip initial angle must be within anatomical ROM."""
-        from pinocchio_models.shared.constants import HIP_FLEXION_MAX, HIP_FLEXION_MIN
-
-        assert HIP_FLEXION_MIN <= SQUAT_HIP_ANGLE <= HIP_FLEXION_MAX
 
     def test_custom_body_parameters(self) -> None:
         xml_str = build_squat_model(

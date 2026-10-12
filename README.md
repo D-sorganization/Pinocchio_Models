@@ -109,8 +109,13 @@ model.gravity.linear[2] = -9.80665  # Z-up
 ## Applying Initial Poses
 
 The URDF builder writes `initial_position` attributes onto joint elements to
-record the intended starting configuration for each exercise (e.g. the
-hip-flexed starting position for a deadlift).
+record the intended starting configuration for each exercise. The five barbell
+lifts start at the `start` via-pose of the vendored parity standard (v2.1,
+`shared/parity/_canonical/biomech_parity_standard.json`): every joint angle,
+the pelvis placement (`initial_root_xyz` / `initial_root_rpy` on `<robot>`,
+applied to the free-flyer) and the bar position — pulls start with the loaded
+bar on the floor at plate radius, feet flat on the floor at the spec stance and
+both palm centres on the bar. Positions scale linearly with lifter height.
 
 > **Important:** Pinocchio does _not_ read `initial_position` attributes when
 > loading a URDF. The attributes are metadata only — they have no effect on
@@ -131,7 +136,7 @@ urdf_str = build_deadlift_model(body_mass=85.0, height=1.80, plate_mass_per_side
 model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
 data = model.createData()
 
-# Obtain a configuration vector with the exercise starting pose applied
+# Obtain a configuration vector with the exercise starting pose (and root) applied
 q0 = get_initial_configuration(model, urdf_str)
 
 # Use it for forward kinematics, IK seeding, visualisation, etc.

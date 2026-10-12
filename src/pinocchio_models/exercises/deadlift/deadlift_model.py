@@ -11,24 +11,15 @@ Biomechanical notes:
 
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
-
-from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
-from pinocchio_models.shared.constants import (
-    DEADLIFT_ANKLE_ANGLE,
-    DEADLIFT_GRIP_FRACTION,
-    DEADLIFT_HIP_ANGLE,
-    DEADLIFT_KNEE_ANGLE,
-    DEADLIFT_LUMBAR_ANGLE,
-)
-from pinocchio_models.shared.utils.urdf_helpers import set_joint_default
+from pinocchio_models.exercises.base import ExerciseConfig
+from pinocchio_models.exercises.spec_lift import SpecLiftBuilder
 
 
-class DeadliftModelBuilder(ExerciseModelBuilder):
+class DeadliftModelBuilder(SpecLiftBuilder):
     """Builds a deadlift URDF model for Pinocchio.
 
-    The barbell is welded to both hands at approximately shoulder-width
-    grip position.
+    The barbell is welded to both hands at the spec grip width; the model
+    starts at the spec ``start`` via-pose (setup, loaded bar on the floor).
     """
 
     def __init__(self, config: ExerciseConfig | None = None) -> None:
@@ -39,32 +30,8 @@ class DeadliftModelBuilder(ExerciseModelBuilder):
         return "deadlift"
 
     @property
-    def grip_offset_fraction(self) -> float:
-        return DEADLIFT_GRIP_FRACTION
-
-    @property
-    def upper_body_tilt_rad(self) -> float:
-        """Lumbar flexion rotates the arm chain about Y (issue #443)."""
-        return DEADLIFT_LUMBAR_ANGLE
-
-    def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set starting position: hip-hinged, bar on ground.
-
-        Hips flexed ~80 deg, knees ~60 deg, slight lumbar flexion.
-
-        Note: ``initial_position`` XML attributes are metadata only —
-        Pinocchio does not read them at load time.  Use
-        ``get_initial_configuration(model, urdf_str)`` from
-        ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
-        numpy configuration vector for use with ``forward_kinematics``.
-        """
-        set_joint_default(robot, "hip", DEADLIFT_HIP_ANGLE, exact_suffix="_flex")
-        set_joint_default(robot, "knee", DEADLIFT_KNEE_ANGLE)
-        set_joint_default(robot, "lumbar", DEADLIFT_LUMBAR_ANGLE, exact_suffix="_flex")
-        set_joint_default(robot, "ankle", DEADLIFT_ANKLE_ANGLE, exact_suffix="_flex")
-        set_joint_default(
-            robot, "shoulder", self._grip_abduction_rad, exact_suffix="_adduct"
-        )
+    def spec_exercise(self) -> str:
+        return "deadlift"
 
 
 def build_deadlift_model(

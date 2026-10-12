@@ -168,3 +168,26 @@ def rotation_matrix_z(angle_rad: float) -> np.ndarray:
     """3x3 rotation matrix about the Z axis."""
     c, s = math.cos(angle_rad), math.sin(angle_rad)
     return np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]], dtype=float)
+
+
+# Below this |cos(pitch)| the URDF rpy decomposition is at gimbal lock.
+_GIMBAL_COS: float = 1e-9
+
+
+def rpy_from_matrix(rot: list[list[float]]) -> tuple[float, float, float]:
+    """URDF ``(roll, pitch, yaw)`` of a rotation, ``R = Rz(yaw) Ry(pitch) Rx(roll)``.
+
+    At gimbal lock (pitch = +-90 deg) roll and yaw share an axis; yaw is set to
+    0 and the whole turn goes to roll, so the result still reproduces *rot*.
+
+    Raises:
+        ValueError: *rot* is not 3x3.
+    """
+    if len(rot) != 3 or any(len(row) != 3 for row in rot):
+        raise ValueError("rot must be a 3x3 rotation matrix")
+    pitch = math.asin(max(-1.0, min(1.0, -float(rot[2][0]))))
+    if abs(math.cos(pitch)) > _GIMBAL_COS:
+        roll = math.atan2(float(rot[2][1]), float(rot[2][2]))
+        yaw = math.atan2(float(rot[1][0]), float(rot[0][0]))
+        return (roll, pitch, yaw)
+    return (math.atan2(-float(rot[1][2]), float(rot[1][1])), pitch, 0.0)

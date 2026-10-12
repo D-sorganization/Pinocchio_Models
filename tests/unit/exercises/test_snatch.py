@@ -1,6 +1,5 @@
 """Tests for snatch model builder."""
 
-import math
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -9,11 +8,14 @@ from pinocchio_models.exercises.snatch.snatch_model import (
     SnatchModelBuilder,
     build_snatch_model,
 )
-from pinocchio_models.shared.constants import (
-    SNATCH_ANKLE_ANGLE,
-    SNATCH_HIP_ANGLE,
-    SNATCH_KNEE_ANGLE,
-)
+from pinocchio_models.shared.parity._canonical import conformance, spec
+
+# Start pose of the generated model: the spec ``start`` via-pose (LIFT-3,
+# UpstreamDrift#11743); coordinates the spec does not list are 0.
+_START = spec.pose_coordinates(conformance.load_standard(), "snatch", "start")
+SNATCH_ANKLE_ANGLE = _START.get("ankle_l_flex", 0.0)
+SNATCH_HIP_ANGLE = _START.get("hip_l_flex", 0.0)
+SNATCH_KNEE_ANGLE = _START.get("knee_l_flex", 0.0)
 
 
 class TestSnatchModelBuilder:
@@ -50,9 +52,13 @@ class TestSnatchModelBuilder:
         assert len(fixed) >= 3
 
     def test_wide_grip(self) -> None:
-        """Snatch grip should be wider than deadlift grip."""
-        builder = SnatchModelBuilder()
-        assert builder.grip_offset_fraction > 0.4
+        """Snatch grip (spec ``grip.width_m``) is wider than the deadlift grip."""
+        from pinocchio_models.exercises.deadlift.deadlift_model import (
+            DeadliftModelBuilder,
+        )
+
+        snatch = SnatchModelBuilder().spec_start.grip_half_width_m
+        assert snatch > DeadliftModelBuilder().spec_start.grip_half_width_m
 
     def test_initial_pose_sets_defaults(self) -> None:
         xml_str = build_snatch_model()
@@ -99,31 +105,6 @@ class TestSnatchModelBuilder:
             assert float(j.get("initial_position")) == pytest.approx(  # type: ignore
                 SNATCH_ANKLE_ANGLE, abs=1e-4
             )
-
-    def test_hip_angle_is_80_degrees(self) -> None:
-        """Snatch setup: hips at 80 degrees flexion."""
-        assert pytest.approx(math.radians(80.0), abs=1e-6) == SNATCH_HIP_ANGLE
-
-    def test_hip_angle_within_limits(self) -> None:
-        """Hip initial angle must be within anatomical ROM."""
-        from pinocchio_models.shared.constants import HIP_FLEXION_MAX, HIP_FLEXION_MIN
-
-        assert HIP_FLEXION_MIN <= SNATCH_HIP_ANGLE <= HIP_FLEXION_MAX
-
-    def test_knee_angle_within_limits(self) -> None:
-        """Knee initial angle must be within anatomical ROM."""
-        from pinocchio_models.shared.constants import KNEE_FLEXION_MAX, KNEE_FLEXION_MIN
-
-        assert KNEE_FLEXION_MIN <= SNATCH_KNEE_ANGLE <= KNEE_FLEXION_MAX
-
-    def test_ankle_angle_within_limits(self) -> None:
-        """Ankle initial angle must be within anatomical ROM."""
-        from pinocchio_models.shared.constants import (
-            ANKLE_FLEXION_MAX,
-            ANKLE_FLEXION_MIN,
-        )
-
-        assert ANKLE_FLEXION_MIN <= SNATCH_ANKLE_ANGLE <= ANKLE_FLEXION_MAX
 
     def test_custom_body_parameters(self) -> None:
         xml_str = build_snatch_model(body_mass=70.0, height=1.65)

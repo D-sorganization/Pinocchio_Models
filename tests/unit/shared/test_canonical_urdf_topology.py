@@ -40,7 +40,9 @@ def test_joint_axis_literal_is_canonical(
 def test_joint_frames_are_not_rotated(joints: dict[str, ET.Element]) -> None:
     for name, joint in joints.items():
         rpy = joint.find("origin").get("rpy", "0 0 0")  # type: ignore[union-attr]
-        if name == "pelvis_to_bench":
+        # Fixture welds, not joint frames: the bench places the supine pelvis
+        # and the bar weld levels the bar at the spec start (LIFT-3).
+        if name == "pelvis_to_bench" or name.startswith("barbell_to_"):
             continue
         assert _vec(rpy) == (0.0, 0.0, 0.0), name
 

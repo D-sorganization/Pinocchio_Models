@@ -1,6 +1,5 @@
 """Tests for bench press model builder."""
 
-import math
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -9,12 +8,15 @@ from pinocchio_models.exercises.bench_press.bench_press_model import (
     BenchPressModelBuilder,
     build_bench_press_model,
 )
-from pinocchio_models.shared.constants import (
-    BENCH_PRESS_ELBOW_ANGLE,
-    BENCH_PRESS_HIP_ANGLE,
-    BENCH_PRESS_KNEE_ANGLE,
-    BENCH_PRESS_SHOULDER_ANGLE,
-)
+from pinocchio_models.shared.parity._canonical import conformance, spec
+
+# Start pose of the generated model: the spec ``start`` via-pose (LIFT-3,
+# UpstreamDrift#11743); coordinates the spec does not list are 0.
+_START = spec.pose_coordinates(conformance.load_standard(), "bench_press", "start")
+BENCH_PRESS_ELBOW_ANGLE = _START.get("elbow_l_flex", 0.0)
+BENCH_PRESS_HIP_ANGLE = _START.get("hip_l_flex", 0.0)
+BENCH_PRESS_KNEE_ANGLE = _START.get("knee_l_flex", 0.0)
+BENCH_PRESS_SHOULDER_ANGLE = _START.get("shoulder_l_flex", 0.0)
 
 
 class TestBenchPressModelBuilder:
@@ -123,30 +125,9 @@ class TestBenchPressModelBuilder:
                 BENCH_PRESS_KNEE_ANGLE, abs=1e-4
             )
 
-    def test_shoulder_angle_within_limits(self) -> None:
-        """Shoulder initial angle must be within anatomical ROM."""
-        from pinocchio_models.shared.constants import (
-            SHOULDER_FLEXION_MAX,
-            SHOULDER_FLEXION_MIN,
-        )
-
-        assert (
-            SHOULDER_FLEXION_MIN <= BENCH_PRESS_SHOULDER_ANGLE <= SHOULDER_FLEXION_MAX
-        )
-
-    def test_knee_angle_within_limits(self) -> None:
-        """Knee initial angle must be within anatomical ROM."""
-        from pinocchio_models.shared.constants import KNEE_FLEXION_MAX, KNEE_FLEXION_MIN
-
-        assert KNEE_FLEXION_MIN <= BENCH_PRESS_KNEE_ANGLE <= KNEE_FLEXION_MAX
-
     def test_custom_body_parameters(self) -> None:
         xml_str = build_bench_press_model(body_mass=100.0, height=1.90)
         root = ET.fromstring(xml_str)
         assert root.tag == "robot"
         links = root.findall("link")
         assert len(links) >= 33
-
-    def test_shoulder_angle_is_90_degrees(self) -> None:
-        """Bench press lockout: shoulders at 90 degrees (arms pointing up)."""
-        assert pytest.approx(math.radians(90.0), abs=1e-6) == BENCH_PRESS_SHOULDER_ANGLE

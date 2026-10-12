@@ -8,35 +8,22 @@ Biomechanical notes:
 - The model captures sagittal-plane pressing kinematics
 - Torso is fixed relative to the bench (simplified)
 
-Supine orientation (issue #435): the pelvis hangs from a ``bench`` support
-link through a fixed joint pitched -90 degrees about Y, so the chest (+X of the
-body frame) points up (+Z) and the head toward -X. With the bench as the
-URDF root, Pinocchio's free-flyer moves the bench and the supine lifter
-together. Shoulder flexion about -Y swings the arms toward the chest side, so
-+90 degrees is "arms straight up" (hands above the shoulders).
+Supine placement (issue #435, LIFT-3): the pelvis hangs from a ``bench``
+support link through a fixed joint at the spec ``start`` via-pose root
+(position and pitch -pi/2, so the chest (+X of the body frame) points up
+(+Z) and the head toward -X). With the bench as the URDF root at the world
+origin, Pinocchio's free-flyer moves the bench and the supine lifter
+together; the standard's ``root_joint: weld`` (no free-flyer at all) is
+#466. The model starts at the spec ``unrack`` via-pose.
 """
 
 from __future__ import annotations
 
-import math
 import xml.etree.ElementTree as ET
 
-from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
-from pinocchio_models.shared.constants import (
-    BENCH_PRESS_ELBOW_ANGLE,
-    BENCH_PRESS_GRIP_FRACTION,
-    BENCH_PRESS_HIP_ANGLE,
-    BENCH_PRESS_KNEE_ANGLE,
-    BENCH_PRESS_SHOULDER_ANGLE,
-)
-from pinocchio_models.shared.utils.urdf_helpers import (
-    add_fixed_joint,
-    add_link,
-    set_joint_default,
-)
-
-# Pitch about Y that lays the lifter supine: body +X (chest) -> world +Z.
-_SUPINE_PITCH_RAD: float = -math.pi / 2.0
+from pinocchio_models.exercises.base import ExerciseConfig
+from pinocchio_models.exercises.spec_lift import SpecLiftBuilder
+from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint, add_link
 
 # The bench is only an orientation/support frame (the bench itself is an
 # external constraint), so it carries a negligible mass and inertia.
@@ -44,7 +31,7 @@ _BENCH_FRAME_MASS_KG: float = 1e-6
 _BENCH_FRAME_INERTIA: float = 1e-9
 
 
-class BenchPressModelBuilder(ExerciseModelBuilder):
+class BenchPressModelBuilder(SpecLiftBuilder):
     """Builds a bench press URDF model for Pinocchio.
 
     The barbell is welded to both hands. The torso is assumed to be
@@ -59,18 +46,13 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
         return "bench_press"
 
     @property
-    def grip_offset_fraction(self) -> float:
-        return BENCH_PRESS_GRIP_FRACTION
+    def spec_exercise(self) -> str:
+        return "bench_press"
 
     @property
-    def upper_body_tilt_rad(self) -> float:
-        """Supine pitch and shoulder flexion both rotate about Y (issue #443).
-
-        They cancel exactly at lockout (-90 deg supine + 90 deg shoulder
-        flexion = 0), but are summed here rather than hardcoded so the
-        barbell weld stays correct if either constant changes.
-        """
-        return _SUPINE_PITCH_RAD + BENCH_PRESS_SHOULDER_ANGLE
+    def free_root(self) -> bool:
+        """The bench weld, not the free-flyer, places the supine pelvis."""
+        return False
 
     def attach_barbell(
         self,
@@ -78,7 +60,7 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
         body_links: dict[str, ET.Element],
         barbell_links: dict[str, ET.Element],
     ) -> None:
-        """Lay the pelvis supine on a ``bench`` root link, then grip the bar."""
+        """Weld the pelvis to a ``bench`` root at the spec root, then grip."""
         add_link(
             robot,
             name="bench",
@@ -88,37 +70,16 @@ class BenchPressModelBuilder(ExerciseModelBuilder):
             iyy=_BENCH_FRAME_INERTIA,
             izz=_BENCH_FRAME_INERTIA,
         )
+        xyz, rpy = self.spec_start.root()
         add_fixed_joint(
             robot,
             name="pelvis_to_bench",
             parent="bench",
             child="pelvis",
-            origin_xyz=(0, 0, 0),
-            origin_rpy=(0.0, _SUPINE_PITCH_RAD, 0.0),
+            origin_xyz=xyz,
+            origin_rpy=rpy,
         )
         super().attach_barbell(robot, body_links, barbell_links)
-
-    def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set lockout position: arms extended above chest.
-
-        Shoulders at 90 deg (arms pointing up), elbows straight,
-        hips neutral (supine), knees at 90 deg (feet on floor).
-
-        Note: ``initial_position`` XML attributes are metadata only —
-        Pinocchio does not read them at load time.  Use
-        ``get_initial_configuration(model, urdf_str)`` from
-        ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
-        numpy configuration vector for use with ``forward_kinematics``.
-        """
-        set_joint_default(
-            robot, "shoulder", BENCH_PRESS_SHOULDER_ANGLE, exact_suffix="_flex"
-        )
-        set_joint_default(
-            robot, "shoulder", self._grip_abduction_rad, exact_suffix="_adduct"
-        )
-        set_joint_default(robot, "elbow", BENCH_PRESS_ELBOW_ANGLE)
-        set_joint_default(robot, "hip", BENCH_PRESS_HIP_ANGLE, exact_suffix="_flex")
-        set_joint_default(robot, "knee", BENCH_PRESS_KNEE_ANGLE)
 
 
 def build_bench_press_model(

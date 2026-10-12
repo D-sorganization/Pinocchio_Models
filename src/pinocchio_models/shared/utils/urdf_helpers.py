@@ -13,6 +13,11 @@ is **metadata only**.  Pinocchio does *not* read it when loading URDF; it
 simply ignores unknown joint attributes.  The attribute documents the
 intended starting configuration for human readers and downstream tooling.
 
+The ``initial_root_xyz`` / ``initial_root_rpy`` attributes written on the
+``<robot>`` element by :func:`set_root_default` record the pelvis placement of
+the start pose (LIFT-3, UpstreamDrift#11743); they are metadata in the same
+sense and seed the free-flyer of a model loaded with one.
+
 To apply an initial pose at runtime use :func:`get_initial_configuration`,
 which reads those attributes back and returns a numpy array compatible with
 ``forward_kinematics`` / ``pin.computeJointJacobians``, etc.  Example::
@@ -450,6 +455,53 @@ def set_joint_default(
                 joint.set("initial_position", val_str)
 
 
+def set_root_default(
+    robot: ET.Element,
+    xyz: tuple[float, float, float],
+    rpy: tuple[float, float, float],
+) -> None:
+    """Record the start placement of the root link as ``<robot>`` metadata.
+
+    *xyz* is the root position (m) and *rpy* its orientation (rad), URDF
+    convention ``Rz(yaw) Ry(pitch) Rx(roll)``. Like ``initial_position`` this
+    is metadata only: :func:`get_initial_configuration` applies it to the
+    free-flyer of a model loaded with one.
+
+    Raises:
+        ValueError: *xyz* or *rpy* is not 3 finite numbers.
+    """
+    for name, vec in (("xyz", xyz), ("rpy", rpy)):
+        if len(vec) != 3:
+            raise ValueError(f"root {name} must have 3 components, got {len(vec)}")
+        if not all(math.isfinite(float(v)) for v in vec):
+            raise ValueError(f"root {name} must be finite, got {tuple(vec)}")
+    robot.set("initial_root_xyz", vec3_str(*(float(v) for v in xyz)))
+    robot.set("initial_root_rpy", vec3_str(*(float(v) for v in rpy)))
+
+
+def _parse_root_default(
+    xml_str: str,
+) -> tuple[list[float], list[float]] | None:
+    """Root ``(xyz, rpy)`` recorded by :func:`set_root_default`, if any."""
+    root = ET.fromstring(xml_str)  # nosec B314 -- xml_str is internally generated URDF
+    xyz, rpy = root.get("initial_root_xyz"), root.get("initial_root_rpy")
+    if xyz is None or rpy is None:
+        return None
+    return [float(v) for v in xyz.split()], [float(v) for v in rpy.split()]
+
+
+def _apply_root_default(pin: Any, model: Any, q: Any, xml_str: str) -> None:
+    """Seed the free-flyer (7 q entries) with the recorded root placement."""
+    placement = _parse_root_default(xml_str)
+    if placement is None or model.njoints < 2 or model.joints[1].nq != 7:
+        return
+    xyz, rpy = placement
+    import numpy as np
+
+    se3 = pin.SE3(pin.rpy.rpyToMatrix(*rpy), np.array(xyz))
+    q[:7] = pin.SE3ToXYZQUAT(se3)
+
+
 def _import_pinocchio() -> Any:
     """Import and return the ``pinocchio`` module, with a clear error message."""
     try:
@@ -502,6 +554,13 @@ def _build_initial_configuration(
 
 
 def get_initial_configuration(model: Any, xml_str: str) -> Any:
-    """Return a Pinocchio configuration seeded from URDF metadata."""
+    """Return a Pinocchio configuration seeded from URDF metadata.
+
+    Joint coordinates come from ``initial_position``; when *model* has a
+    free-flyer root (loaded with ``pin.JointModelFreeFlyer()``) its 7 entries
+    come from the ``<robot>`` root placement, if one is recorded.
+    """
     pin = _import_pinocchio()
-    return _build_initial_configuration(pin, model, _parse_initial_positions(xml_str))
+    q = _build_initial_configuration(pin, model, _parse_initial_positions(xml_str))
+    _apply_root_default(pin, model, q, xml_str)
+    return q
