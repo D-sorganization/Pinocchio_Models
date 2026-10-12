@@ -12,23 +12,16 @@ Biomechanical notes:
 
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
-
-from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
-from pinocchio_models.shared.constants import (
-    SNATCH_ANKLE_ANGLE,
-    SNATCH_GRIP_FRACTION,
-    SNATCH_HIP_ANGLE,
-    SNATCH_KNEE_ANGLE,
-    SNATCH_LUMBAR_ANGLE,
-)
-from pinocchio_models.shared.utils.urdf_helpers import set_joint_default
+from pinocchio_models.exercises.base import ExerciseConfig
+from pinocchio_models.exercises.spec_lift import SpecLiftBuilder
 
 
-class SnatchModelBuilder(ExerciseModelBuilder):
+class SnatchModelBuilder(SpecLiftBuilder):
     """Builds a snatch URDF model for Pinocchio.
 
-    The barbell is welded to both hands at a wide (snatch) grip width.
+    The barbell is welded to both hands at the spec's wide (snatch) grip
+    width; the model starts at the spec ``start`` via-pose (setup, loaded bar
+    on the floor).
     """
 
     def __init__(self, config: ExerciseConfig | None = None) -> None:
@@ -39,32 +32,8 @@ class SnatchModelBuilder(ExerciseModelBuilder):
         return "snatch"
 
     @property
-    def grip_offset_fraction(self) -> float:
-        return SNATCH_GRIP_FRACTION
-
-    @property
-    def upper_body_tilt_rad(self) -> float:
-        """Lumbar flexion rotates the arm chain about Y (issue #443)."""
-        return SNATCH_LUMBAR_ANGLE
-
-    def set_initial_pose(self, robot: ET.Element) -> None:
-        """Set starting position: crouched over bar.
-
-        Hips flexed ~80 deg, knees ~70 deg, slight lumbar extension.
-
-        Note: ``initial_position`` XML attributes are metadata only —
-        Pinocchio does not read them at load time.  Use
-        ``get_initial_configuration(model, urdf_str)`` from
-        ``pinocchio_models.shared.utils.urdf_helpers`` to obtain a
-        numpy configuration vector for use with ``forward_kinematics``.
-        """
-        set_joint_default(robot, "hip", SNATCH_HIP_ANGLE, exact_suffix="_flex")
-        set_joint_default(robot, "knee", SNATCH_KNEE_ANGLE)
-        set_joint_default(robot, "lumbar", SNATCH_LUMBAR_ANGLE, exact_suffix="_flex")
-        set_joint_default(robot, "ankle", SNATCH_ANKLE_ANGLE, exact_suffix="_flex")
-        set_joint_default(
-            robot, "shoulder", self._grip_abduction_rad, exact_suffix="_adduct"
-        )
+    def spec_exercise(self) -> str:
+        return "snatch"
 
 
 def build_snatch_model(

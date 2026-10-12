@@ -101,36 +101,9 @@ ANKLE_FLEXION_MAX: float = math.radians(20)  # Dorsiflexion
 ANKLE_INVERSION_MIN: float = math.radians(-20)  # Eversion
 ANKLE_INVERSION_MAX: float = math.radians(20)  # Inversion
 
-# --- Initial pose angles (radians) for each exercise ---
-# Bench press: arms extended above chest (supine)
-BENCH_PRESS_SHOULDER_ANGLE: float = math.radians(90)  # arms straight up
-BENCH_PRESS_ELBOW_ANGLE: float = 0.0  # arms extended
-BENCH_PRESS_HIP_ANGLE: float = 0.0  # flat on bench
-BENCH_PRESS_KNEE_ANGLE: float = -math.radians(90)  # feet flat on floor
-
-# Deadlift: hip-hinged, crouched over bar
-DEADLIFT_HIP_ANGLE: float = math.radians(80)
-DEADLIFT_KNEE_ANGLE: float = -math.radians(60)
-DEADLIFT_LUMBAR_ANGLE: float = math.radians(10)
-DEADLIFT_ANKLE_ANGLE: float = math.radians(18)  # Dorsiflexion at setup
-
-# Squat: standing (unrack position)
-SQUAT_HIP_ANGLE: float = 0.0
-SQUAT_KNEE_ANGLE: float = 0.0
-SQUAT_ANKLE_ANGLE: float = 0.0
-
-# Snatch: crouched over bar (wider grip)
-SNATCH_HIP_ANGLE: float = math.radians(80)
-SNATCH_KNEE_ANGLE: float = -math.radians(70)
-SNATCH_LUMBAR_ANGLE: float = math.radians(15)
-SNATCH_ANKLE_ANGLE: float = math.radians(20)  # Dorsiflexion at setup (wider stance)
-
-# Clean and jerk: crouched over bar (shoulder-width grip)
-CLEAN_AND_JERK_HIP_ANGLE: float = math.radians(75)
-CLEAN_AND_JERK_KNEE_ANGLE: float = -math.radians(65)
-CLEAN_AND_JERK_LUMBAR_ANGLE: float = math.radians(10)
-CLEAN_AND_JERK_ANKLE_ANGLE: float = math.radians(18)  # Dorsiflexion at setup
-
+# --- Initial pose angles (radians) for the bodyweight exercises ---
+# The barbell lifts start at the spec ``start`` via-pose of the vendored
+# parity standard (``exercises/spec_lift.py``, LIFT-3), not at local angles.
 # Gait: natural standing (mid-stance ready position)
 GAIT_HIP_ANGLE: float = math.radians(5)  # Slight flexion
 GAIT_KNEE_ANGLE: float = -math.radians(5)  # Slight flexion
@@ -140,12 +113,6 @@ GAIT_ANKLE_ANGLE: float = 0.0  # Neutral
 STS_HIP_ANGLE: float = math.radians(90)
 STS_KNEE_ANGLE: float = -math.radians(90)
 STS_ANKLE_ANGLE: float = math.radians(15)  # Slight dorsiflexion
-
-# --- Grip width fractions (fraction of shaft length from center) ---
-BENCH_PRESS_GRIP_FRACTION: float = 0.3
-DEADLIFT_GRIP_FRACTION: float = 0.3
-SNATCH_GRIP_FRACTION: float = 0.45
-CLEAN_AND_JERK_GRIP_FRACTION: float = 0.28
 
 # --- Valid exercise names ---
 VALID_EXERCISE_NAMES: frozenset[str] = frozenset(

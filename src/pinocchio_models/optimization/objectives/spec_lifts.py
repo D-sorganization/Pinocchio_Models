@@ -1,9 +1,11 @@
-"""Lift objectives built from the vendored exercise spec (standard v2.0).
+"""Lift objectives built from the vendored exercise spec (standard v2.1).
 
 UpstreamDrift#11742 (LIFT-2), Repository_Management#2060 (Option A): the
 phase names, the phase timing (``t_frac``) and the start, catch and lockout
 via-poses come from ``_canonical/biomech_parity_standard.json``, never from
-local tables.  The spec poses only those anchors.  Every other phase target is
+local tables. Standard v2.1 binds each via-pose to the phase it anchors
+(``spec.via_pose_phase``, Repository_Management#2077), so this pack keeps no
+pose-to-phase table of its own (UpstreamDrift#11743).  The spec poses only those anchors.  Every other phase target is
 the linear blend of the neighbouring anchors at the phase's ``t_frac`` (held
 at the last anchor after it), so this pack adds no pose content of its own.
 
@@ -25,20 +27,6 @@ from pinocchio_models.optimization.objectives.common import ExerciseObjective, P
 from pinocchio_models.shared.parity._canonical import conformance, spec
 
 STANDARD: dict[str, Any] = conformance.load_standard()
-
-# The named phase each via-pose anchors.  Standard v2.0 names the poses but does
-# not bind them to phases, so the binding is recorded here (one entry per lift).
-VIA_POSE_PHASES: dict[str, dict[str, str]] = {
-    "squat": {"start": "standing", "catch": "bottom", "lockout": "lockout"},
-    "deadlift": {"start": "setup", "lockout": "lockout"},
-    "bench_press": {"start": "unrack", "catch": "chest_touch", "lockout": "lockout"},
-    "snatch": {"start": "setup", "catch": "catch", "lockout": "recovery"},
-    "clean_and_jerk": {
-        "start": "setup",
-        "catch": "rack_catch",
-        "lockout": "overhead_recovery",
-    },
-}
 
 Pose = dict[str, float]
 
@@ -72,11 +60,14 @@ def _anchor_knots(
 ) -> list[tuple[float, Pose]]:
     """(t_frac, pose) for every anchored phase, ordered by time."""
     t_of = {str(p["name"]): float(p["t_frac"]) for p in phases}
-    anchors = VIA_POSE_PHASES[exercise]
+    anchors = {
+        pose: spec.via_pose_phase(STANDARD, exercise, pose)
+        for pose in spec.exercise_spec(STANDARD, exercise)["via_poses"]
+    }
     missing = sorted(set(anchors.values()) - set(t_of))
     if missing:
         raise ValueError(f"{exercise}: anchored phases {missing} not in the spec")
-    if anchors["start"] != phases[0]["name"]:
+    if anchors.get("start") != phases[0]["name"]:
         raise ValueError(f"{exercise}: the start via-pose must anchor the first phase")
     knots = [(t_of[phase], via_pose(exercise, pose)) for pose, phase in anchors.items()]
     return sorted(knots, key=lambda k: k[0])
@@ -88,14 +79,12 @@ def lift_objective(
     """Build the objective of a barbell lift from the vendored spec.
 
     Raises:
-        ValueError: *exercise* has no anchor binding, or an anchored phase is
-            missing from the spec.
+        ValueError: *exercise* is not in the spec or has no via-poses, or a
+            via-pose names no phase of the exercise.
     """
-    if exercise not in VIA_POSE_PHASES:
-        raise ValueError(
-            f"unknown exercise {exercise!r}; spec lifts: {sorted(VIA_POSE_PHASES)}"
-        )
     phases = spec.exercise_spec(STANDARD, exercise)["phases"]
+    if not spec.exercise_spec(STANDARD, exercise).get("via_poses"):
+        raise ValueError(f"{exercise!r} has no via-poses in the spec")
     knots = _anchor_knots(exercise, phases)
     return ExerciseObjective(
         name=name,
