@@ -45,6 +45,7 @@ from pinocchio_models.shared.body.body_anthropometrics import (
     _seg,
 )
 from pinocchio_models.shared.body.canonical_topology import joint_axis, joint_offset
+from pinocchio_models.shared.body.foot_sole import sole_depth_m
 from pinocchio_models.shared.constants import (
     ANKLE_FLEXION_MAX,
     ANKLE_FLEXION_MIN,
@@ -282,7 +283,11 @@ def _add_foot_collision(
 
     if foot_link is not None:
         collision = ET.SubElement(foot_link, "collision")
-        ET.SubElement(collision, "origin", {"xyz": "0 0 -0.01", "rpy": "0 0 0"})
+        # Box bottom sits foot.length below the ankle origin (#471).
+        centre_z = -sole_depth_m() + dims[2] / 2.0
+        ET.SubElement(
+            collision, "origin", {"xyz": f"0 0 {centre_z:.6f}", "rpy": "0 0 0"}
+        )
         collision.append(make_box_geometry(*dims))
 
 

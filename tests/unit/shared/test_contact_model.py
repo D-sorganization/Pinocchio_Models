@@ -121,6 +121,12 @@ class TestGetExerciseContacts:
         for cp in spec.foot_contacts:
             assert cp.local_position[2] < 0
 
+    def test_foot_contact_z_at_sole_depth(self) -> None:
+        """Foot contact points should sit foot.length below the ankle origin."""
+        spec = get_exercise_contacts("back_squat")
+        for cp in spec.foot_contacts:
+            assert cp.local_position[2] == pytest.approx(-0.07, abs=1e-4)
+
     def test_bench_press_has_bench_contact(self) -> None:
         spec = get_exercise_contacts("bench_press")
         assert spec.bench_contact is not None
@@ -174,7 +180,9 @@ class TestURDFCollisionGeometry:
 
             origin = collision.find("origin")
             assert origin is not None
-            assert origin.get("xyz") == "0 0 -0.01"
+            xyz = [float(v) for v in origin.get("xyz", "").split()]
+            # Box (0.02 high) bottom sits foot.length (0.07) below the ankle.
+            assert xyz[2] == pytest.approx(-0.06, abs=1e-6)
 
             box = collision.find("geometry/box")
             assert box is not None, f"foot_{side} collision missing box geometry"
