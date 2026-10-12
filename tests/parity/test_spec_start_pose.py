@@ -63,6 +63,8 @@ BUILDERS: dict[str, type[SpecLiftBuilder]] = {
     "clean_and_jerk": CleanAndJerkModelBuilder,
 }
 LIFTS = tuple(BUILDERS)
+# The contact registry names the squat exercise ``back_squat``.
+_CONTACT_NAME = {"squat": "back_squat"}
 # Pulls start with the loaded bar resting on the floor (UpstreamDrift#11743).
 PULLS = ("deadlift", "snatch", "clean_and_jerk")
 # Supine on the bench: the bench, not the feet, carries the lifter.
@@ -253,7 +255,7 @@ def test_foot_contacts_and_collision_sole_on_floor_at_start_pose(
 ) -> None:
     """Foot contact points and sole collision bottom rest on z = 0 at start pose."""
     posed = _posed(exercise)
-    contacts = get_exercise_contacts(exercise)
+    contacts = get_exercise_contacts(_CONTACT_NAME.get(exercise, exercise))
     assert contacts.foot_contacts, f"{exercise}: no foot contacts defined"
 
     for cp in contacts.foot_contacts:
