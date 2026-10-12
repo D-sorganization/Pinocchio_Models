@@ -9,6 +9,8 @@ phase, so the pack keeps no pose-to-phase table (UpstreamDrift#11743).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from pinocchio_models.optimization.objectives import spec_lifts
@@ -49,12 +51,37 @@ def _phase(objective: ExerciseObjective, name: str) -> Phase:
     return next(p for p in objective.phases if p.name == name)
 
 
-@pytest.mark.parametrize("exercise", LIFTS)
+ALL_EXERCISES = (
+    "squat",
+    "deadlift",
+    "bench_press",
+    "snatch",
+    "clean_and_jerk",
+    "gait",
+    "sit_to_stand",
+)
+
+
+@pytest.mark.parametrize("exercise", ALL_EXERCISES)
 def test_phase_names_and_timing_come_from_spec(exercise: str) -> None:
     objective = _objective(exercise)
     want = spec.exercise_spec(STD, exercise)["phases"]
     assert [p.name for p in objective.phases] == [p["name"] for p in want]
     assert [p.fraction for p in objective.phases] == [p["t_frac"] for p in want]
+
+
+@pytest.mark.parametrize("exercise", ("gait", "sit_to_stand"))
+def test_functional_movement_phases_conform_to_spec(exercise: str) -> None:
+    """Phase names match spec, check_fingerprint clean, and no ledger entry (#467)."""
+    objective = _objective(exercise)
+    names = [p.name for p in objective.phases]
+    assert names == spec.phase_names(STD, exercise)
+    fp = {"exercise": exercise, "phase_names": names}
+    assert spec.check_fingerprint(fp, STD) == []
+    ledger = conformance.load_ledger(
+        Path(conformance.__file__).parents[1] / "parity_divergences.json"
+    )
+    assert "phase_names" not in ledger.get("divergences", {})
 
 
 @pytest.mark.parametrize("exercise", LIFTS)
