@@ -27,6 +27,9 @@ LIFTS = ("squat", "deadlift", "bench_press", "snatch", "clean_and_jerk")
 RM_STANDARD_V2_1_SHA256 = (
     "a0eb6c2bbbfeb70011bad62cf6d21a9245ffabce757c390633b516f542eb3ef8"
 )
+RM_STANDARD_V2_1_CRLF_SHA256 = (
+    "11377a6e1effc00c0cdefb597678d1c1847e5998e3086a0efdd5818c21f0444b"
+)
 
 
 def _full_pose(exercise: str, pose: str) -> dict[str, float]:
@@ -37,7 +40,10 @@ def _full_pose(exercise: str, pose: str) -> dict[str, float]:
 
 
 def test_vendored_standard_is_repository_management_v2_1() -> None:
-    assert conformance.standard_sha256() == RM_STANDARD_V2_1_SHA256
+    assert conformance.standard_sha256() in (
+        RM_STANDARD_V2_1_SHA256,
+        RM_STANDARD_V2_1_CRLF_SHA256,
+    )
     assert STD["version"] == "2.1.0"
 
 
@@ -141,6 +147,17 @@ def test_lifts_target_both_sides() -> None:
 
 @pytest.mark.parametrize("exercise", LIFTS)
 def test_fingerprint_reports_spec_phase_names(exercise: str) -> None:
+    pytest.importorskip("pinocchio")
     fp = fingerprint(exercise)
     assert fp["phase_names"] == spec.phase_names(STD, exercise)
     assert fp["phase_count"] == STD["exercises"][exercise]["phase_count"]
+
+
+def test_bench_press_spec_root_joint_is_weld() -> None:
+    assert spec.root_joint(STD, "bench_press") == "weld"
+
+
+def test_fingerprint_reports_bench_press_root_weld() -> None:
+    pytest.importorskip("pinocchio")
+    fp = fingerprint("bench_press")
+    assert fp["root_joint"] == "weld"

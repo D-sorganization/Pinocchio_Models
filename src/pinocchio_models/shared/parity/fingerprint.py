@@ -25,7 +25,7 @@ from typing import Any
 
 from pinocchio_models.model_pack import list_exercises, manifest
 from pinocchio_models.shared.parity import axes_probe
-from pinocchio_models.shared.parity._canonical import assemble, conformance
+from pinocchio_models.shared.parity._canonical import assemble, conformance, spec
 
 logger = logging.getLogger(__name__)
 
@@ -92,19 +92,31 @@ def build_urdf(exercise: str) -> str:
     return _BUILDERS[_MANIFEST_ID_ALIASES.get(exercise, exercise)]()
 
 
-def load_model(urdf: str, std: dict[str, Any] | None = None) -> Any:
-    """Load *urdf* in Pinocchio with a free-flyer root and standard gravity."""
+def load_model(
+    urdf: str,
+    std: dict[str, Any] | None = None,
+    root_joint: str | None = None,
+) -> Any:
+    """Load *urdf* in Pinocchio with standard gravity and specified root joint."""
     import numpy as np
     import pinocchio as pin
 
     std = std or conformance.load_standard()
-    model = pin.buildModelFromXML(urdf, pin.JointModelFreeFlyer())
+    if root_joint is None:
+        root_joint = "weld" if '<link name="bench"' in urdf else "free"
+
+    if root_joint == "weld":
+        model = pin.buildModelFromXML(urdf)
+    else:
+        model = pin.buildModelFromXML(urdf, pin.JointModelFreeFlyer())
     model.gravity.linear = np.array([0.0, 0.0, -std["frame"]["gravity_mps2"]])
     return model
 
 
 def _measure(
-    urdf: str, std: dict[str, Any]
+    urdf: str,
+    std: dict[str, Any],
+    root_joint: str = "free",
 ) -> tuple[dict[str, float], dict[str, list[float]]]:
     """Raw per-body masses and neutral world origins (engine frame).
 
@@ -113,7 +125,7 @@ def _measure(
     """
     import pinocchio as pin
 
-    model = load_model(_strip_fixed_subtrees(urdf), std)
+    model = load_model(_strip_fixed_subtrees(urdf), std, root_joint=root_joint)
     data = model.createData()
     pin.forwardKinematics(model, data, pin.neutral(model))
     pin.updateFramePlacements(model, data)
@@ -129,7 +141,7 @@ def _measure(
 def _limits(model: Any) -> dict[str, tuple[float, float]]:
     """Raw 1-DOF joint limits keyed by engine joint name."""
     out: dict[str, tuple[float, float]] = {}
-    for jid in range(2, model.njoints):  # 0 = universe, 1 = free-flyer root
+    for jid in range(1, model.njoints):  # 0 = universe
         joint = model.joints[jid]
         if joint.nq == 1:
             q = joint.idx_q
@@ -152,13 +164,14 @@ def fingerprint(exercise: str) -> dict[str, Any]:
     """Build *exercise*, load it in Pinocchio and return its fingerprint."""
     std = conformance.load_standard()
     version = ""
+    rj = spec.root_joint(std, exercise)
     try:
         import pinocchio as pin
 
         version = str(pin.__version__)
         urdf = build_urdf(exercise)
-        model = load_model(urdf, std)
-        masses, origins = _measure(urdf, std)
+        model = load_model(urdf, std, root_joint=rj)
+        masses, origins = _measure(urdf, std, root_joint=rj)
     except Exception as exc:  # noqa: BLE001 - any load failure is reported
         logger.warning("%s failed to load in %s: %s", exercise, ENGINE, exc)
         return assemble.failed_fingerprint(ENGINE, version, exercise, exc)
@@ -168,7 +181,9 @@ def fingerprint(exercise: str) -> dict[str, Any]:
         engine_version=version,
         exercise=exercise,
         std=std,
-        root_joint="free" if model.joints[1].nq == 7 else "weld",
+        root_joint="free"
+        if (model.njoints > 1 and model.joints[1].nq == 7)
+        else "weld",
         gravity_engine=[float(v) for v in model.gravity.linear],
         segment_masses_kg=masses,
         coordinate_limits_rad=_limits(model),
