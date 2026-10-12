@@ -332,6 +332,7 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-12 | #472 | LIFT-3: barbell lifts start at the spec v2.1 start via-pose (joints, pelvis root, bar); mass and CoM checks |
 | 2026-10-11 | #468 | Lift objectives consume the standard v2.0 exercise spec (phase names, timing, start/catch/lockout via-poses); deadlift now has the spec's 5 phases (LIFT-2, UpstreamDrift#11742) |
 | 2026-10-11 | #463 | Sync the agent-identity managed block: the owner's personal token is an approved agent identity |
 | 2026-10-10 | #461 | Fix shoulder adduction/abduction joint-limit sign convention so the snatch's wide-grip start pose is within limits |
