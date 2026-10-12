@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#467 · \ Name Gait and Sit-to-Stand Phases per Standard V2.0\
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #467
+- **Branch:** fix/467-gait-sts-phases
+- **PR:** #474
+- **Paths:** see #474
+- **Started:** 2026-10-12
+- **Last verified:** 2026-10-12 (`6b1ba04d`; collated from changes/467-name-gait-and-sit-to-stand-phases-per-st.md)
+- **Summary:** \ Name Gait and Sit-to-Stand Phases per Standard v2.0\
+- **Next step:** \Merge the PR.\
+
 ### DL-#450 · Lifts Start at the Spec Start Via-Pose (LIFT-3)
 
 - **State:** in_review
