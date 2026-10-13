@@ -14,7 +14,7 @@ capabilities:
   forward_dynamics: { level: partial, evidence: null }
   inverse_dynamics:
     { level: full, evidence: tests/parity/test_inverse_dynamics.py }
-  contact_grf: { level: full, evidence: tests/parity/test_contact_grf.py }
+  contact_grf: { level: partial, evidence: tests/parity/test_contact_grf.py }
   urdf_import: { level: none, evidence: null }
   urdf_export:
     { level: full, evidence: tests/parity/test_engine_conformance.py }
