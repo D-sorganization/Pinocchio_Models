@@ -11,6 +11,7 @@ import pytest
 
 from pinocchio_models import inverse_dynamics
 from pinocchio_models.model_pack import list_exercises
+from pinocchio_models.shared.parity._canonical import conformance, spec
 from pinocchio_models.shared.parity.fingerprint import build_urdf, load_model
 
 EXERCISES = list_exercises()
@@ -31,9 +32,11 @@ def test_static_pose_matches_rnea_and_root_force_is_mg(exercise: str) -> None:
     np.testing.assert_allclose(
         tau, pin.rnea(model, model.createData(), q, zeros, zeros), rtol=1e-12
     )
-    total_mass = sum(inertia.mass for inertia in model.inertias)
-    weight = total_mass * -model.gravity.linear[2]
-    assert tau[2] == pytest.approx(weight, rel=1e-6)
+    std = conformance.load_standard()
+    if spec.root_joint(std, exercise) == "free":
+        total_mass = sum(inertia.mass for inertia in model.inertias)
+        weight = total_mass * -model.gravity.linear[2]
+        assert tau[2] == pytest.approx(weight, rel=1e-6)
 
 
 def test_moving_pose_matches_rnea() -> None:
