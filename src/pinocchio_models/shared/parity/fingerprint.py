@@ -37,9 +37,6 @@ COORDINATE_ALIASES: dict[str, str] = {}
 # Pinocchio body (link) name -> canonical segment name; names already match.
 SEGMENT_ALIASES: dict[str, str] = {}
 
-# Registry ids of the optimisation objectives that differ from manifest ids.
-_OBJECTIVE_IDS: dict[str, str] = {"squat": "back_squat"}
-
 
 def _link_of(joint: ET.Element, tag: str) -> str:
     """Return the ``link`` attribute of a joint's ``<parent>``/``<child>``."""
@@ -148,12 +145,31 @@ def _limits(model: Any) -> dict[str, tuple[float, float]]:
     return out
 
 
-def _phase_names(exercise: str) -> list[str] | None:
-    """Ordered phase names of the repo's objective (None if it has none)."""
-    from pinocchio_models.optimization.objectives.registry import EXERCISE_OBJECTIVES
+def objective_phase_names(
+    exercise: str, std: dict[str, Any] | None = None
+) -> list[str]:
+    """Ordered phase names of the pack objective for a standard *exercise*.
 
-    objective = EXERCISE_OBJECTIVES.get(_OBJECTIVE_IDS.get(exercise, exercise))
-    return None if objective is None else [p.name for p in objective.phases]
+    The objective is looked up by the standard's own ``legacy_key`` (``squat``
+    is the ``back_squat`` objective), so the pack keeps no id table of its own.
+    The names are measured from the objective, not copied from the standard,
+    so ``spec.check_fingerprint`` can catch an objective that drifts from the
+    standard's ordered phases (Repository_Management#2025).
+
+    Raises ValueError for an exercise the standard does not define, or for an
+    objective without phases.
+    """
+    from pinocchio_models.optimization.objectives.registry import (
+        get_exercise_objective,
+    )
+
+    std = conformance.load_standard() if std is None else std
+    block = spec.exercise_spec(std, exercise)  # precondition: known exercise
+    objective = get_exercise_objective(str(block.get("legacy_key", exercise)))
+    names = [phase.name for phase in objective.phases]
+    if not names:  # postcondition: assemble_fingerprint needs a non-empty list
+        raise ValueError(f"{exercise!r} objective defines no phases")
+    return names
 
 
 def fingerprint(exercise: str) -> dict[str, Any]:
@@ -171,7 +187,7 @@ def fingerprint(exercise: str) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001 - any load failure is reported
         logger.warning("%s failed to load in %s: %s", exercise, ENGINE, exc)
         return assemble.failed_fingerprint(ENGINE, version, exercise, exc)
-    names = _phase_names(exercise)
+    names = objective_phase_names(exercise, std)
     return assemble.assemble_fingerprint(
         engine=ENGINE,
         engine_version=version,
@@ -187,7 +203,7 @@ def fingerprint(exercise: str) -> dict[str, Any]:
         capabilities=assemble.capabilities_from_manifest(manifest(), std),
         coordinate_aliases=COORDINATE_ALIASES,
         segment_aliases=SEGMENT_ALIASES,
-        phase_count=None if names is None else len(names),
+        phase_count=len(names),
         # Standard v2.0 conformance criterion 3: the ordered phase names, a core
         # assemble_fingerprint field since Repository_Management#2089.
         phase_names=names,
