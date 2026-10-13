@@ -111,6 +111,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#449 · Set Bilateral Right-Limb Targets in Sit-to-Stand Objective Phases
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #449
+- **Branch:** merged via #480
+- **PR:** #480
+- **Paths:** see #480
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`ed0dea59`; collated from changes/449-set-bilateral-right-limb-targets-in-sit.md)
+- **Summary:** Set bilateral right-limb targets in sit-to-stand objective phases
+- **Next step:** Shipped in PR #480.
+
 ### DL-#471 · Place-Foot-Contacts-and-Sole-Collision-Foot.Length-Below-the-Ankle-per-the-Parity-Standard
 
 - **State:** shipped
