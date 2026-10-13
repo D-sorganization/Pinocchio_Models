@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#437 · Add Cross-Engine Test That Loads the URDF in MuJoCo and Drake
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #437
+- **Branch:** feat/437-cross-engine-urdf-test
+- **PR:** #486
+- **Paths:** see #486
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`9a6268dc`; collated from changes/437-add-cross-engine-test-that-loads-the-urd.md)
+- **Summary:** Add cross-engine test that loads the URDF in MuJoCo and Drake
+- **Next step:** Merge the PR.
+
 ### DL-#436 · Rename Elbow_L, Knee_L and Neck to Canonical Joint Names
 
 - **State:** in_review
@@ -123,6 +136,19 @@ reachable from any live state and `abandoned` from `parked`.
 - **Summary:** Establish and enforce the maintainable Mermaid C4 architecture-map contract for Pinocchio_Models per Repository_Management Epic #1594.
 
 ## Shipped (Last 90 Days)
+
+### DL-#432 · Add Constrained Contact Dynamics GRF/CoP API (Ground_Reaction_Forces) With Real-Pinocchio Standing Test
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #432
+- **Branch:** merged via #487
+- **PR:** #487
+- **Paths:** see #487
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`f8291479`; collated from changes/432-add-constrained-contact-dynamics-grf-cop.md)
+- **Summary:** Add constrained contact dynamics GRF/CoP API (ground_reaction_forces) with real-Pinocchio standing test
+- **Next step:** Shipped in PR #487.
 
 ### DL-#449 · Set Bilateral Right-Limb Targets in Sit-to-Stand Objective Phases
 

@@ -332,6 +332,8 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-13 | #486 | Add cross-engine test that loads the URDF in MuJoCo and Drake |
+| 2026-10-13 | #487 | Add constrained contact dynamics GRF/CoP API (ground_reaction_forces) with real-Pinocchio standing test |
 | 2026-10-13 | #484 | Rename elbow_l, knee_l and neck to canonical joint names |
 | 2026-10-13 | #482 | Ground pelvis so foot soles rest on floor plane with grounded_pelvis_height helper |
 | 2026-10-13 | #480 | Set bilateral right-limb targets in sit-to-stand objective phases |
