@@ -13,12 +13,12 @@ Segments (bilateral where noted):
 Multi-DOF joints (compound revolute joints via virtual links):
   pelvis is the root link (Pinocchio adds FreeFlyer programmatically),
   lumbar — 3-DOF: flex, lateral, rotate
-  neck (revolute — 1-DOF flexion)
+  neck_flex (revolute — 1-DOF flexion)
   shoulder_{l,r} — 3-DOF: flex, adduct, rotate
-  elbow_{l,r} (revolute — 1-DOF flexion)
+  elbow_{l,r}_flex (revolute — 1-DOF flexion)
   wrist_{l,r} — 2-DOF: flex, deviate
   hip_{l,r} — 3-DOF: flex, adduct, rotate
-  knee_{l,r} (revolute — 1-DOF flexion)
+  knee_{l,r}_flex (revolute — 1-DOF flexion)
   ankle_{l,r} — 2-DOF: flex, invert
 
 Convention (issue #435): the cross-repo parity standard's canonical frame,
@@ -175,7 +175,7 @@ def _build_axial_chain(
     )
     add_revolute_joint(
         robot,
-        name="neck",
+        name="neck_flex",
         parent="torso",
         child="head",
         origin_xyz=joint_offset("head", spec.height),

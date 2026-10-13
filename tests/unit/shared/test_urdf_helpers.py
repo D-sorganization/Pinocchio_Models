@@ -213,14 +213,14 @@ class TestSetJointDefault:
         robot = ET.Element("robot", name="test")
         add_revolute_joint(
             robot,
-            name="knee_l",
+            name="knee_l_flex",
             parent="p",
             child="c",
             origin_xyz=(0, 0, 0),
             axis=(0, 1, 0),
         )
         set_joint_default(robot, "hip", 0.5)
-        joint = robot.find("joint[@name='knee_l']")
+        joint = robot.find("joint[@name='knee_l_flex']")
         assert joint is not None
         assert joint.get("initial_position") is None
 
@@ -359,7 +359,7 @@ class TestGetInitialConfiguration:
         model = pin.buildModelFromXML(urdf_str)
         q0 = get_initial_configuration(model, urdf_str)
         assert q0.shape == (model.nq,)
-        knee = model.joints[model.getJointId("knee_l")].idx_q
+        knee = model.joints[model.getJointId("knee_l_flex")].idx_q
         assert q0[knee] == pytest.approx(-0.05)
 
     def test_raises_without_pinocchio(self) -> None:

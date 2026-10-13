@@ -63,7 +63,7 @@ def test_add_limb_side_simple_emits_link_and_joint() -> None:
     assert links[0].get("name") == "shank_l"
     assert len(joints) == 1
     j = joints[0]
-    assert j.get("name") == "knee_l"
+    assert j.get("name") == "knee_l_flex"
     assert j.find("parent").get("link") == "thigh_l"  # type: ignore[union-attr]
     # Left side (canonical +Y): y offset is positive.
     xyz = j.find("origin").get("xyz", "").split()  # type: ignore[union-attr]
@@ -87,7 +87,7 @@ def test_add_bilateral_limb_simple_creates_both_sides() -> None:
     link_names = {link.get("name") for link in robot.findall("link")}
     joint_names = {j.get("name") for j in robot.findall("joint")}
     assert {"shank_l", "shank_r"}.issubset(link_names)
-    assert {"knee_l", "knee_r"}.issubset(joint_names)
+    assert {"knee_l_flex", "knee_r_flex"}.issubset(joint_names)
 
 
 def test_add_bilateral_limb_simple_symmetric_y_offset() -> None:
@@ -104,8 +104,8 @@ def test_add_bilateral_limb_simple_symmetric_y_offset() -> None:
         range_min=-2.0,
         range_max=0.0,
     )
-    left = robot.find("joint[@name='knee_l']")
-    right = robot.find("joint[@name='knee_r']")
+    left = robot.find("joint[@name='knee_l_flex']")
+    right = robot.find("joint[@name='knee_r_flex']")
     assert left is not None and right is not None
     lxyz = left.find("origin").get("xyz", "").split()  # type: ignore[union-attr]
     rxyz = right.find("origin").get("xyz", "").split()  # type: ignore[union-attr]

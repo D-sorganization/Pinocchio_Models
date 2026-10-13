@@ -122,7 +122,7 @@ def _add_limb_side_simple(
     )
     add_revolute_joint(
         robot,
-        name=f"{coord_prefix}_{side}",
+        name=f"{coord_prefix}_{side}_flex",
         parent=_resolve_bilateral_parent(parent_name, side),
         child=body_name,
         origin_xyz=(0, sign * parent_lateral_y, parent_offset_z),

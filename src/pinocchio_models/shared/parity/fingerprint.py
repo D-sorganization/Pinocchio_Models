@@ -32,11 +32,7 @@ logger = logging.getLogger(__name__)
 ENGINE = "pinocchio"
 
 # Pinocchio joint name -> canonical coordinate name (only names that differ).
-COORDINATE_ALIASES: dict[str, str] = {
-    **{f"elbow_{s}": f"elbow_{s}_flex" for s in ("l", "r")},
-    **{f"knee_{s}": f"knee_{s}_flex" for s in ("l", "r")},
-    "neck": "neck_flex",
-}
+COORDINATE_ALIASES: dict[str, str] = {}
 
 # Pinocchio body (link) name -> canonical segment name; names already match.
 SEGMENT_ALIASES: dict[str, str] = {}
