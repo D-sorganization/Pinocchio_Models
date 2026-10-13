@@ -179,3 +179,73 @@ class TestSolvePoseDbCContracts:
             pytest.warns(UserWarning, match="IK did not converge"),
         ):
             ik_mod.solve_pose(mock_problem, targets, max_iterations=5)
+
+
+class TestQpSolverSelection:
+    """Pink needs an installed QP backend (issue #429)."""
+
+    def test_prefers_daqp_when_available(self) -> None:
+        from unittest.mock import MagicMock
+
+        import pinocchio_models.addons.pink.ik_solver_tasks as tasks_mod
+
+        fake = MagicMock(available_solvers=["osqp", "daqp"])
+        with patch.object(tasks_mod, "qpsolvers", fake):
+            assert tasks_mod._select_qp_solver() == "daqp"
+
+    def test_falls_back_to_first_available(self) -> None:
+        from unittest.mock import MagicMock
+
+        import pinocchio_models.addons.pink.ik_solver_tasks as tasks_mod
+
+        fake = MagicMock(available_solvers=["clarabel"])
+        with patch.object(tasks_mod, "qpsolvers", fake):
+            assert tasks_mod._select_qp_solver() == "clarabel"
+
+    def test_raises_import_error_without_backend(self) -> None:
+        from unittest.mock import MagicMock
+
+        import pinocchio_models.addons.pink.ik_solver_tasks as tasks_mod
+
+        fake = MagicMock(available_solvers=[])
+        with (
+            patch.object(tasks_mod, "qpsolvers", fake),
+            pytest.raises(ImportError, match="no QP solver backend"),
+        ):
+            tasks_mod._select_qp_solver()
+
+
+class TestGroundTasks:
+    """Ground tasks plant each foot where it starts, sole on Z=0 (issue #429)."""
+
+    def test_targets_start_xy_at_sole_height(self) -> None:
+        from unittest.mock import MagicMock
+
+        import numpy as np
+
+        import pinocchio_models.addons.pink.ik_solver_tasks as tasks_mod
+        from pinocchio_models.shared.body.foot_sole import sole_depth_m
+
+        starts = {"foot_l": [0.1, 0.09, -0.9], "foot_r": [0.1, -0.09, -0.9]}
+        configuration = MagicMock()
+        configuration.get_transform_frame_to_world.side_effect = lambda name: MagicMock(
+            translation=np.array(starts[name])
+        )
+        fake_pin = MagicMock()
+        fake_pin.SE3.side_effect = lambda rot, trans: (rot, trans)
+        with (
+            patch.object(tasks_mod, "pin", fake_pin),
+            patch.object(tasks_mod, "pink", MagicMock()) as fake_pink,
+        ):
+            tasks = tasks_mod._build_ground_tasks(configuration)
+
+        assert len(tasks) == 2
+        targets = [
+            call.args[0]
+            for call in fake_pink.tasks.FrameTask.return_value.set_target.call_args_list
+        ]
+        for (rot, trans), foot in zip(targets, ("foot_l", "foot_r"), strict=True):
+            np.testing.assert_array_equal(rot, np.eye(3))
+            np.testing.assert_allclose(
+                trans, [starts[foot][0], starts[foot][1], sole_depth_m()]
+            )

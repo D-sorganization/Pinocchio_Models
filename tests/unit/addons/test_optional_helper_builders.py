@@ -38,10 +38,23 @@ class _FakeConfiguration:
         self.data = data
         self.q = q
 
-    def solve_ik(self, tasks: list[object], dt: float) -> np.ndarray:
-        self.last_tasks = tasks
-        self.last_dt = dt
-        return np.array([0.5, -0.25, 0.25])
+    def get_transform_frame_to_world(self, frame_name: str) -> _FakeSE3:
+        start = {"foot_l": [0.1, 0.09, -0.9], "foot_r": [0.1, -0.09, -0.9]}
+        return _FakeSE3(np.eye(3), np.array(start[frame_name]))
+
+
+def _fake_solve_ik(
+    configuration: _FakeConfiguration,
+    tasks: list[object],
+    dt: float,
+    *,
+    solver: str,
+) -> np.ndarray:
+    """Mirror ``pink.solve_ik`` (a module function, not a Configuration method)."""
+    configuration.last_tasks = tasks  # type: ignore[attr-defined]
+    configuration.last_dt = dt  # type: ignore[attr-defined]
+    configuration.last_solver = solver  # type: ignore[attr-defined]
+    return np.array([0.5, -0.25, 0.25])
 
 
 class _FakeSE3:
@@ -165,6 +178,7 @@ def _fake_pink_module() -> tuple[ModuleType, ModuleType]:
     fake_pink = ModuleType("pink")
     fake_pink.tasks = SimpleNamespace(FrameTask=_FakeFrameTask)
     fake_pink.Configuration = _FakeConfiguration
+    fake_pink.solve_ik = _fake_solve_ik
 
     fake_pin = ModuleType("pinocchio")
     fake_pin.SE3 = _FakeSE3
@@ -208,7 +222,15 @@ class TestPinkHelperBuilders:
     def test_builds_target_and_ground_tasks_and_integrates_one_step(self) -> None:
         fake_pink, fake_pin = _fake_pink_module()
 
-        with patch.dict(sys.modules, {"pink": fake_pink, "pinocchio": fake_pin}):
+        fake_qpsolvers = ModuleType("qpsolvers")
+        fake_qpsolvers.available_solvers = ["daqp"]
+        modules = {
+            "pink": fake_pink,
+            "pinocchio": fake_pin,
+            "qpsolvers": fake_qpsolvers,
+        }
+
+        with patch.dict(sys.modules, modules):
             import pinocchio_models.addons.pink.ik_solver_tasks as task_mod
 
             task_mod = importlib.reload(task_mod)
@@ -227,12 +249,17 @@ class TestPinkHelperBuilders:
                 task.target.translation, np.array([1.0, 2.0, 3.0])
             )
 
-            ground_tasks = task_mod._build_ground_tasks()
-            assert [task.frame_name for task in ground_tasks] == ["foot_l", "foot_r"]
-            assert all(task.target == "identity-se3" for task in ground_tasks)
-
             configuration = _FakeConfiguration(
                 object(), object(), np.array([1.0, 2.0, 3.0])
+            )
+            ground_tasks = task_mod._build_ground_tasks(configuration)
+            assert [task.frame_name for task in ground_tasks] == ["foot_l", "foot_r"]
+            sole = task_mod.sole_depth_m()
+            np.testing.assert_allclose(
+                ground_tasks[0].target.translation, [0.1, 0.09, sole]
+            )
+            np.testing.assert_allclose(
+                ground_tasks[1].target.translation, [0.1, -0.09, sole]
             )
             next_configuration = task_mod._ik_step(
                 configuration,
@@ -243,6 +270,7 @@ class TestPinkHelperBuilders:
             np.testing.assert_allclose(
                 next_configuration.q, np.array([1.005, 1.9975, 3.0025])
             )
+            assert configuration.last_solver == "daqp"  # type: ignore[attr-defined]
 
             target_tasks[0]._error = np.array([1e-6, 0.0, 0.0])
             ground_tasks[0]._error = np.array([2e-6, 0.0, 0.0])
