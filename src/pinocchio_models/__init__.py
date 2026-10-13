@@ -1,5 +1,6 @@
 """Pinocchio multibody models for classical barbell exercises."""
 
+from pinocchio_models.contact_dynamics import ground_reaction_forces
 from pinocchio_models.dynamics import inverse_dynamics
 from pinocchio_models.exceptions import GeometryError, PinocchioModelsError, URDFError
 from pinocchio_models.exercises.base import ExerciseConfig, ExerciseModelBuilder
@@ -63,6 +64,7 @@ __all__ = [
     "build_squat_model",
     "forward_kinematics",
     "ground_configuration",
+    "ground_reaction_forces",
     "grounded_pelvis_height",
     "inverse_dynamics",
 ]

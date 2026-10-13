@@ -6,15 +6,19 @@ engine_version: ">=2.7"
 anthropometrics: winter_2009
 format: urdf
 capabilities:
-  load_in_engine: {level: full, evidence: tests/parity/test_engine_conformance.py}
-  forward_kinematics: {level: full, evidence: tests/parity/test_forward_kinematics.py}
-  inverse_kinematics: {level: partial, evidence: null}
-  forward_dynamics: {level: partial, evidence: null}
-  inverse_dynamics: {level: full, evidence: tests/parity/test_inverse_dynamics.py}
-  contact_grf: {level: none, evidence: null}
-  urdf_import: {level: none, evidence: null}
-  urdf_export: {level: full, evidence: tests/parity/test_engine_conformance.py}
-  video_export: {level: none, evidence: null}
+  load_in_engine:
+    { level: full, evidence: tests/parity/test_engine_conformance.py }
+  forward_kinematics:
+    { level: full, evidence: tests/parity/test_forward_kinematics.py }
+  inverse_kinematics: { level: partial, evidence: null }
+  forward_dynamics: { level: partial, evidence: null }
+  inverse_dynamics:
+    { level: full, evidence: tests/parity/test_inverse_dynamics.py }
+  contact_grf: { level: partial, evidence: tests/parity/test_contact_grf.py }
+  urdf_import: { level: none, evidence: null }
+  urdf_export:
+    { level: full, evidence: tests/parity/test_engine_conformance.py }
+  video_export: { level: none, evidence: null }
 addons:
   gepetto: optional
   pink: optional
