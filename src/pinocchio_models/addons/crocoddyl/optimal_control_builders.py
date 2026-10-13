@@ -64,12 +64,14 @@ def _build_contact_models(
     model: Any,
     state: Any,
     foot_frame_names: list[str],
+    nu: int,
 ) -> Any:
     """Build a ContactModelMultiple with 3D foot contacts.
 
     Each foot frame gets a :class:`crocoddyl.ContactModel3D` enforcing
     the frame position (bilateral, zero-velocity contact on the ground
-    plane).
+    plane), expressed ``LOCAL_WORLD_ALIGNED`` (the Crocoddyl >= 2
+    signature, which takes the reference frame type).
 
     Parameters
     ----------
@@ -79,20 +81,24 @@ def _build_contact_models(
         State object wrapping *model*.
     foot_frame_names : list[str]
         Frame names to constrain (e.g. ``["foot_l", "foot_r"]``).
+    nu : int
+        Control dimension of the actuation model (``nv - 6`` for a
+        floating base); contacts and costs must share it.
 
     Returns
     -------
     crocoddyl.ContactModelMultiple
         Contact model ready for use in a DAM.
     """
-    contacts = crocoddyl.ContactModelMultiple(state, model.nv)
+    contacts = crocoddyl.ContactModelMultiple(state, nu)
     for name in foot_frame_names:
         frame_id = model.getFrameId(name)
         contact = crocoddyl.ContactModel3D(
             state,
             frame_id,
-            np.zeros(3),  # reference position (ground)
-            model.nv,
+            np.zeros(3),  # position reference; unused with a zero position gain
+            pin.ReferenceFrame.LOCAL_WORLD_ALIGNED,
+            nu,
             np.array(CONTACT_BAUMGARTE_GAINS),
         )
         contacts.addContact(f"{name}_contact", contact)
@@ -143,26 +149,29 @@ def _build_ocp_common(
     model = pin.buildModelFromXML(urdf_str, pin.JointModelFreeFlyer())
     state = crocoddyl.StateMultibody(model)
     actuation = crocoddyl.ActuationModelFloatingBase(state)
+    nu = actuation.nu
+    x0 = np.concatenate([pin.neutral(model), np.zeros(model.nv)])
 
-    # Running cost: effort regularization + state regularization
-    running_cost_model = crocoddyl.CostModelSum(state)
-    u_residual = crocoddyl.ResidualModelControl(state)
+    # Running cost: effort regularization + state regularization about x0.
+    # Every cost and contact carries the actuation's control dimension nu.
+    running_cost_model = crocoddyl.CostModelSum(state, nu)
+    u_residual = crocoddyl.ResidualModelControl(state, nu)
     u_cost = crocoddyl.CostModelResidual(state, u_residual)
     running_cost_model.addCost("effort", u_cost, EFFORT_COST_WEIGHT)
 
-    x_residual = crocoddyl.ResidualModelState(state)
+    x_residual = crocoddyl.ResidualModelState(state, x0, nu)
     x_cost = crocoddyl.CostModelResidual(state, x_residual)
     running_cost_model.addCost("state_reg", x_cost, STATE_REG_RUNNING_WEIGHT)
 
     # Terminal cost: state regularization
-    terminal_cost_model = crocoddyl.CostModelSum(state)
+    terminal_cost_model = crocoddyl.CostModelSum(state, nu)
     terminal_cost_model.addCost("state_reg", x_cost, STATE_REG_TERMINAL_WEIGHT)
 
     # Optionally add contact constraints
     contacts = None
     if use_contacts:
         foot_frames = ["foot_l", "foot_r"]
-        contacts = _build_contact_models(model, state, foot_frames)
+        contacts = _build_contact_models(model, state, foot_frames, nu)
 
         for fname in foot_frames:
             frame_id = model.getFrameId(fname)
@@ -173,14 +182,19 @@ def _build_ocp_common(
                 False,
             )
             friction_residual = crocoddyl.ResidualModelContactFrictionCone(
-                state, frame_id, cone, model.nv
+                state, frame_id, cone, nu
             )
-            friction_cost = crocoddyl.CostModelResidual(state, friction_residual)
+            # The cone is an inequality lb <= A f <= ub: penalise only the
+            # violation (quadratic barrier), not the force itself.
+            friction_activation = crocoddyl.ActivationModelQuadraticBarrier(
+                crocoddyl.ActivationBounds(cone.lb, cone.ub)
+            )
+            friction_cost = crocoddyl.CostModelResidual(
+                state, friction_activation, friction_residual
+            )
             running_cost_model.addCost(
                 f"{fname}_friction", friction_cost, FRICTION_COST_WEIGHT
             )
-
-    x0 = np.concatenate([pin.neutral(model), np.zeros(model.nv)])
 
     return _OCPComponents(
         model=model,

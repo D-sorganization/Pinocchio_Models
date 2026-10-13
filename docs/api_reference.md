@@ -249,6 +249,56 @@ WebM); producing pixels needs a browser or an offscreen renderer, so the
 The GRF/CoP math is engine-independent and lives in
 `pinocchio_models.shared.contact.grf`.
 
+## Forward Dynamics with Ground Contact (aba)
+
+`pinocchio_models.simulate_forward_dynamics(exercise, q0, duration=...)`
+integrates `pinocchio.aba` with compliant ground contact;
+`contact_forward_dynamics(exercise, q, v, tau)` evaluates one step:
+
+```python
+import pinocchio as pin
+from pinocchio_models import (
+    ground_configuration,
+    holding_servo,
+    simulate_forward_dynamics,
+)
+from pinocchio_models.shared.parity.fingerprint import build_urdf, load_model
+
+model = load_model(build_urdf("squat"))
+q0 = ground_configuration(model, pin.neutral(model))  # soles on the floor
+rollout = simulate_forward_dynamics(
+    model, q0, duration=0.5, servo=holding_servo(model, q0)
+)
+rollout.q, rollout.v           # (n + 1, nq), (n + 1, nv)
+rollout.ground_force[-1]       # (3,) N; [2] ~= m * g once settled
+rollout.min_contact_height     # (n + 1,) m; negative = sole penetration
+rollout.final_grf              # GroundReactionForces (per foot, CoP)
+```
+
+Contact model: the foot sole corners of `foot_contact_points()` touch a flat
+floor at `z = 0` through a unilateral spring-damper (the floor never pulls)
+with viscous friction clipped to the Coulomb cone `mu F_n`
+(`shared.contact.penalty`). The forces enter `aba` as external spatial forces
+on the supporting joints. Gains derive from the model weight `W` and a static
+sole penetration `delta` (default 2 mm): `k = W / (n delta)` per point and
+critical damping of the supported-body mode `sqrt(g / delta)`. A penalty law
+was chosen over a rigid `constraintDynamics` solve per step because it is
+defined in every state, releases contacts that lift off and bounds friction.
+
+Integration: semi-implicit Euler on the configuration manifold with the
+contact and servo damping taken linearly implicit,
+`v+ = v + dt (M + dt C)^-1 M ddq`. The default `dt` is the undamped
+linearised stability limit at `q0` (all contacts closed) divided by
+`TIME_STEP_SAFETY_FACTOR = 2`; an explicit `dt` above that is rejected.
+
+The root is unactuated. `holding_servo(exercise, q)` returns a `JointServo`
+(PD per joint at bandwidth 20 rad/s from the `crba` diagonal, plus the static
+holding torques `g(q) - J^T w` of the rigid ground reaction
+`ground_reaction_forces`); pass `servo=None` for passive joints and
+`ground_contact=False` for free fall. Limits: only the sole corners contact
+the floor (no other body-environment or self collision), friction has no
+static stick, and the step is fixed, so the capability is rated `partial`.
+
 ## Initial Pose Metadata
 
 Exercise builders write `initial_position` attributes onto URDF joints to record

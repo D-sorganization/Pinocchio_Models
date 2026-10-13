@@ -83,11 +83,13 @@ class _FakeStateMultibody:
 class _FakeActuationModelFloatingBase:
     def __init__(self, state: _FakeStateMultibody) -> None:
         self.state = state
+        self.nu = 2  # the real model reports nv - 6 (unactuated root)
 
 
 class _FakeCostModelSum:
-    def __init__(self, state: _FakeStateMultibody) -> None:
+    def __init__(self, state: _FakeStateMultibody, nu: int) -> None:
         self.state = state
+        self.nu = nu
         self.costs: list[tuple[str, object, float]] = []
 
     def addCost(self, name: str, cost: object, weight: float) -> None:  # noqa: N802
@@ -97,18 +99,21 @@ class _FakeCostModelSum:
 @dataclass
 class _FakeResidualModelControl:
     state: object
+    nu: int
 
 
 @dataclass
 class _FakeResidualModelState:
     state: object
-    xref: object | None = None
+    xref: object
+    nu: int
 
 
-@dataclass
 class _FakeCostModelResidual:
-    state: object
-    residual: object
+    def __init__(self, state: object, *args: object) -> None:
+        self.state = state
+        self.activation = args[0] if len(args) == 2 else None
+        self.residual = args[-1]
 
 
 @dataclass
@@ -116,14 +121,15 @@ class _FakeContactModel3D:
     state: object
     frame_id: int
     reference: np.ndarray
-    nv: int
+    frame_type: str
+    nu: int
     gains: np.ndarray
 
 
 class _FakeContactModelMultiple:
-    def __init__(self, state: _FakeStateMultibody, nv: int) -> None:
+    def __init__(self, state: _FakeStateMultibody, nu: int) -> None:
         self.state = state
-        self.nv = nv
+        self.nu = nu
         self.contacts: list[tuple[str, _FakeContactModel3D]] = []
 
     def addContact(self, name: str, contact: _FakeContactModel3D) -> None:  # noqa: N802
@@ -137,13 +143,32 @@ class _FakeFrictionCone:
     facets: int
     inner_appr: bool
 
+    @property
+    def lb(self) -> np.ndarray:
+        return np.full(self.facets + 1, -np.inf)
+
+    @property
+    def ub(self) -> np.ndarray:
+        return np.zeros(self.facets + 1)
+
 
 @dataclass
 class _FakeResidualModelContactFrictionCone:
     state: object
     frame_id: int
     cone: object
-    nv: int
+    nu: int
+
+
+@dataclass
+class _FakeActivationBounds:
+    lb: np.ndarray
+    ub: np.ndarray
+
+
+@dataclass
+class _FakeActivationModelQuadraticBarrier:
+    bounds: _FakeActivationBounds
 
 
 @dataclass
@@ -201,6 +226,10 @@ def _fake_crocoddyl_module() -> tuple[ModuleType, ModuleType]:
     fake_crocoddyl.ResidualModelContactFrictionCone = (
         _FakeResidualModelContactFrictionCone
     )
+    fake_crocoddyl.ActivationBounds = _FakeActivationBounds
+    fake_crocoddyl.ActivationModelQuadraticBarrier = (
+        _FakeActivationModelQuadraticBarrier
+    )
     fake_crocoddyl.DifferentialActionModelContactFwdDynamics = (
         _FakeDifferentialActionModelContactFwdDynamics
     )
@@ -214,6 +243,7 @@ def _fake_crocoddyl_module() -> tuple[ModuleType, ModuleType]:
     fake_pin.JointModelFreeFlyer = lambda: "freeflyer"
     fake_pin.buildModelFromXML = lambda _urdf, _joint: _FakeModel()
     fake_pin.neutral = lambda _model: np.array([0.25, -0.5, 0.75])
+    fake_pin.ReferenceFrame = SimpleNamespace(LOCAL_WORLD_ALIGNED="lwa")
 
     return fake_crocoddyl, fake_pin
 
@@ -306,13 +336,17 @@ class TestCrocoddylHelperBuilders:
             model = _FakeModel()
             state = _FakeStateMultibody(model)
             contacts = builder_mod._build_contact_models(
-                model, state, ["foot_l", "foot_r"]
+                model, state, ["foot_l", "foot_r"], 2
             )
             assert [name for name, _ in contacts.contacts] == [
                 "foot_l_contact",
                 "foot_r_contact",
             ]
             assert [contact.frame_id for _, contact in contacts.contacts] == [11, 22]
+            # Crocoddyl >= 2 signature: frame type, then the control dimension.
+            assert contacts.nu == 2
+            assert all(c.frame_type == "lwa" for _, c in contacts.contacts)
+            assert all(c.nu == 2 for _, c in contacts.contacts)
 
             components = builder_mod._build_ocp_common(
                 "<robot name='test'/>",
@@ -332,6 +366,16 @@ class TestCrocoddylHelperBuilders:
             assert [name for name, _, _ in components.terminal_cost_model.costs] == [
                 "state_reg"
             ]
+            # Every cost carries the actuation control dimension (nv - 6).
+            assert components.running_cost_model.nu == components.actuation.nu
+            effort = components.running_cost_model.costs[0][1].residual
+            assert effort.nu == components.actuation.nu
+            state_reg = components.running_cost_model.costs[1][1].residual
+            np.testing.assert_allclose(state_reg.xref, components.x0)
+            # The friction cone is an inequality: barrier-activated residual.
+            friction = components.running_cost_model.costs[2][1]
+            assert isinstance(friction.activation, _FakeActivationModelQuadraticBarrier)
+            assert friction.residual.nu == components.actuation.nu
             np.testing.assert_allclose(
                 components.x0,
                 np.array([0.25, -0.5, 0.75, 0.0, 0.0, 0.0]),
@@ -352,8 +396,8 @@ class TestCrocoddylHelperBuilders:
                 model=model,
                 state=state,
                 actuation=_FakeActuationModelFloatingBase(state),
-                running_cost_model=_FakeCostModelSum(state),
-                terminal_cost_model=_FakeCostModelSum(state),
+                running_cost_model=_FakeCostModelSum(state, 2),
+                terminal_cost_model=_FakeCostModelSum(state, 2),
                 contacts=None,
                 x0=np.zeros(6),
             )

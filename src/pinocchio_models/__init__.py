@@ -32,6 +32,11 @@ from pinocchio_models.exercises.squat.squat_model import (
     SquatModelBuilder,
     build_squat_model,
 )
+from pinocchio_models.forward_dynamics import (
+    contact_forward_dynamics,
+    holding_servo,
+    simulate_forward_dynamics,
+)
 from pinocchio_models.kinematics import (
     forward_kinematics,
     ground_configuration,
@@ -64,10 +69,13 @@ __all__ = [
     "build_sit_to_stand_model",
     "build_snatch_model",
     "build_squat_model",
+    "contact_forward_dynamics",
     "forward_kinematics",
     "ground_configuration",
     "ground_reaction_forces",
     "grounded_pelvis_height",
+    "holding_servo",
     "inverse_dynamics",
     "record_rollout",
+    "simulate_forward_dynamics",
 ]

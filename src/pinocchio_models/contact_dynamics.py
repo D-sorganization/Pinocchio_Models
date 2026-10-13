@@ -135,7 +135,7 @@ def _require_free_flyer_root(model: Any) -> None:
     """Precondition: joint 1 is a free flyer (a welded root has no GRF)."""
     if model.njoints < 2 or model.joints[1].nq != _FREE_FLYER_NQ:
         raise ValueError(
-            "ground_reaction_forces requires a free-flyer root; "
+            "ground contact requires a free-flyer root; "
             "welded-root models (e.g. bench_press) have no ground contact"
         )
 
