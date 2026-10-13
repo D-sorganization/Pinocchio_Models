@@ -98,6 +98,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#471 · Place-Foot-Contacts-and-Sole-Collision-Foot.Length-Below-the-Ankle-per-the-Parity-Standard
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #471
+- **Branch:** merged via #477
+- **PR:** #477
+- **Paths:** see #477
+- **Started:** 2026-10-12
+- **Last verified:** 2026-10-12 (`159194e7`; collated from changes/471-place-foot-contacts-and-sole-collision-f.md)
+- **Summary:** Place-foot-contacts-and-sole-collision-foot.length-below-the-ankle-per-the-parity-standard
+- **Next step:** Shipped in PR #477.
+
 ### DL-#434 · Lift Objectives Consume the Standard V2.0 Exercise Spec (Phase Names, Timing, Start/Catch/Lockout Via-Poses); Deadlift Now Has the Spec's 5 Phases (LIFT-2, UpstreamDrift#11742)
 
 - **State:** shipped
