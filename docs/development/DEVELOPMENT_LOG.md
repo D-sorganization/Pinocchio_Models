@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#466 · Weld the Bench-Press Root at the Standard V2.0 Via-Pose
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #466
+- **Branch:** fix/466-bench-press-root-weld
+- **PR:** #476
+- **Paths:** see #476
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`f7f232a5`; collated from changes/466-weld-the-bench-press-root-at-the-standar.md)
+- **Summary:** Weld the Bench-Press Root at the Standard v2.0 Via-Pose
+- **Next step:** Merge the PR.
+
 ### DL-#467 · \ Name Gait and Sit-to-Stand Phases per Standard V2.0\
 
 - **State:** in_review

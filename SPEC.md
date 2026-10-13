@@ -332,6 +332,7 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-13 | #476 | Weld the Bench-Press Root at the Standard v2.0 Via-Pose |
 | 2026-10-12 | #477 | Place-foot-contacts-and-sole-collision-foot.length-below-the-ankle-per-the-parity-standard |
 | 2026-10-12 | #474 | \ Name Gait and Sit-to-Stand Phases per Standard v2.0\ |
 | 2026-10-12 | #472 | LIFT-3: barbell lifts start at the spec v2.1 start via-pose (joints, pelvis root, bar); mass and CoM checks |
