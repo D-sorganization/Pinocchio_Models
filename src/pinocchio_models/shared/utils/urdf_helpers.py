@@ -492,14 +492,20 @@ def _parse_root_default(
 
 def _apply_root_default(pin: Any, model: Any, q: Any, xml_str: str) -> None:
     """Seed the free-flyer (7 q entries) with the recorded root placement."""
-    placement = _parse_root_default(xml_str)
-    if placement is None or model.njoints < 2 or model.joints[1].nq != 7:
+    if model.njoints < 2 or model.joints[1].nq != 7:
         return
-    xyz, rpy = placement
-    import numpy as np
+    placement = _parse_root_default(xml_str)
+    if placement is not None:
+        xyz, rpy = placement
+        import numpy as np
 
-    se3 = pin.SE3(pin.rpy.rpyToMatrix(*rpy), np.array(xyz))
-    q[:7] = pin.SE3ToXYZQUAT(se3)
+        se3 = pin.SE3(pin.rpy.rpyToMatrix(*rpy), np.array(xyz))
+        q[:7] = pin.SE3ToXYZQUAT(se3)
+    else:
+        from pinocchio_models.kinematics import grounded_pelvis_height
+
+        data = model.createData()
+        q[2] = grounded_pelvis_height(model, q=q, data=data)
 
 
 def _import_pinocchio() -> Any:

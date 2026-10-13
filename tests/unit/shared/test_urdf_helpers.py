@@ -381,3 +381,48 @@ class TestSerializeModel:
         xml_str = serialize_model(root)
         assert "<?xml" in xml_str
         assert "<robot" in xml_str
+
+
+class TestSoleCorners:
+    def test_returns_eight_corners(self) -> None:
+        from pinocchio_models.shared.body.foot_sole import sole_corners, sole_depth_m
+
+        corners = sole_corners()
+        assert len(corners) == 8
+        depth = sole_depth_m()
+        z_coords = [c[2] for c in corners]
+        assert min(z_coords) == pytest.approx(-depth)
+        assert max(z_coords) == pytest.approx(-depth + 0.02)
+
+    def test_custom_dimensions(self) -> None:
+        from pinocchio_models.shared.body.foot_sole import sole_corners, sole_depth_m
+
+        dims = (0.30, 0.12, 0.04)
+        corners = sole_corners(dims)
+        assert len(corners) == 8
+        depth = sole_depth_m()
+        x_coords = [c[0] for c in corners]
+        y_coords = [c[1] for c in corners]
+        z_coords = [c[2] for c in corners]
+        assert min(x_coords) == pytest.approx(-0.15)
+        assert max(x_coords) == pytest.approx(0.15)
+        assert min(y_coords) == pytest.approx(-0.06)
+        assert max(y_coords) == pytest.approx(0.06)
+        assert min(z_coords) == pytest.approx(-depth)
+        assert max(z_coords) == pytest.approx(-depth + 0.04)
+
+
+class TestGroundedPelvisValidation:
+    def test_grounded_pelvis_height_invalid_exercise(self) -> None:
+        pytest.importorskip("pinocchio")
+        from pinocchio_models.kinematics import grounded_pelvis_height
+
+        with pytest.raises((ValueError, TypeError)):
+            grounded_pelvis_height("non_existent_exercise")
+
+    def test_ground_configuration_invalid_exercise(self) -> None:
+        pytest.importorskip("pinocchio")
+        from pinocchio_models.kinematics import ground_configuration
+
+        with pytest.raises((ValueError, TypeError)):
+            ground_configuration(12345, [0.0] * 10)
