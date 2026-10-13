@@ -95,7 +95,9 @@ class _Posed:
 
     def __init__(self, exercise: str) -> None:
         self.urdf = _builder(exercise).build()
-        self.model = load_model(self.urdf, STD)
+        self.model = load_model(
+            self.urdf, STD, root_joint=spec.root_joint(STD, exercise)
+        )
         self.data = self.model.createData()
         self.q0 = get_initial_configuration(self.model, self.urdf)
         pin.forwardKinematics(self.model, self.data, self.q0)
@@ -234,7 +236,10 @@ def test_lifter_and_barbell_masses_are_the_spec_masses(exercise: str) -> None:
     bar = sum(m for name, m in masses.items() if name.startswith("barbell_"))
     want_bar = STD["barbell"]["mens"]["bar_mass_kg"] + 2.0 * _plates(exercise)
     assert bar == pytest.approx(want_bar, rel=TOL["mass_rel"])
-    total = pin.computeTotalMass(_posed(exercise).model)
+    total = (
+        pin.computeTotalMass(_posed(exercise).model)
+        + _posed(exercise).model.inertias[0].mass
+    )
     assert total == pytest.approx(body + want_bar, rel=TOL["mass_rel"])
 
 

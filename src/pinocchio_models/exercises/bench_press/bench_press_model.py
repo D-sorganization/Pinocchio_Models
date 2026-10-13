@@ -8,13 +8,12 @@ Biomechanical notes:
 - The model captures sagittal-plane pressing kinematics
 - Torso is fixed relative to the bench (simplified)
 
-Supine placement (issue #435, LIFT-3): the pelvis hangs from a ``bench``
+Supine placement (issue #435, #466): the pelvis hangs from a ``bench``
 support link through a fixed joint at the spec ``start`` via-pose root
 (position and pitch -pi/2, so the chest (+X of the body frame) points up
 (+Z) and the head toward -X). With the bench as the URDF root at the world
-origin, Pinocchio's free-flyer moves the bench and the supine lifter
-together; the standard's ``root_joint: weld`` (no free-flyer at all) is
-#466. The model starts at the spec ``unrack`` via-pose.
+origin, the model conforms to standard v2.0's ``root_joint: weld``
+(Universe -> bench fixed base). The model starts at the spec ``unrack`` via-pose.
 """
 
 from __future__ import annotations
