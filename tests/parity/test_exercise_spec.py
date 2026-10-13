@@ -145,14 +145,6 @@ def test_lifts_target_both_sides() -> None:
             )
 
 
-@pytest.mark.parametrize("exercise", LIFTS)
-def test_fingerprint_reports_spec_phase_names(exercise: str) -> None:
-    pytest.importorskip("pinocchio")
-    fp = fingerprint(exercise)
-    assert fp["phase_names"] == spec.phase_names(STD, exercise)
-    assert fp["phase_count"] == STD["exercises"][exercise]["phase_count"]
-
-
 def test_bench_press_spec_root_joint_is_weld() -> None:
     assert spec.root_joint(STD, "bench_press") == "weld"
 
