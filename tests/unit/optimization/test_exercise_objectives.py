@@ -68,6 +68,18 @@ class TestExerciseObjectives:
         obj = EXERCISE_OBJECTIVES[name]
         assert obj.phases[-1].fraction <= 1.0
 
+    @pytest.mark.parametrize("name", EXPECTED_EXERCISES)
+    def test_phase_targets_are_bilateral(self, name: str) -> None:
+        """Every bilateral limb joint target on the left has a matching right target (#449)."""
+        obj = EXERCISE_OBJECTIVES[name]
+        for phase in obj.phases:
+            left_keys = [k for k in phase.target_joints if "_l_" in k]
+            for lk in left_keys:
+                rk = lk.replace("_l_", "_r_")
+                assert rk in phase.target_joints, (
+                    f"{name}/{phase.name}: {lk} present but matching right target {rk} missing"
+                )
+
 
 # ------------------------------------------------------------------
 # get_exercise_objective
