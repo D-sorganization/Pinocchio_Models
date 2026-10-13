@@ -332,6 +332,7 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                        |
 | ---------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-13 | #482 | Ground pelvis so foot soles rest on floor plane with grounded_pelvis_height helper |
 | 2026-10-13 | #480 | Set bilateral right-limb targets in sit-to-stand objective phases |
 | 2026-10-13 | #476 | Weld the Bench-Press Root at the Standard v2.0 Via-Pose |
 | 2026-10-12 | #477 | Place-foot-contacts-and-sole-collision-foot.length-below-the-ankle-per-the-parity-standard |

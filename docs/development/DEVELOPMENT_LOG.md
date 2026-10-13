@@ -50,10 +50,10 @@ reachable from any live state and `abandoned` from `parked`.
 - **Owner:** unassigned
 - **Issue:** #450
 - **Branch:** claude/lift-3-spec-start-poses
-- **PR:** #472
+- **PR:** #472, #482
 - **Paths:** see #472
 - **Started:** 2026-10-12
-- **Last verified:** 2026-10-12 (`dbbf2513`; collated from changes/450-lift-3-barbell-lifts-start-at-the-spec-v.md)
+- **Last verified:** 2026-10-13 (`fa036be2`; collated from changes/450-ground-pelvis-so-foot-soles-rest-on-floo.md)
 - **Summary:** LIFT-3: barbell lifts start at the spec v2.1 start via-pose (joints, pelvis root, bar); mass and CoM checks
 - **Next step:** Merge the PR; then #470 (bench ankle limit), #471 (sole contacts), #466 (bench weld root).
 
