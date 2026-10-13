@@ -137,6 +137,32 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#432 · Add Constrained Contact Dynamics GRF/CoP API (Ground_Reaction_Forces) With Real-Pinocchio Standing Test
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #432
+- **Branch:** merged via #487
+- **PR:** #487
+- **Paths:** see #487
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`f8291479`; collated from changes/432-add-constrained-contact-dynamics-grf-cop.md)
+- **Summary:** Add constrained contact dynamics GRF/CoP API (ground_reaction_forces) with real-Pinocchio standing test
+- **Next step:** Shipped in PR #487.
+
+### DL-#429 · Real Pink IK Tests With Frame and Ground Targets
+
+- **State:** shipped
+- **Owner:** claude
+- **Issue:** #429
+- **Branch:** feat/429-pink-real
+- **PR:** #491
+- **Paths:** src/pinocchio_models/addons/pink,tests/integration/test_pink_ik_real.py,model_pack.yaml,pyproject.toml
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`650ef388`; collated from changes/429-real-pink-tests-solve-hand-bar-and-foot.md)
+- **Summary:** Real-pink tests solve hand, bar and foot-height targets on the squat URDF under 1 cm; fixed the wrapper (pink.solve_ik with a QP backend, ground targets plant soles at sole depth, unknown frames rejected); IK capability raised to full.
+- **Next step:** Shipped in PR #491.
+
 ### DL-#449 · Set Bilateral Right-Limb Targets in Sit-to-Stand Objective Phases
 
 - **State:** shipped
