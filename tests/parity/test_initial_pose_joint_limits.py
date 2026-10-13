@@ -35,12 +35,6 @@ from pinocchio_models.exercises.squat.squat_model import SquatModelBuilder
 from pinocchio_models.shared.parity.fingerprint import load_model
 from pinocchio_models.shared.utils.urdf_helpers import get_initial_configuration
 
-# The spec bench-press unrack sets ankle flexion to 20.39 deg; the model's
-# (sign-flipped, ledgered) ankle range tops out at 20 deg (#470, #433).
-_BENCH_ANKLE_LIMIT = pytest.mark.xfail(
-    strict=True, reason="#470: spec bench ankle_flex 20.39 deg > model max 20 deg"
-)
-
 # Every exercise that attaches a barbell (gait and sit_to_stand are
 # bodyweight and are out of scope for this check).
 _BARBELL_BUILDERS: list[tuple[str, type[ExerciseModelBuilder]]] = [
@@ -78,11 +72,7 @@ def _joint_limit_violations(
 
 
 @pytest.mark.parametrize(
-    "name,builder_cls",
-    [
-        pytest.param(n, b, id=n, marks=_BENCH_ANKLE_LIMIT if n == "bench_press" else ())
-        for n, b in _BARBELL_BUILDERS
-    ],
+    "name,builder_cls", _BARBELL_BUILDERS, ids=[n for n, _ in _BARBELL_BUILDERS]
 )
 def test_initial_pose_within_joint_limits(
     name: str, builder_cls: type[ExerciseModelBuilder]

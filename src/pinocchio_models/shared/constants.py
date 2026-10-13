@@ -92,9 +92,10 @@ HIP_ROTATION_MAX: float = math.radians(45)  # Internal rotation
 KNEE_FLEXION_MIN: float = math.radians(-150)  # Full flexion -2.618
 KNEE_FLEXION_MAX: float = math.radians(0)
 
-# Ankle (dorsiflexion/plantarflexion) -- Winter (2009)
-ANKLE_FLEXION_MIN: float = math.radians(-50)  # Plantarflexion
-ANKLE_FLEXION_MAX: float = math.radians(20)  # Dorsiflexion
+# Ankle dorsiflexion/plantarflexion: vendored parity standard limits_deg
+# [-20, 50] with positive = dorsiflexion (axis (0,-1,0); issue #470, #433).
+ANKLE_FLEXION_MIN: float = math.radians(-20)  # Plantarflexion
+ANKLE_FLEXION_MAX: float = math.radians(50)  # Dorsiflexion
 
 # Ankle inversion/eversion (about longitudinal foot axis) -- Winter (2009)
 # Inversion ~20 deg, eversion ~20 deg
