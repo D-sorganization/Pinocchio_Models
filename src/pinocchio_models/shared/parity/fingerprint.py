@@ -188,8 +188,9 @@ def fingerprint(exercise: str) -> dict[str, Any]:
         coordinate_aliases=COORDINATE_ALIASES,
         segment_aliases=SEGMENT_ALIASES,
         phase_count=None if names is None else len(names),
-        # Standard v2.0 conformance criterion 3: the ordered phase names.
-        extras={} if names is None else {"phase_names": names},
+        # Standard v2.0 conformance criterion 3: the ordered phase names, a core
+        # assemble_fingerprint field since Repository_Management#2089.
+        phase_names=names,
         coordinate_axes_engine=axes_probe.coordinate_axes(
             model, std, COORDINATE_ALIASES
         ),
