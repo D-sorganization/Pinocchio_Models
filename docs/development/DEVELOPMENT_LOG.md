@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#437 · Add Cross-Engine Test That Loads the URDF in MuJoCo and Drake
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #437
+- **Branch:** feat/437-cross-engine-urdf-test
+- **PR:** #486
+- **Paths:** see #486
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`9a6268dc`; collated from changes/437-add-cross-engine-test-that-loads-the-urd.md)
+- **Summary:** Add cross-engine test that loads the URDF in MuJoCo and Drake
+- **Next step:** Merge the PR.
+
 ### DL-#436 · Rename Elbow_L, Knee_L and Neck to Canonical Joint Names
 
 - **State:** in_review
