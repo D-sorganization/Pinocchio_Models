@@ -12,7 +12,8 @@ capabilities:
     { level: full, evidence: tests/parity/test_forward_kinematics.py }
   inverse_kinematics:
     { level: full, evidence: tests/integration/test_pink_ik_real.py }
-  forward_dynamics: { level: partial, evidence: null }
+  forward_dynamics:
+    { level: partial, evidence: tests/parity/test_forward_dynamics.py }
   inverse_dynamics:
     { level: full, evidence: tests/parity/test_inverse_dynamics.py }
   contact_grf: { level: partial, evidence: tests/parity/test_contact_grf.py }

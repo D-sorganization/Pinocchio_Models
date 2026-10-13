@@ -21,6 +21,8 @@ preserved so existing imports and test mocks continue to work.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from pinocchio_models.exceptions import GeometryError
@@ -59,11 +61,32 @@ __all__ = [
     "STATE_REG_RUNNING_WEIGHT",
     "STATE_REG_TERMINAL_WEIGHT",
     "ExerciseOCP",
+    "OCPSolution",
     "create_cyclic_ocp",
     "create_exercise_ocp",
     "extract_joint_torques",
+    "solve_ocp",
     "solve_trajectory",
 ]
+
+
+@dataclass(frozen=True)
+class OCPSolution:
+    """Result of a DDP solve.
+
+    Attributes:
+        states: Optimal state trajectory (``n_steps + 1`` states).
+        controls: Optimal controls (``n_steps`` vectors).
+        converged: Whether the solver met its stopping criterion.
+        iterations: DDP iterations performed.
+        cost: Total cost of the returned trajectory.
+    """
+
+    states: list[np.ndarray]
+    controls: list[np.ndarray]
+    converged: bool
+    iterations: int
+    cost: float
 
 
 def _require_crocoddyl() -> None:
@@ -180,6 +203,25 @@ def solve_trajectory(
     tuple[list[ndarray], list[ndarray]]
         (states, controls) -- optimal state trajectory and control inputs.
     """
+    solution = solve_ocp(ocp, initial_state, max_iterations)
+    return solution.states, solution.controls
+
+
+def solve_ocp(
+    ocp: ExerciseOCP,
+    initial_state: np.ndarray | None = None,
+    max_iterations: int = 100,
+) -> OCPSolution:
+    """Solve the OCP with DDP and report convergence.
+
+    Same inputs as :func:`solve_trajectory`, which returns only the
+    trajectory; use this to check that the solver actually converged.
+
+    Returns
+    -------
+    OCPSolution
+        Trajectory plus convergence flag, iteration count and cost.
+    """
     _require_crocoddyl()
 
     if initial_state is not None:
@@ -191,9 +233,17 @@ def solve_trajectory(
         ocp.problem.x0 = initial_state
 
     solver = crocoddyl.SolverDDP(ocp.problem)
-    solver.solve(maxiter=max_iterations)
+    # Positional call: the bindings have no keyword-only ``maxiter`` overload;
+    # empty initial guesses mean a cold start from x0 and zero controls.
+    converged = bool(solver.solve([], [], max_iterations))
 
-    return list(solver.xs), list(solver.us)
+    return OCPSolution(
+        states=list(solver.xs),
+        controls=list(solver.us),
+        converged=converged,
+        iterations=int(solver.iter),
+        cost=float(solver.cost),
+    )
 
 
 def extract_joint_torques(

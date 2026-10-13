@@ -75,3 +75,14 @@ class TestConvenienceImports:
         from pinocchio_models import ground_reaction_forces
 
         assert callable(ground_reaction_forces)
+
+    def test_import_forward_dynamics(self) -> None:
+        from pinocchio_models import (
+            contact_forward_dynamics,
+            holding_servo,
+            simulate_forward_dynamics,
+        )
+
+        assert callable(contact_forward_dynamics)
+        assert callable(holding_servo)
+        assert callable(simulate_forward_dynamics)
