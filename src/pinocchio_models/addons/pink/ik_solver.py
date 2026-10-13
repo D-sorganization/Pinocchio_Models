@@ -43,6 +43,7 @@ from pinocchio_models.shared.contracts.preconditions import (
 # this module (they are looked up by bare name in ``solve_pose``).
 from .ik_solver_phases import _EXERCISE_PHASES
 from .ik_solver_tasks import (
+    FOOT_FRAMES,
     _build_ground_tasks,
     _build_target_tasks,
     _check_convergence,
@@ -57,6 +58,13 @@ __all__ = [
     "create_ik_problem",
     "solve_pose",
 ]
+
+
+def _require_known_frames(model: Any, frame_names: list[str]) -> None:
+    """Raise GeometryError if any frame name is absent from *model*."""
+    missing = [name for name in frame_names if not model.existFrame(name)]
+    if missing:
+        raise GeometryError(f"Unknown IK target frame(s): {', '.join(missing)}")
 
 
 def _require_pink() -> None:
@@ -125,9 +133,10 @@ def solve_pose(
     tolerance : float
         Convergence tolerance.
     ground_feet : bool
-        If True, constrain ``foot_l`` and ``foot_r`` frames to
-        maintain Z=0 (ground contact). This prevents the model from
-        floating during IK.
+        If True, keep ``foot_l`` and ``foot_r`` planted at their starting
+        X/Y with the soles on the ground (ankle origin ``sole_depth_m()``
+        above Z=0) and level. This prevents the model from floating
+        during IK.
 
     Returns
     -------
@@ -151,13 +160,13 @@ def solve_pose(
 
     model = problem.model
     data = problem.data
+    _require_known_frames(model, [*targets, *(FOOT_FRAMES if ground_feet else ())])
 
     # --- Setup phase ---
+    configuration = pink.Configuration(model, data, pin.neutral(model))
     tasks = _build_target_tasks(targets)
     if ground_feet:
-        tasks.extend(_build_ground_tasks())
-
-    configuration = pink.Configuration(model, data, pin.neutral(model))
+        tasks.extend(_build_ground_tasks(configuration))
 
     # --- Solve phase ---
     converged = False

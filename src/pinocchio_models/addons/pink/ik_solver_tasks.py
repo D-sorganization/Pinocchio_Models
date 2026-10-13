@@ -4,8 +4,9 @@ Low-level building blocks used by :func:`ik_solver.solve_pose`:
 
 - :func:`_build_target_tasks` converts a user-supplied targets dict
   into Pink ``FrameTask`` instances.
-- :func:`_build_ground_tasks` emits foot-contact tasks pinning the
-  feet at Z=0.
+- :func:`_build_ground_tasks` emits foot-contact tasks that put each
+  sole on the ground (Z=0) where the foot starts.
+- :func:`_select_qp_solver` picks the QP backend Pink solves with.
 - :func:`_ik_step` advances the configuration by one integration step.
 - :func:`_check_convergence` evaluates the maximum task error.
 
@@ -20,12 +21,25 @@ from typing import Any
 
 import numpy as np
 
+from pinocchio_models.shared.body.foot_sole import sole_depth_m
+
 try:
     import pink
     import pinocchio as pin
+    import qpsolvers
 except ImportError:  # pragma: no cover - exercised via import guard tests
     pink = None  # type: ignore[assignment]
     pin = None  # type: ignore[assignment]
+    qpsolvers = None  # type: ignore[assignment]
+
+#: Frames constrained to the ground by :func:`_build_ground_tasks`.
+FOOT_FRAMES: tuple[str, ...] = ("foot_l", "foot_r")
+
+#: QP backends in order of preference; ``daqp`` ships with the ``pink`` extra.
+_PREFERRED_QP_SOLVERS: tuple[str, ...] = ("daqp", "quadprog", "proxqp", "osqp")
+
+#: Integration time step (s) for one IK iteration.
+_IK_DT = 0.01
 
 
 def _build_target_tasks(targets: dict[str, np.ndarray]) -> list[Any]:
@@ -54,8 +68,17 @@ def _build_target_tasks(targets: dict[str, np.ndarray]) -> list[Any]:
     return tasks
 
 
-def _build_ground_tasks() -> list[Any]:
-    """Build foot-contact tasks that pin feet at Z=0.
+def _build_ground_tasks(configuration: Any) -> list[Any]:
+    """Build foot-contact tasks that put each sole flat on the ground.
+
+    Each foot frame (the ankle origin) is targeted at its starting X/Y
+    position, ``sole_depth_m()`` above Z=0 so the sole touches the ground,
+    with a level (identity) orientation.
+
+    Parameters
+    ----------
+    configuration : pink.Configuration
+        Starting configuration; it fixes where each foot is planted.
 
     Returns
     -------
@@ -63,16 +86,45 @@ def _build_ground_tasks() -> list[Any]:
         Two Pink FrameTask instances (foot_l, foot_r) with high position
         weight to enforce ground contact.
     """
+    sole_height = sole_depth_m()
     tasks: list[Any] = []
-    for foot_name in ("foot_l", "foot_r"):
+    for foot_name in FOOT_FRAMES:
+        start = configuration.get_transform_frame_to_world(foot_name).translation
         foot_task = pink.tasks.FrameTask(
             foot_name,
             position_cost=10.0,  # High weight to enforce contact
             orientation_cost=0.1,
         )
-        foot_task.set_target(pin.SE3.Identity())
+        foot_task.set_target(
+            pin.SE3(np.eye(3), np.array([start[0], start[1], sole_height]))
+        )
         tasks.append(foot_task)
     return tasks
+
+
+def _select_qp_solver() -> str:
+    """Return the QP backend Pink should use.
+
+    Returns
+    -------
+    str
+        A preferred solver when installed, else the first available one.
+
+    Raises
+    ------
+    ImportError
+        If ``qpsolvers`` has no backend installed.
+    """
+    available = list(qpsolvers.available_solvers)
+    for name in _PREFERRED_QP_SOLVERS:
+        if name in available:
+            return name
+    if available:
+        return str(available[0])
+    raise ImportError(
+        "Pink found no QP solver backend. Install with: "
+        "pip install pinocchio-models[pink]"
+    )
 
 
 def _ik_step(
@@ -99,8 +151,8 @@ def _ik_step(
     pink.Configuration
         Updated configuration after the integration step.
     """
-    velocity = configuration.solve_ik(tasks, dt=0.01)
-    q = pin.integrate(model, configuration.q, velocity * 0.01)
+    velocity = pink.solve_ik(configuration, tasks, _IK_DT, solver=_select_qp_solver())
+    q = pin.integrate(model, configuration.q, velocity * _IK_DT)
     return pink.Configuration(model, data, q)
 
 

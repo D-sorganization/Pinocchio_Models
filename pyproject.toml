@@ -32,6 +32,8 @@ gepetto = [
 ]
 pink = [
     "pin-pink>=4.1.0",
+    # Pink needs a QP backend; qpsolvers ships none by default (#429).
+    "qpsolvers[daqp]>=4.3.1",
 ]
 crocoddyl = [
     "crocoddyl>=2.0.0",
@@ -44,6 +46,9 @@ docs = [
 ]
 dev = [
     "pin>=3.0.0",
+    # Real Pink IK tests run in default CI (#429); mirrors the ``pink`` extra.
+    "pin-pink>=4.1.0",
+    "qpsolvers[daqp]>=4.3.1",
     "pytest>=9.0.3",
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.0.0",
