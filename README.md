@@ -67,6 +67,21 @@ pip install -e ".[gepetto]"
 from pinocchio_models.addons.gepetto.viewer import create_viewer, display_configuration
 ```
 
+### Meshcat (Headless Rollout Recording)
+
+```bash
+pip install -e ".[meshcat]"
+```
+
+```python
+from pinocchio_models import record_rollout
+
+record_rollout("squat", frames, "squat_rollout.html")  # q trajectory -> HTML animation
+```
+
+Writes a self-contained HTML animation without opening a browser; see
+[docs/api_reference.md](docs/api_reference.md#recording-a-rollout-headless).
+
 ### Pink (Inverse Kinematics)
 
 ```bash

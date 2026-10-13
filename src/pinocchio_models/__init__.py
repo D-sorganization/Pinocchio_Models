@@ -42,6 +42,7 @@ from pinocchio_models.kinematics import (
     ground_configuration,
     grounded_pelvis_height,
 )
+from pinocchio_models.recording import RolloutRecording, record_rollout
 from pinocchio_models.shared.barbell import BarbellSpec
 from pinocchio_models.shared.body import BodyModelSpec
 
@@ -50,6 +51,7 @@ __all__ = [
     "BenchPressModelBuilder",
     "GeometryError",
     "PinocchioModelsError",
+    "RolloutRecording",
     "URDFError",
     "BodyModelSpec",
     "CleanAndJerkModelBuilder",
@@ -74,5 +76,6 @@ __all__ = [
     "grounded_pelvis_height",
     "holding_servo",
     "inverse_dynamics",
+    "record_rollout",
     "simulate_forward_dynamics",
 ]
