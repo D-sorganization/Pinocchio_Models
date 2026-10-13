@@ -19,7 +19,8 @@ capabilities:
   urdf_import: { level: none, evidence: null }
   urdf_export:
     { level: full, evidence: tests/parity/test_engine_conformance.py }
-  video_export: { level: none, evidence: null }
+  video_export:
+    { level: partial, evidence: tests/parity/test_record_rollout.py }
 addons:
   gepetto: optional
   pink: optional

@@ -38,8 +38,12 @@ pink = [
 crocoddyl = [
     "crocoddyl>=2.0.0",
 ]
+meshcat = [
+    "pin>=3.0.0",
+    "meshcat>=0.3.2",
+]
 all-addons = [
-    "pinocchio-models[pinocchio,gepetto,pink,crocoddyl]",
+    "pinocchio-models[pinocchio,gepetto,pink,crocoddyl,meshcat]",
 ]
 docs = [
     "sphinx>=8.0.0",
@@ -49,6 +53,7 @@ dev = [
     # Real Pink IK tests run in default CI (#429); mirrors the ``pink`` extra.
     "pin-pink>=4.1.0",
     "qpsolvers[daqp]>=4.3.1",
+    "meshcat>=0.3.2",
     "pytest>=9.0.3",
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.0.0",

@@ -198,6 +198,54 @@ more non-collinear active points the total vertical force equals `m * g`.
 No contact is explicit: a foot with no active point has zero force and moment
 and `cop=None`; with no active point at all, the total force and moment are
 zero and `grf.cop is None`. A welded root (`bench_press`) raises `ValueError`.
+
+## Recording a Rollout (Headless)
+
+`pinocchio_models.record_rollout(exercise, rollout, output_path, *, fps=30)`
+replays a configuration trajectory with
+`pinocchio.visualize.MeshcatVisualizer` and writes a **self-contained static
+HTML file**: the model's visual geometry plus a keyframed Meshcat animation
+with one keyframe per configuration. Opening the file in any browser plays the
+rollout; no server is needed afterwards. Requires the optional extra:
+
+```bash
+pip install -e ".[meshcat]"
+```
+
+```python
+import numpy as np
+import pinocchio as pin
+from pinocchio_models import record_rollout
+from pinocchio_models.recording import recorded_frame_count
+from pinocchio_models.shared.parity.fingerprint import build_urdf, load_model
+
+model = load_model(build_urdf("squat"))
+start = pin.neutral(model)
+end = start.copy()
+end[7:] = 0.5 * (model.lowerPositionLimit[7:] + model.upperPositionLimit[7:])
+frames = [pin.interpolate(model, start, end, t) for t in np.linspace(0, 1, 60)]
+
+rec = record_rollout("squat", frames, "squat_rollout.html", fps=30)
+rec.frame_count, rec.duration_s, rec.size_bytes   # 60, 2.0, ~1 MB
+recorded_frame_count(rec.path)                    # 60, decoded from the file
+```
+
+`rollout` is either a sequence of configurations (a kinematic replay, e.g.
+interpolated exercise keyframes) or a callable that receives the resolved
+`pinocchio.Model` and returns the configurations, so a forward-dynamics
+simulation can feed the recorder directly. Every configuration must have shape
+`(model.nq,)` and be finite; the rollout must be non-empty, `fps` a positive
+whole number and `output_path` an `.html` file in an existing directory.
+Violations raise `ValueError` before any server starts.
+
+Headless guarantees: a private Meshcat server is started on `127.0.0.1` only
+for the duration of the call and is always shut down before returning (also on
+error); no browser or GUI window is opened. As a postcondition the written
+file is non-empty and decodes to exactly one keyframe per configuration.
+
+Limitation: the artifact is an HTML animation, not an encoded video (MP4 or
+WebM); producing pixels needs a browser or an offscreen renderer, so the
+`video_export` capability is `partial`.
 The GRF/CoP math is engine-independent and lives in
 `pinocchio_models.shared.contact.grf`.
 
