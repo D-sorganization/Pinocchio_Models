@@ -35,10 +35,10 @@ def test_non_positive_height_is_rejected(height: float) -> None:
 def test_coordinates_use_engine_joint_names_and_zero_unlisted() -> None:
     coords = SpecStart("deadlift", HEIGHT).coordinates()
     want = spec.pose_coordinates(STD, "deadlift", "start")
-    assert coords["knee_l"] == want["knee_l_flex"]  # engine name of knee_l_flex
+    assert coords["knee_l_flex"] == want["knee_l_flex"]
     assert coords["hip_r_flex"] == want["hip_r_flex"]
-    assert coords["elbow_l"] == 0.0  # not listed in the deadlift start
-    assert coords["neck"] == want["neck_flex"]
+    assert coords["elbow_l_flex"] == 0.0  # not listed in the deadlift start
+    assert coords["neck_flex"] == want["neck_flex"]
     assert len(coords) == len(conformance.expected_coordinates(STD))
 
 
