@@ -137,6 +137,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#425 · Re-Sync Vendored Model-Parity Bundle to Repository_Management Main (Standard V2.1, assemble.py Phase_Names From RM#2089)
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #425
+- **Branch:** merged via #495
+- **PR:** #495
+- **Paths:** see #495
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`bb059f97`; collated from changes/425-parity-bundle-resync.md)
+- **Summary:** Re-sync vendored model-parity bundle to Repository_Management main (standard v2.1, assemble.py phase_names from RM#2089)
+- **Next step:** Shipped in PR #495.
+
 ### DL-#432 · Add Constrained Contact Dynamics GRF/CoP API (Ground_Reaction_Forces) With Real-Pinocchio Standing Test
 
 - **State:** shipped
