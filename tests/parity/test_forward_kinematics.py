@@ -91,3 +91,35 @@ class TestPreconditions:
         q[0] = value
         with pytest.raises(ValueError, match="non-finite"):
             forward_kinematics("squat", q)
+
+
+@pytest.mark.parametrize("exercise", EXERCISES)
+def test_grounded_pelvis_height_grounds_lowest_sole(exercise: str) -> None:
+    """grounded_pelvis_height places lowest foot sole point at z = 0 (#450)."""
+    from pinocchio_models import ground_configuration, grounded_pelvis_height
+    from pinocchio_models.shared.body.foot_sole import sole_corners
+
+    model = _model(exercise)
+    if model.njoints < 2 or model.joints[1].nq != 7:
+        pytest.skip(f"{exercise} does not have a free-flyer root joint")
+
+    q = pin.neutral(model)
+    data = model.createData()
+
+    z_grounded = grounded_pelvis_height(model, q=q, data=data)
+    assert z_grounded > 0.0
+
+    q_grounded = ground_configuration(model, q=q, data=data)
+    assert q_grounded[2] == pytest.approx(z_grounded)
+
+    pin.forwardKinematics(model, data, q_grounded)
+    pin.updateFramePlacements(model, data)
+
+    corners = [np.array(c) for c in sole_corners()]
+    sole_heights: list[float] = []
+    for side in ("l", "r"):
+        oMf = data.oMf[model.getFrameId(f"foot_{side}")]
+        for corner in corners:
+            sole_heights.append(float(oMf.act(corner)[2]))
+
+    assert min(sole_heights) == pytest.approx(0.0, abs=1e-6)

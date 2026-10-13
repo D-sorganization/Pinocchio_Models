@@ -45,7 +45,7 @@ from pinocchio_models.shared.body.body_anthropometrics import (
     _seg,
 )
 from pinocchio_models.shared.body.canonical_topology import joint_axis, joint_offset
-from pinocchio_models.shared.body.foot_sole import sole_depth_m
+from pinocchio_models.shared.body.foot_sole import SOLE_COLLISION_DIMS, sole_depth_m
 from pinocchio_models.shared.constants import (
     ANKLE_FLEXION_MAX,
     ANKLE_FLEXION_MIN,
@@ -325,9 +325,8 @@ def _build_lower_limbs(robot: ET.Element, spec: BodyModelSpec) -> None:
         ],
     )
 
-    _SOLE_COLLISION_DIMS = (0.26, 0.10, 0.02)
     for side in ("l", "r"):
-        _add_foot_collision(robot, side, _SOLE_COLLISION_DIMS)
+        _add_foot_collision(robot, side, SOLE_COLLISION_DIMS)
 
 
 def create_full_body(

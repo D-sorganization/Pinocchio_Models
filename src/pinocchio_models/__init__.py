@@ -31,7 +31,11 @@ from pinocchio_models.exercises.squat.squat_model import (
     SquatModelBuilder,
     build_squat_model,
 )
-from pinocchio_models.kinematics import forward_kinematics
+from pinocchio_models.kinematics import (
+    forward_kinematics,
+    ground_configuration,
+    grounded_pelvis_height,
+)
 from pinocchio_models.shared.barbell import BarbellSpec
 from pinocchio_models.shared.body import BodyModelSpec
 
@@ -58,5 +62,7 @@ __all__ = [
     "build_snatch_model",
     "build_squat_model",
     "forward_kinematics",
+    "ground_configuration",
+    "grounded_pelvis_height",
     "inverse_dynamics",
 ]

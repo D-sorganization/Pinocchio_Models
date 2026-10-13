@@ -52,6 +52,12 @@ class TestConvenienceImports:
 
         assert callable(inverse_dynamics)
 
+    def test_import_grounded_pelvis_helpers(self) -> None:
+        from pinocchio_models import ground_configuration, grounded_pelvis_height
+
+        assert callable(grounded_pelvis_height)
+        assert callable(ground_configuration)
+
     def test_import_specs(self) -> None:
         from pinocchio_models import BarbellSpec, BodyModelSpec, ExerciseConfig
 
