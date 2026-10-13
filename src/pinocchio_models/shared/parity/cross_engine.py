@@ -37,6 +37,52 @@ EXPECTED_SEGMENTS: tuple[str, ...] = (
 _MIN_INERTIA = "1e-6"
 
 
+def _find_root_links(root: ET.Element) -> list[str]:
+    """Return link names that have no parent joint."""
+    child_links: set[str] = set()
+    for j in root.findall("joint"):
+        child = j.find("child")
+        if child is not None:
+            c_name = child.get("link")
+            if c_name:
+                child_links.add(c_name)
+    return [
+        name
+        for link in root.findall("link")
+        if (name := link.get("name", "")) and name not in child_links
+    ]
+
+
+def _attach_world_root(root: ET.Element, root_links: list[str]) -> None:
+    """Attach a virtual world link and joint if missing."""
+    all_links = {link.get("name") for link in root.findall("link")}
+    if not root_links or "world" in all_links:
+        return
+
+    primary_root = root_links[0]
+    world_link = ET.Element("link", {"name": "world"})
+    rj_type = "fixed" if primary_root == "bench" else "floating"
+    root_joint = ET.Element("joint", {"name": "world_root_joint", "type": rj_type})
+    ET.SubElement(root_joint, "parent", {"link": "world"})
+    ET.SubElement(root_joint, "child", {"link": primary_root})
+    root.insert(0, world_link)
+    root.insert(1, root_joint)
+
+
+def _ensure_minimum_inertias(root: ET.Element) -> None:
+    """Ensure non-zero diagonal inertia on all inertial blocks."""
+    for link in root.findall("link"):
+        inertial = link.find("inertial")
+        if inertial is None:
+            continue
+        inertia = inertial.find("inertia")
+        if inertia is None:
+            continue
+        for axis in ("ixx", "iyy", "izz"):
+            if float(inertia.get(axis, 0.0)) <= 1e-12:
+                inertia.set(axis, _MIN_INERTIA)
+
+
 def sanitize_urdf_for_mujoco(urdf_str: str) -> str:
     """Prepare a Pinocchio URDF string so MuJoCo's parser can ingest it cleanly.
 
@@ -46,44 +92,10 @@ def sanitize_urdf_for_mujoco(urdf_str: str) -> str:
     2. Ensures moving virtual links have inertia >= mjMINVAL so MuJoCo doesn't
        reject them.
     """
-    root = ET.fromstring(urdf_str)  # nosec B314 -- urdf is trusted internal XML
-
-    child_links: set[str] = set()
-    for j in root.findall("joint"):
-        child_el = j.find("child")
-        if child_el is not None:
-            c_name = child_el.get("link")
-            if c_name:
-                child_links.add(c_name)
-    root_links = [
-        link.get("name", "")
-        for link in root.findall("link")
-        if link.get("name") and link.get("name") not in child_links
-    ]
-
-    if root_links and "world" not in [
-        link.get("name") for link in root.findall("link")
-    ]:
-        primary_root = root_links[0]
-        world_link = ET.Element("link", {"name": "world"})
-        rj_type = "fixed" if primary_root == "bench" else "floating"
-        root_joint = ET.Element("joint", {"name": "world_root_joint", "type": rj_type})
-        ET.SubElement(root_joint, "parent", {"link": "world"})
-        ET.SubElement(root_joint, "child", {"link": primary_root})
-        root.insert(0, world_link)
-        root.insert(1, root_joint)
-
-    # Ensure non-zero inertia on all inertial blocks
-    for link in root.findall("link"):
-        inertial = link.find("inertial")
-        if inertial is not None:
-            inertia = inertial.find("inertia")
-            if inertia is not None:
-                for axis in ("ixx", "iyy", "izz"):
-                    val = float(inertia.get(axis, 0.0))
-                    if val <= 1e-12:
-                        inertia.set(axis, _MIN_INERTIA)
-
+    root = ET.fromstring(urdf_str)  # nosec B314
+    root_links = _find_root_links(root)
+    _attach_world_root(root, root_links)
+    _ensure_minimum_inertias(root)
     return ET.tostring(root, encoding="unicode")
 
 
