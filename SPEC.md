@@ -333,8 +333,9 @@ Rows are keyed by pull request, not by a serial spec version: `| YYYY-MM-DD | #<
 | Date       | PR    | Changes                                                                                                                                                                                                                                                                                                                                                                                                |
 | ---------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 2026-10-13 | #495 | Re-sync vendored model-parity bundle to Repository_Management main (standard v2.1, assemble.py phase_names from RM#2089) |
-| 2026-10-13 | #487 | Add constrained contact dynamics GRF/CoP API (ground_reaction_forces) with real-Pinocchio standing test |
 | 2026-10-13 | #491 | Real-pink tests solve hand, bar and foot-height targets on the squat URDF under 1 cm; fixed the wrapper (pink.solve_ik with a QP backend, ground targets plant soles at sole depth, unknown frames rejected); IK capability raised to full. |
+| 2026-10-13 | #489 | Align ankle flexion URDF limits with the vendored parity standard [-20°, 50°]; closes bench-press start limit parity (#470) |
+| 2026-10-13 | #487 | Add constrained contact dynamics GRF/CoP API (ground_reaction_forces) with real-Pinocchio standing test |
 | 2026-10-13 | #486 | Add cross-engine test that loads the URDF in MuJoCo and Drake |
 | 2026-10-13 | #484 | Rename elbow_l, knee_l and neck to canonical joint names |
 | 2026-10-13 | #482 | Ground pelvis so foot soles rest on floor plane with grounded_pelvis_height helper |

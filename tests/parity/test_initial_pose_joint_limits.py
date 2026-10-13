@@ -71,7 +71,9 @@ def _joint_limit_violations(
     return violations
 
 
-@pytest.mark.parametrize("name,builder_cls", _BARBELL_BUILDERS, ids=[n for n, _ in _BARBELL_BUILDERS])
+@pytest.mark.parametrize(
+    "name,builder_cls", _BARBELL_BUILDERS, ids=[n for n, _ in _BARBELL_BUILDERS]
+)
 def test_initial_pose_within_joint_limits(
     name: str, builder_cls: type[ExerciseModelBuilder]
 ) -> None:
