@@ -102,6 +102,15 @@ def _both_feet_contacts() -> list[ContactPoint]:
     return _foot_corner_contacts("foot_l") + _foot_corner_contacts("foot_r")
 
 
+def foot_contact_points() -> list[ContactPoint]:
+    """Return the foot-ground contact points shared by every exercise.
+
+    Four sole corners per foot (``foot_l`` then ``foot_r``), the points used
+    by :func:`get_exercise_contacts` and by the ground reaction solver (#432).
+    """
+    return _both_feet_contacts()
+
+
 def _bench_contact_for(exercise_name: str) -> ContactPoint | None:
     """Return the back-on-bench contact point if *exercise_name* needs one."""
     if exercise_name != "bench_press":
@@ -146,7 +155,7 @@ def _validate_exercise_name(exercise_name: str) -> None:
 def _build_contact_spec(exercise_name: str) -> ContactSpec:
     """Assemble the contact spec for a validated exercise name."""
     return ContactSpec(
-        foot_contacts=_both_feet_contacts(),
+        foot_contacts=foot_contact_points(),
         bench_contact=_bench_contact_for(exercise_name),
         barbell_contacts=_barbell_contacts_for(exercise_name),
     )

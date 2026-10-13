@@ -27,23 +27,23 @@ deadlift_urdf = build_deadlift_model(
 
 Supported builders:
 
-| Function | Model |
-| --- | --- |
-| `build_squat_model` | Back squat with the barbell fixed to the torso/traps. |
-| `build_bench_press_model` | Supine bench press with hand-attached barbell. |
-| `build_deadlift_model` | Floor pull with hand-attached barbell. |
-| `build_snatch_model` | Wide-grip ground-to-overhead lift. |
-| `build_clean_and_jerk_model` | Two-phase Olympic lift. |
-| `build_gait_model` | Bodyweight gait model without barbell links. |
-| `build_sit_to_stand_model` | Bodyweight sit-to-stand model with its fixture. |
+| Function                     | Model                                                 |
+| ---------------------------- | ----------------------------------------------------- |
+| `build_squat_model`          | Back squat with the barbell fixed to the torso/traps. |
+| `build_bench_press_model`    | Supine bench press with hand-attached barbell.        |
+| `build_deadlift_model`       | Floor pull with hand-attached barbell.                |
+| `build_snatch_model`         | Wide-grip ground-to-overhead lift.                    |
+| `build_clean_and_jerk_model` | Two-phase Olympic lift.                               |
+| `build_gait_model`           | Bodyweight gait model without barbell links.          |
+| `build_sit_to_stand_model`   | Bodyweight sit-to-stand model with its fixture.       |
 
 Each convenience function accepts scalar anthropometry and loading inputs, then
 constructs the same immutable specs used by the builder classes:
 
-| Parameter | Meaning | Constraint |
-| --- | --- | --- |
-| `body_mass` | Total body mass in kg. | Must be positive. |
-| `height` | Body height in meters. | Must be positive. |
+| Parameter             | Meaning                                        | Constraint            |
+| --------------------- | ---------------------------------------------- | --------------------- |
+| `body_mass`           | Total body mass in kg.                         | Must be positive.     |
+| `height`              | Body height in meters.                         | Must be positive.     |
 | `plate_mass_per_side` | Added plate mass on each barbell sleeve in kg. | Must be non-negative. |
 
 Invalid geometry or physics inputs raise package exceptions derived from
@@ -164,6 +164,42 @@ tau = inverse_dynamics("squat", q, v, a)  # or inverse_dynamics(model, q, v, a)
 shape `(model.nq,)`, `v` and `a` shape `(model.nv,)`, all finite; violations
 raise `ValueError`. In a static pose (`v = a = 0`) the root vertical force
 `tau[2]` equals total mass times gravity.
+
+## Ground Reaction Forces and Centre of Pressure
+
+`pinocchio_models.ground_reaction_forces(exercise, q)` solves constrained
+contact dynamics for the foot-ground contacts of
+`shared.contact.contact_model.foot_contact_points()` (four sole corners per
+foot) and returns per-foot and total ground reaction forces plus the centre of
+pressure (CoP):
+
+```python
+import pinocchio as pin
+from pinocchio_models import ground_configuration, ground_reaction_forces
+from pinocchio_models.shared.parity.fingerprint import build_urdf, load_model
+
+model = load_model(build_urdf("gait"))
+q = ground_configuration(model, pin.neutral(model))  # soles on the floor
+grf = ground_reaction_forces("gait", q)
+grf.total_force          # (3,) N, ground on body, world axes; [2] ~= m * g
+grf.per_foot["foot_l"]   # FootGRF(force, moment, cop, in_contact)
+grf.cop                  # (3,) on the floor plane, or None
+grf.support_polygon      # (k, 2) convex hull of the active contact points
+```
+
+Formulation: quasi-static standing. Every non-root joint is locked at `q`
+(`pinocchio.buildReducedModel`, joints held by ideal servos); contact points
+within `contact_tolerance_m` (default 1 mm) of the floor `z = 0` become rigid
+bilateral `CONTACT_3D` constraints, and `pinocchio.constraintDynamics` solves
+at `v = 0`, `tau = 0` with proximal regularisation, which picks the
+minimum-norm force split among the redundant corner contacts. With three or
+more non-collinear active points the total vertical force equals `m * g`.
+
+No contact is explicit: a foot with no active point has zero force and moment
+and `cop=None`; with no active point at all, the total force and moment are
+zero and `grf.cop is None`. A welded root (`bench_press`) raises `ValueError`.
+The GRF/CoP math is engine-independent and lives in
+`pinocchio_models.shared.contact.grf`.
 
 ## Initial Pose Metadata
 

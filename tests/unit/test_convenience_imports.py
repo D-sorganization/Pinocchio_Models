@@ -70,3 +70,8 @@ class TestConvenienceImports:
 
         urdf = build_squat_model()
         assert "<robot" in urdf
+
+    def test_import_ground_reaction_forces(self) -> None:
+        from pinocchio_models import ground_reaction_forces
+
+        assert callable(ground_reaction_forces)
