@@ -18,6 +18,19 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#436 · Rename Elbow_L, Knee_L and Neck to Canonical Joint Names
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #436
+- **Branch:** feat/436-rename-canonical-joints
+- **PR:** #484
+- **Paths:** see #484
+- **Started:** 2026-10-13
+- **Last verified:** 2026-10-13 (`478af846`; collated from changes/436-rename-elbow-l-knee-l-and-neck-to-canoni.md)
+- **Summary:** Rename elbow_l, knee_l and neck to canonical joint names
+- **Next step:** Merge the PR.
+
 ### DL-#466 · Weld the Bench-Press Root at the Standard V2.0 Via-Pose
 
 - **State:** in_review
