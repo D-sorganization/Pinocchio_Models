@@ -348,9 +348,7 @@ def simulate_forward_dynamics(
     v_arr = np.zeros(model.nv) if v0 is None else _velocity(model, v0, "v0")
     require_positive(duration, "duration")
     points = _contact_points(contacts)
-    params = None
-    if ground_contact:
-        params = contact_params or default_contact_params(model, contacts=points)
+    params = _rollout_contact_params(model, points, ground_contact, contact_params)
     sim = _ContactSimulator(
         model, points, params, loop_q_ref=q_arr if loop_closure else None
     )
@@ -388,6 +386,18 @@ def simulate_forward_dynamics(
         final_grf=final,
         loop_wrench=loop_wrench,
     )
+
+
+def _rollout_contact_params(
+    model: Any,
+    points: Sequence[ContactPoint],
+    ground_contact: bool,
+    contact_params: PenaltyContactParams | None,
+) -> PenaltyContactParams | None:
+    """Penalty gains for a rollout; ``None`` when the floor is disabled."""
+    if not ground_contact:
+        return None
+    return contact_params or default_contact_params(model, contacts=points)
 
 
 class _ContactSimulator:

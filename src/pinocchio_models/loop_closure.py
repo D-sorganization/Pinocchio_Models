@@ -126,9 +126,24 @@ def right_hand_loop_constraint(
         grip_placement,
         pin.ReferenceFrame.LOCAL,
     )
-    constraint.corrector.Kp[:] = BAUMGARTE_KP
-    constraint.corrector.Kd[:] = 2.0 * np.sqrt(BAUMGARTE_KP)
+    _set_baumgarte(pin, constraint)
     return constraint
+
+
+def _set_baumgarte(pin: Any, constraint: Any) -> None:
+    """Set the Baumgarte gains across Pinocchio 3 and 4.
+
+    Pinocchio 3 exposes a mutable ``constraint.corrector``; Pinocchio 4 takes a
+    ``BaumgarteCorrectorParameters`` through ``setBaumgarteCorrectorParameters``.
+    """
+    kd = 2.0 * np.sqrt(BAUMGARTE_KP)
+    if hasattr(constraint, "corrector"):
+        constraint.corrector.Kp[:] = BAUMGARTE_KP
+        constraint.corrector.Kd[:] = kd
+        return
+    constraint.setBaumgarteCorrectorParameters(
+        pin.BaumgarteCorrectorParameters(BAUMGARTE_KP, kd)
+    )
 
 
 def loop_closure_error(
