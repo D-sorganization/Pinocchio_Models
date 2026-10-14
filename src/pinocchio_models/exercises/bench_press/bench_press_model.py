@@ -26,7 +26,10 @@ from pinocchio_models.shared.utils.urdf_helpers import add_fixed_joint, add_link
 
 # The bench is only an orientation/support frame (the bench itself is an
 # external constraint), so it carries a negligible mass and inertia.
-_BENCH_FRAME_MASS_KG: float = 1e-6
+BENCH_MASS: float = (
+    1e-4  # near-zero mass (kg) — bench mass is borne by ground (standard parity)
+)
+_BENCH_FRAME_MASS_KG: float = BENCH_MASS
 _BENCH_FRAME_INERTIA: float = 1e-9
 
 
