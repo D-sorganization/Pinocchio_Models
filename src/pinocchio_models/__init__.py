@@ -42,6 +42,10 @@ from pinocchio_models.kinematics import (
     ground_configuration,
     grounded_pelvis_height,
 )
+from pinocchio_models.loop_closure import (
+    loop_closure_forward_dynamics,
+    right_hand_loop_constraint,
+)
 from pinocchio_models.recording import RolloutRecording, record_rollout
 from pinocchio_models.shared.barbell import BarbellSpec
 from pinocchio_models.shared.body import BodyModelSpec
@@ -76,6 +80,8 @@ __all__ = [
     "grounded_pelvis_height",
     "holding_servo",
     "inverse_dynamics",
+    "loop_closure_forward_dynamics",
     "record_rollout",
+    "right_hand_loop_constraint",
     "simulate_forward_dynamics",
 ]

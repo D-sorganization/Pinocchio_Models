@@ -125,7 +125,10 @@ class SpecLiftBuilder(ExerciseModelBuilder):
 
     The default barbell attachment welds the shaft to ``hand_l`` where the
     spec start puts it and hangs the right grip marker at the spec grip
-    width; the squat overrides it to weld the bar to the torso. Bench press
+    width. A URDF is a tree, so ``hand_r`` is not welded here; forward
+    dynamics closes that loop with the 6-D constraint of
+    :func:`pinocchio_models.loop_closure.right_hand_loop_constraint` (#501).
+    The squat overrides it to weld the bar to the torso. Bench press
     sets ``free_root`` to False because its pelvis is placed by the bench
     weld instead of the free-flyer.
     """
@@ -151,7 +154,10 @@ class SpecLiftBuilder(ExerciseModelBuilder):
         body_links: dict[str, ET.Element],
         barbell_links: dict[str, ET.Element],
     ) -> None:
-        """Weld the shaft to ``hand_l`` at the spec start; mark the right grip."""
+        """Weld the shaft to ``hand_l`` at the spec start; mark the right grip.
+
+        The right-hand loop closure lives in ``pinocchio_models.loop_closure``.
+        """
         xyz, rpy = self.spec_start.bar_in("hand_l")
         add_fixed_joint(
             robot,
