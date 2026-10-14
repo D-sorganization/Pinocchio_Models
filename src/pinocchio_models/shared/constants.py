@@ -15,32 +15,25 @@ import math
 # --- Joint range-of-motion limits (radians) ---
 # Winter (2009) anatomically validated ranges.
 
-# Lumbar spine (flexion/extension about X-axis)
-# Kapandji (2008) cites ~20-35 deg extension; deadlift lockout requires >10 deg.
-LUMBAR_FLEXION_MIN: float = math.radians(-25)  # Extension ~25 deg
-LUMBAR_FLEXION_MAX: float = math.radians(
-    60
-)  # Flexion ~60 deg (floor pulls require >45°; fixes #63)
+# Lumbar spine (flexion/extension about X-axis) -- standard v2
+LUMBAR_FLEXION_MIN: float = math.radians(-30)  # Extension ~30 deg
+LUMBAR_FLEXION_MAX: float = math.radians(45)  # Flexion ~45 deg
 
-# Lumbar lateral bending (about Z-axis) -- Kapandji (2008)
-# ~20 deg each side
-LUMBAR_LATERAL_MIN: float = math.radians(-20)  # Left lateral bend
-LUMBAR_LATERAL_MAX: float = math.radians(20)  # Right lateral bend
+# Lumbar lateral bending (about Z-axis) -- standard v2
+LUMBAR_LATERAL_MIN: float = math.radians(-30)  # Left lateral bend ~30 deg
+LUMBAR_LATERAL_MAX: float = math.radians(30)  # Right lateral bend ~30 deg
 
-# Lumbar axial rotation (about Y-axis) -- Kapandji (2008)
-# ~5-10 deg each side (limited by facet joint orientation)
-LUMBAR_ROTATION_MIN: float = math.radians(-10)  # Left rotation
-LUMBAR_ROTATION_MAX: float = math.radians(10)  # Right rotation
+# Lumbar axial rotation (about Y-axis) -- standard v2
+LUMBAR_ROTATION_MIN: float = math.radians(-30)  # Left rotation ~30 deg
+LUMBAR_ROTATION_MAX: float = math.radians(30)  # Right rotation ~30 deg
 
-# Neck (flexion/extension about Y)
-# Winter (2009) cites ~50-70° flexion and ~60° extension.
-NECK_FLEXION_MIN: float = math.radians(-60)  # Extension ~60 deg
-NECK_FLEXION_MAX: float = math.radians(70)  # Flexion ~70 deg
+# Neck (flexion/extension about Y) -- standard v2
+NECK_FLEXION_MIN: float = math.radians(-30)  # Extension ~30 deg
+NECK_FLEXION_MAX: float = math.radians(30)  # Flexion ~30 deg
 
-# Shoulder (sagittal plane flexion/extension)
-# Extension: -30 deg; Full flexion: 180 deg -- Winter (2009)
-SHOULDER_FLEXION_MIN: float = math.radians(-30)  # Extension
-SHOULDER_FLEXION_MAX: float = math.radians(180)  # Full flexion
+# Shoulder (sagittal plane flexion/extension) -- standard v2
+SHOULDER_FLEXION_MIN: float = math.radians(-60)  # Extension ~60 deg
+SHOULDER_FLEXION_MAX: float = math.radians(180)  # Full flexion 180 deg
 
 # Shoulder adduction/abduction (frontal plane, about the mirrored local
 # X-axis). The coordinate's positive direction is "toward the midline"
@@ -65,9 +58,9 @@ SHOULDER_ROTATION_MAX: float = math.radians(90)  # Internal rotation
 ELBOW_FLEXION_MIN: float = math.radians(0)
 ELBOW_FLEXION_MAX: float = math.radians(150)  # 2.618
 
-# Wrist (flexion/extension about Y) -- Winter (2009)
-WRIST_FLEXION_MIN: float = math.radians(-80)  # Extension
-WRIST_FLEXION_MAX: float = math.radians(70)  # Flexion
+# Wrist (flexion/extension about Y) -- standard v2
+WRIST_FLEXION_MIN: float = math.radians(-70)  # Extension ~70 deg
+WRIST_FLEXION_MAX: float = math.radians(70)  # Flexion ~70 deg
 
 # Wrist radial/ulnar deviation (about Z-axis) -- Winter (2009)
 # Radial deviation ~20 deg, ulnar deviation ~30 deg
