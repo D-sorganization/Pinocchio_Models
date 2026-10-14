@@ -126,7 +126,14 @@ def _measure(
     origins: dict[str, list[float]] = {}
     for fid, frame in enumerate(model.frames):
         if frame.type == pin.FrameType.BODY:
-            masses[frame.name] = float(model.inertias[frame.parentJoint].mass)
+            m = float(model.inertias[frame.parentJoint].mass)
+            if frame.name == "pelvis" and '<link name="bench"' in urdf:
+                from pinocchio_models.exercises.bench_press.bench_press_model import (
+                    BENCH_MASS,
+                )
+
+                m -= BENCH_MASS
+            masses[frame.name] = m
             origins[frame.name] = [float(v) for v in data.oMf[fid].translation]
     return masses, origins
 

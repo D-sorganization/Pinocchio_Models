@@ -131,3 +131,13 @@ class TestBenchPressModelBuilder:
         assert root.tag == "robot"
         links = root.findall("link")
         assert len(links) >= 33
+
+    def test_bench_mass_parity(self) -> None:
+        """The bench mass is near-zero (1e-4 kg, borne by ground), matching cross-engine parity."""
+        xml_str = build_bench_press_model()
+        root = ET.fromstring(xml_str)
+        bench_link = root.find(".//link[@name='bench']")
+        assert bench_link is not None
+        mass_elem = bench_link.find(".//inertial/mass")
+        assert mass_elem is not None
+        assert float(mass_elem.get("value", "0")) == pytest.approx(1e-4)
