@@ -50,6 +50,12 @@ from pinocchio_models.contact_dynamics import (
     ground_reaction_forces,
 )
 from pinocchio_models.dynamics import _resolve_model
+from pinocchio_models.loop_closure import (
+    has_right_hand_loop,
+    loop_constraint_vector,
+    right_hand_loop_constraint,
+    solve_constrained,
+)
 from pinocchio_models.shared.contact.contact_model import (
     ContactPoint,
     foot_contact_points,
@@ -137,10 +143,13 @@ class ForwardDynamicsStep:
     Attributes:
         ddq: Generalised accelerations from ``pinocchio.aba``, ``(nv,)``.
         grf: Ground reaction of the penalty contacts at this state.
+        loop_wrench: 6-D right-hand loop-closure constraint wrench
+            (``lambda_c``), or ``None`` when no loop is closed (#501).
     """
 
     ddq: np.ndarray
     grf: GroundReactionForces
+    loop_wrench: np.ndarray | None = None
 
 
 @dataclass(frozen=True)
@@ -158,6 +167,8 @@ class ForwardDynamicsRollout:
         dt: Integration step (s).
         contact_params: Penalty gains used, or ``None`` without contact.
         final_grf: Ground reaction at the last sample.
+        loop_wrench: Right-hand loop-closure wrench at each sample,
+            shape ``(n + 1, 6)``, or ``None`` when no loop is closed (#501).
     """
 
     time: np.ndarray
@@ -168,6 +179,7 @@ class ForwardDynamicsRollout:
     dt: float
     contact_params: PenaltyContactParams | None
     final_grf: GroundReactionForces
+    loop_wrench: np.ndarray | None = None
 
 
 def default_contact_params(
@@ -244,6 +256,7 @@ def contact_forward_dynamics(
     *,
     contact_params: PenaltyContactParams | None = None,
     contacts: Sequence[ContactPoint] | None = None,
+    loop_closure: bool = True,
 ) -> ForwardDynamicsStep:
     """Accelerations ``aba(q, v, tau, fext)`` with penalty ground contact.
 
@@ -257,9 +270,14 @@ def contact_forward_dynamics(
         contact_params: Penalty gains; defaults to
             :func:`default_contact_params`.
         contacts: Contact points; defaults to :func:`foot_contact_points`.
+        loop_closure: Close the right-hand loop (``hand_r`` welded to the
+            ``barbell_grip_r`` frame by a 6-D constraint, #501) when the model
+            has both frames; the offset is taken at *q*. ``False`` leaves the
+            right arm free.
 
     Returns:
-        :class:`ForwardDynamicsStep` with accelerations and ground reaction.
+        :class:`ForwardDynamicsStep` with accelerations, ground reaction and
+        the loop-closure wrench.
 
     Raises:
         ValueError: Wrong shapes, non-finite values, actuated root, welded
@@ -267,12 +285,19 @@ def contact_forward_dynamics(
     """
     model = _resolve_model(exercise)
     params = contact_params or default_contact_params(model, contacts=contacts)
-    sim = _ContactSimulator(model, _contact_points(contacts), params)
     q_arr, v_arr = _config(model, q), _velocity(model, v)
+    sim = _ContactSimulator(
+        model,
+        _contact_points(contacts),
+        params,
+        loop_q_ref=q_arr if loop_closure else None,
+    )
     tau_arr = _velocity(model, tau, "tau")
     _require_unactuated_root(tau_arr)
     ddq, samples = sim.accelerations(q_arr, v_arr, tau_arr)
-    return ForwardDynamicsStep(ddq=ddq, grf=sim.ground_reaction(samples))
+    return ForwardDynamicsStep(
+        ddq=ddq, grf=sim.ground_reaction(samples), loop_wrench=sim.loop_wrench
+    )
 
 
 def simulate_forward_dynamics(
@@ -286,6 +311,7 @@ def simulate_forward_dynamics(
     ground_contact: bool = True,
     contact_params: PenaltyContactParams | None = None,
     contacts: Sequence[ContactPoint] | None = None,
+    loop_closure: bool = True,
 ) -> ForwardDynamicsRollout:
     """Integrate ``pinocchio.aba`` with penalty ground contact over *duration*.
 
@@ -303,6 +329,10 @@ def simulate_forward_dynamics(
         contact_params: Penalty gains; defaults to
             :func:`default_contact_params`.
         contacts: Contact points; defaults to :func:`foot_contact_points`.
+        loop_closure: Close the right-hand loop (``hand_r`` welded to the
+            ``barbell_grip_r`` frame by a 6-D constraint, #501) when the model
+            has both frames; the offset is taken at *q0*. ``False`` leaves
+            the right arm free.
 
     Returns:
         The :class:`ForwardDynamicsRollout` (``ceil(duration / dt)`` steps).
@@ -321,7 +351,9 @@ def simulate_forward_dynamics(
     params = None
     if ground_contact:
         params = contact_params or default_contact_params(model, contacts=points)
-    sim = _ContactSimulator(model, points, params)
+    sim = _ContactSimulator(
+        model, points, params, loop_q_ref=q_arr if loop_closure else None
+    )
     if servo is not None:
         _require_servo_matches(model, servo)
     step = _resolve_time_step(sim, q_arr, servo, duration, dt)
@@ -329,12 +361,15 @@ def simulate_forward_dynamics(
     n_steps = int(np.ceil(duration / step - 1e-9))
     qs, vs = np.empty((n_steps + 1, model.nq)), np.empty((n_steps + 1, model.nv))
     forces, heights = np.empty((n_steps + 1, 3)), np.empty(n_steps + 1)
+    loop_wrench = np.zeros((n_steps + 1, 6)) if sim.has_loop else None
     for k in range(n_steps + 1):
         tau = _servo_torque(pin, model, servo, q_arr, v_arr)
         ddq, samples = sim.accelerations(q_arr, v_arr, tau)
         qs[k], vs[k] = q_arr, v_arr
         forces[k] = sum((s.force for s in samples), np.zeros(3))
         heights[k] = sim.min_height
+        if loop_wrench is not None:
+            loop_wrench[k] = sim.loop_wrench
         if k == n_steps:
             final = sim.ground_reaction(samples)
             break
@@ -351,6 +386,7 @@ def simulate_forward_dynamics(
         dt=step,
         contact_params=params,
         final_grf=final,
+        loop_wrench=loop_wrench,
     )
 
 
@@ -362,6 +398,7 @@ class _ContactSimulator:
         model: Any,
         points: Sequence[ContactPoint],
         params: PenaltyContactParams | None,
+        loop_q_ref: np.ndarray | None = None,
     ) -> None:
         import pinocchio as pin
 
@@ -380,6 +417,17 @@ class _ContactSimulator:
         self._params = params
         self._in_contact = [False] * len(self._points)
         self.min_height = float("inf")
+        self._loops = None
+        self.loop_wrench: np.ndarray | None = None
+        if loop_q_ref is not None and has_right_hand_loop(model):
+            self._loops = loop_constraint_vector(
+                [right_hand_loop_constraint(model, loop_q_ref)]
+            )
+
+    @property
+    def has_loop(self) -> bool:
+        """Whether the right-hand loop closure is part of the solve."""
+        return self._loops is not None
 
     def accelerations(
         self, q: np.ndarray, v: np.ndarray, tau: np.ndarray
@@ -409,7 +457,16 @@ class _ContactSimulator:
             samples.append(
                 ContactForceSample(foot=cp.frame_name, position=position, force=force)
             )
-        ddq = np.array(pin.aba(model, data, q, v, tau, fext))
+        if self._loops is None:
+            ddq = np.array(pin.aba(model, data, q, v, tau, fext))
+        else:
+            # constraintDynamics takes no external forces: fold them into tau
+            # as the equivalent generalised force J^T f = rnea(0) - rnea(fext).
+            zeros = np.zeros(model.nv)
+            tau_free = np.array(pin.rnea(model, data, q, v, zeros))
+            tau_ext = tau_free - np.array(pin.rnea(model, data, q, v, zeros, fext))
+            step = solve_constrained(model, q, v, tau + tau_ext, self._loops, data)
+            ddq, self.loop_wrench = step.ddq, step.wrench
         require_finite(ddq, "ddq")
         return ddq, samples
 
