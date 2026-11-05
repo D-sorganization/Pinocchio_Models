@@ -127,3 +127,30 @@ def test_lightweight_ci_is_hosted_eligible_but_heavy_jobs_stay_local() -> None:
     assert jobs["tests"]["strategy"]["max-parallel"] == 3
     for job_name in ("benchmarks", "profiling"):
         assert "d-sorg-fleet" in jobs[job_name]["runs-on"]
+
+
+def test_ci_marker_expressions_use_registered_markers() -> None:
+    """Regression for #512: every marker in a CI ``-m`` expression is registered.
+
+    With ``--strict-markers``, pytest 9.2 rejects unknown markers in ``-m``
+    expressions; under xdist the usage error surfaces as an INTERNALERROR
+    worker crash instead of a readable message.
+    """
+    import re  # noqa: PLC0415
+    import tomllib  # noqa: PLC0415
+
+    pyproject = tomllib.loads((_REPO_ROOT / "pyproject.toml").read_text("utf-8"))
+    declared = pyproject["tool"]["pytest"]["ini_options"]["markers"]
+    registered = {entry.split(":", 1)[0].strip() for entry in declared}
+
+    text = _CI_WORKFLOW.read_text(encoding="utf-8")
+    expressions = re.findall(r'-m\s+"([^"]+)"', text)
+    used = {
+        word
+        for expression in expressions
+        for word in re.findall(r"[A-Za-z_]\w*", expression)
+        if word not in {"and", "or", "not"}
+    }
+
+    assert expressions, "expected a -m marker expression in ci-standard.yml"
+    assert used <= registered, f"unregistered markers: {sorted(used - registered)}"
