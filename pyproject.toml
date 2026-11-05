@@ -145,6 +145,7 @@ markers = [
     "live_simulation: marks tests as requiring live simulation environment",
     "requires_network: needs real outbound network",
     "heavy: resource-intensive tests",
+    "requires_pinocchio: needs the Pinocchio (pin) runtime library",
 ]
 
 [tool.coverage.run]
