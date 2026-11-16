@@ -18,6 +18,58 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Active
 
+### DL-#501 · Constrain the Right Hand to the Bar With a 6-D Loop Closure in Forward Dynamics
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #501
+- **Branch:** fix/501-right-hand-loop-closure
+- **PR:** #502
+- **Paths:** see #502
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`a3cd6ad0`; collated from changes/501-constrain-the-right-hand-to-the-bar-with.md)
+- **Summary:** Constrain the right hand to the bar with a 6-D loop closure in forward dynamics
+- **Next step:** Merge the PR.
+
+### DL-#451 · Set Bench Frame Mass to 1E-4 to Match Cross-Engine Parity Standard
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #451
+- **Branch:** fix/451-bench-mass
+- **PR:** #499
+- **Paths:** see #499
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`4c700e39`; collated from changes/451-set-bench-frame-mass-to-1e-4-to-match-cr.md)
+- **Summary:** Set bench frame mass to 1e-4 to match cross-engine parity standard
+- **Next step:** Merge the PR.
+
+### DL-#438 · Add Headless Record_Rollout That Records an Exercise Rollout as a Self-Contained Meshcat HTML Animation
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #438
+- **Branch:** feat/438-record
+- **PR:** #493, #498
+- **Paths:** see #493
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`a0fb6798`; collated from changes/438-prettier-format-the-collate-generated-sp.md)
+- **Summary:** Add headless record_rollout that records an exercise rollout as a self-contained Meshcat HTML animation
+- **Next step:** Merge the PR.
+
+### DL-#433 · Resolve Ledgered Joint Limits Under Standard V2 Axis Conventions
+
+- **State:** in_review
+- **Owner:** unassigned
+- **Issue:** #433
+- **Branch:** fix/433-standard-v2-joint-limits
+- **PR:** #500
+- **Paths:** see #500
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`7d3d60fa`; collated from changes/433-resolve-ledgered-joint-limits-standard-v2.md)
+- **Summary:** Resolve ledgered joint limits under standard v2 axis conventions
+- **Next step:** Merge the PR.
+
 ### DL-#437 · Add Cross-Engine Test That Loads the URDF in MuJoCo and Drake
 
 - **State:** in_review
@@ -137,16 +189,68 @@ reachable from any live state and `abandoned` from `parked`.
 
 ## Shipped (Last 90 Days)
 
+### DL-#514 · Unblock Collate Change Fragments on Main: Drop the Stale in_Review State From the #497 Fragment for Shipped DL-#425
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #514
+- **Branch:** merged via #515
+- **PR:** #515
+- **Paths:** see #515
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`649529e3`; collated from changes/514-unblock-collate-change-fragments-on-main.md)
+- **Summary:** Unblock Collate Change Fragments on main: drop the stale in_review state from the #497 fragment for shipped DL-#425
+- **Next step:** Shipped in PR #515.
+
+### DL-#512 · Register the Requires_Pinocchio Pytest Marker so Pytest 9.2 Accepts the CI -m Expression
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #512
+- **Branch:** merged via #513
+- **PR:** #513
+- **Paths:** see #513
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`d754a89d`; collated from changes/512-register-the-requires-pinocchio-pytest-m.md)
+- **Summary:** Register the requires_pinocchio pytest marker so pytest 9.2 accepts the CI -m expression
+- **Next step:** Shipped in PR #513.
+
+### DL-#430 · Add Aba Forward-Dynamics API With Penalty Ground Contact and Real Crocoddyl OCP Tests (Fix OCP for Crocoddyl >= 2)
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #430
+- **Branch:** merged via #494
+- **PR:** #494
+- **Paths:** see #494
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`ffec35c7`; collated from changes/430-add-aba-forward-dynamics-api-with-penalt.md)
+- **Summary:** Add aba forward-dynamics API with penalty ground contact and real Crocoddyl OCP tests (fix OCP for Crocoddyl >= 2)
+- **Next step:** Shipped in PR #494.
+
+### DL-#2567 · Delete the Legacy .agent/ Skill and Workflow Copies; Agy and Codex Read .agents/ (Repository_Management#2567)
+
+- **State:** shipped
+- **Owner:** unassigned
+- **Issue:** #2567
+- **Branch:** merged via #511
+- **PR:** #511
+- **Paths:** see #511
+- **Started:** 2026-11-05
+- **Last verified:** 2026-11-05 (`c7680b45`; collated from changes/2567-delete-the-legacy-agent-skill-and-workfl.md)
+- **Summary:** Delete the legacy .agent/ skill and workflow copies; agy and Codex read .agents/ (Repository_Management#2567)
+- **Next step:** Shipped in PR #511.
+
 ### DL-#425 · Re-Sync Vendored Model-Parity Bundle to Repository_Management Main (Standard V2.1, assemble.py Phase_Names From RM#2089)
 
 - **State:** shipped
 - **Owner:** unassigned
 - **Issue:** #425
 - **Branch:** merged via #495
-- **PR:** #495
+- **PR:** #495, #497
 - **Paths:** see #495
 - **Started:** 2026-10-13
-- **Last verified:** 2026-10-13 (`bb059f97`; collated from changes/425-parity-bundle-resync.md)
+- **Last verified:** 2026-11-05 (`9183a5b6`; collated from changes/425-fingerprint-reports-the-standard-s-order.md)
 - **Summary:** Re-sync vendored model-parity bundle to Repository_Management main (standard v2.1, assemble.py phase_names from RM#2089)
 - **Next step:** Shipped in PR #495.
 
