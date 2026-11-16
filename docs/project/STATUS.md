@@ -41,4 +41,4 @@
 
 - Decide whether to complete and integrate `rust_core/` into the package build and CI or deprecate and remove it.
 - Determine whether stale remote branches (`bolt/*`, `consolidated/*`, `fix/*`) should be pruned.
-- Confirm whether `.gaai/` planning artifacts and local sub-agent rules should be retired in favor of standard fleet workflows.
+- `.gaai/` planning artifacts were removed (RM #2725). Use standard fleet workflows.
